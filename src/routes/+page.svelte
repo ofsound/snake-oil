@@ -33,7 +33,7 @@
 
 <Auth />
 
-Maybe try this again now that i tried to add access to vercel from neon
+try this again now that i tried to add a cname
 
 <form
 	method="POST"
