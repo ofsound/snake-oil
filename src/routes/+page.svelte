@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Auth from '$lib/components/Auth.svelte';
+	import NeonAuth from '$lib/components/NeonAuth.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
@@ -31,7 +31,7 @@
 	});
 </script>
 
-<Auth />
+<NeonAuth />
 
 Hello!
 

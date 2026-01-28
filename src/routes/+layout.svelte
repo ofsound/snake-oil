@@ -1,7 +1,7 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
-	import { authClient } from '$lib/auth';
 	import { onMount } from 'svelte';
+	import { authClient } from '$lib/auth';
+	import favicon from '$lib/assets/favicon.svg';
 
 	let { children } = $props();
 	let session = $state<any>(null);
