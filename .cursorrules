@@ -1,0 +1,27 @@
+# Cursor Rules for Svelte Project
+
+## Critical: Svelte Code Quality
+
+**MANDATORY**: When writing or modifying ANY Svelte (.svelte) file or any .ts file in the src directory, you MUST:
+
+1. Use the `svelte-autofixer` MCP tool (via `user-svelte` server) to analyze the code
+2. Call it with the complete Svelte component code
+3. Iterate until no issues or suggestions are returned
+4. Apply all suggested fixes before finalizing the code
+
+This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
+
+## Svelte MCP Tools
+
+- **svelte-autofixer**: MUST be used for all Svelte code changes
+- **list-sections**: Use FIRST when asked about Svelte/SvelteKit topics
+- **get-documentation**: Fetch relevant docs after listing sections
+- **playground-link**: Only on user request, never for code written to files
+
+## Project Context
+
+- Svelte 5 with SvelteKit
+- TypeScript
+- Firebase Admin SDK for server-side operations
+- D3.js for charts
+- Tailwind CSS for styling

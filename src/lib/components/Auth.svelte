@@ -261,11 +261,4 @@
 	.debug-info p {
 		margin: 0.25rem 0;
 	}
-
-	.debug-info code {
-		background: #e0f2fe;
-		padding: 0.125rem 0.25rem;
-		border-radius: 2px;
-		font-size: 0.8rem;
-	}
 </style>

@@ -69,32 +69,6 @@ Hello!
 	</button>
 </form>
 
-<!-- <div class="player-container">
-  <h2>My Library</h2>
-  <ul>
-    {#each data.tracks as track}
-      <li>
-        <button on:click={() => currentTrackUrl = track.url}>
-          Play {track.name}
-        </button>
-      </li>
-    {each}
-  </ul>
-
-  {#if currentTrackUrl}
-    <div class="now-playing">
-      <audio controls src={currentTrackUrl} autoplay>
-        Your browser does not support the audio element.
-      </audio>
-    </div>
-  {/if}
-</div>
-
-<style>
-  .player-container { padding: 20px; }
-  .now-playing { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
-</style> -->
-
 <main class="container">
 	<h2>Music Library</h2>
 
