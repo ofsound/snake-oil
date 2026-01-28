@@ -33,7 +33,7 @@
 
 <Auth />
 
-Hello!
+Maybe try this again now that i tried to add access to vercel from neon
 
 <form
 	method="POST"
