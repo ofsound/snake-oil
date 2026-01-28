@@ -3,6 +3,10 @@
 		"svelte": {
 			"command": "npx",
 			"args": ["-y", "@sveltejs/mcp"]
+		},
+		"Neon": {
+			"url": "https://mcp.neon.tech/mcp",
+			"headers": {}
 		}
 	}
 }
