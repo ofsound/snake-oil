@@ -1,8 +1,11 @@
-import { env } from '$env/dynamic/public';
 import type { Handle } from '@sveltejs/kit';
+
+import { eq } from 'drizzle-orm';
+
+import { env } from '$env/dynamic/public';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Get session from cookies using server-side fetch

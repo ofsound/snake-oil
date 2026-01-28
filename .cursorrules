@@ -22,6 +22,6 @@ This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
 
 - Svelte 5 with SvelteKit
 - TypeScript
-- Firebase Admin SDK for server-side operations
-- D3.js for charts
 - Tailwind CSS for styling
+- Neon Postgres Database
+- Neon Auth
