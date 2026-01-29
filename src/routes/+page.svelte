@@ -1,5 +1,5 @@
 <script lang="ts">
-	import NeonAuth from '$lib/components/NeonAuth.svelte';
+	import AuthForms from '$lib/components/AuthForms.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
@@ -31,7 +31,7 @@
 	});
 </script>
 
-<NeonAuth />
+<AuthForms />
 
 <h1>Here we go again...</h1>
 
@@ -82,7 +82,7 @@
 				<li class:active={currentTrack?.id === track.id}>
 					<div class="track-info">
 						<strong>{track.name}</strong>
-						<!-- <span>Added: {new Date(track.createdAt).toLocaleDateString()}</span> -->
+						<span>Added: {track.createdAt?.toLocaleDateString()}</span>
 					</div>
 					<button onclick={() => selectTrack(track)}>
 						{currentTrack?.id === track.id ? 'Playing...' : 'Play'}
