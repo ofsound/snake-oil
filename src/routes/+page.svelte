@@ -33,7 +33,8 @@
 
 <NeonAuth />
 
-Hello!
+What a holy mess of Auth nonsense. CORS this, cors that. Server-side rendering this, server-side,
+client side.
 
 <form
 	method="POST"
