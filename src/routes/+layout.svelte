@@ -36,9 +36,10 @@
 	<header class="bg-slate-200 px-4 py-2">
 		<div class="flex justify-between gap-2">
 			<a href="/" class="font-bold">snakeoil.csstune.com</a>
-			<div class="flex gap-4">
+			<div class="flex flex-1 gap-4">
+				<a href="/create" class="mr-auto text-blue-500 hover:text-blue-700">create quiz</a>
 				<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
-				<div>/</div>
+
 				<button
 					type="button"
 					onclick={handleSignOut}
