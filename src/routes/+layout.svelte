@@ -1,7 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 
-	import { useSessionWithInitialData } from '$lib/auth-client';
+	import { useSessionWithInitialData, authClient } from '$lib/auth-client';
 
 	import favicon from '$lib/assets/favicon.svg';
 	import type { LayoutProps } from './$types';
@@ -13,6 +13,21 @@
 		data.session && data.user ? { session: data.session, user: data.user } : null;
 
 	const session = useSessionWithInitialData(initialSessionData);
+
+	let loading = $state(false);
+	let error = $state<string | null>(null);
+
+	async function handleSignOut() {
+		loading = true;
+		try {
+			await authClient.signOut();
+		} catch (err: unknown) {
+			console.error('Sign out error:', err);
+			error = err instanceof Error ? err.message : 'Failed to sign out';
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -21,7 +36,17 @@
 	<header class="bg-slate-200 px-4 py-2">
 		<div class="flex justify-between gap-2">
 			<a href="/" class="font-bold">snakeoil.csstune.com</a>
-			<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
+			<div class="flex gap-4">
+				<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
+				<button
+					type="button"
+					onclick={handleSignOut}
+					disabled={loading}
+					class="font-inherit cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+				>
+					log out
+				</button>
+			</div>
 		</div>
 	</header>
 {/if}
