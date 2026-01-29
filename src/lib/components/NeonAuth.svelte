@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { authClient } from '$lib/auth';
+	import { authClient } from '$lib/auth-client';
 	import { onMount } from 'svelte';
 
-	let session = $state<any>(null);
+	const sessionStore = authClient.useSession();
 	let email = $state('');
 	let password = $state('');
 	let name = $state('');
@@ -10,30 +10,11 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
+	const session = $derived($sessionStore.data);
+
 	onMount(async () => {
-		await checkSession();
+		// Session is automatically tracked by useSession hook
 	});
-
-	async function checkSession() {
-		try {
-			const result = await authClient.getSession();
-			console.log('Session check result:', result);
-
-			// Handle the response format { data: Session | null, error: Error | null }
-			if (result.data) {
-				session = result.data;
-			} else if (result.error) {
-				console.error('Session error:', result.error);
-				session = null;
-			} else {
-				// If data is null and no error, user is not logged in
-				session = null;
-			}
-		} catch (err) {
-			console.error('Error getting session:', err);
-			session = null;
-		}
-	}
 
 	async function handleSignIn() {
 		loading = true;
@@ -48,23 +29,24 @@
 
 			// Check if sign-in was successful
 			if (result.error) {
-				error = result.error.message || 'Failed to sign in';
+				const msg = result.error.message || 'Failed to sign in';
+				error =
+					msg.toLowerCase().includes('user not found') || msg.toLowerCase().includes('no user')
+						? 'No account with this email. Sign up first, then sign in.'
+						: msg;
 				return;
 			}
 
 			if (result.data) {
-				console.log('Sign in successful, checking session...');
-				// Wait a bit for cookies to be set
-				await new Promise((resolve) => setTimeout(resolve, 100));
-				await checkSession();
+				console.log('Sign in successful');
 				email = '';
 				password = '';
 			} else {
 				error = 'Sign in failed - no data returned';
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Sign in error:', err);
-			error = err.message || 'Failed to sign in';
+			error = err instanceof Error ? err.message : 'Failed to sign in';
 		} finally {
 			loading = false;
 		}
@@ -88,18 +70,16 @@
 			}
 
 			if (result.data) {
-				console.log('Sign up successful, checking session...');
-				await new Promise((resolve) => setTimeout(resolve, 100));
-				await checkSession();
+				console.log('Sign up successful');
 				email = '';
 				password = '';
 				name = '';
 			} else {
 				error = 'Sign up failed - no data returned';
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			console.error('Sign up error:', err);
-			error = err.message || 'Failed to sign up';
+			error = err instanceof Error ? err.message : 'Failed to sign up';
 		} finally {
 			loading = false;
 		}
@@ -109,9 +89,9 @@
 		loading = true;
 		try {
 			await authClient.signOut();
-			session = null;
-		} catch (err: any) {
-			error = err.message || 'Failed to sign out';
+		} catch (err: unknown) {
+			console.error('Sign out error:', err);
+			error = err instanceof Error ? err.message : 'Failed to sign out';
 		} finally {
 			loading = false;
 		}
@@ -122,7 +102,6 @@
 	<div class="auth-container">
 		<div class="auth-card">
 			<h2>Welcome back!</h2>
-
 			<p>Email: {session.user?.email}</p>
 			{#if session.user?.name}
 				<p>Name: {session.user.name}</p>
@@ -260,12 +239,5 @@
 
 	.debug-info p {
 		margin: 0.25rem 0;
-	}
-
-	.debug-info code {
-		background: #e0f2fe;
-		padding: 0.125rem 0.25rem;
-		border-radius: 2px;
-		font-size: 0.8rem;
 	}
 </style>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Auth from '$lib/components/Auth.svelte';
+	import NeonAuth from '$lib/components/NeonAuth.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
@@ -31,9 +31,9 @@
 	});
 </script>
 
-<Auth />
+<NeonAuth />
 
-try this again now that i tried to add a cname
+Hello!
 
 <form
 	method="POST"
@@ -69,32 +69,6 @@ try this again now that i tried to add a cname
 	</button>
 </form>
 
-<!-- <div class="player-container">
-  <h2>My Library</h2>
-  <ul>
-    {#each data.tracks as track}
-      <li>
-        <button on:click={() => currentTrackUrl = track.url}>
-          Play {track.name}
-        </button>
-      </li>
-    {each}
-  </ul>
-
-  {#if currentTrackUrl}
-    <div class="now-playing">
-      <audio controls src={currentTrackUrl} autoplay>
-        Your browser does not support the audio element.
-      </audio>
-    </div>
-  {/if}
-</div>
-
-<style>
-  .player-container { padding: 20px; }
-  .now-playing { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
-</style> -->
-
 <main class="container">
 	<h2>Music Library</h2>
 
@@ -102,7 +76,7 @@ try this again now that i tried to add a cname
 		<p>No tracks found. Go to the upload page to add some!</p>
 	{:else}
 		<ul class="track-list">
-			{#each data.tracks as track}
+			{#each data.tracks as track (track.id)}
 				<li class:active={currentTrack?.id === track.id}>
 					<div class="track-info">
 						<strong>{track.name}</strong>
