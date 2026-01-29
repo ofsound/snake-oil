@@ -119,43 +119,73 @@
 </script>
 
 {#if session}
-	<div class="auth-container">
-		<div class="auth-card">
-			<h2>Welcome back!</h2>
+	<div class="flex min-h-[50vh] items-center justify-center p-8">
+		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
+			<h2 class="mt-0 mb-6">Welcome back!</h2>
 			<p>Email: {session.user?.email}</p>
 			{#if session.user?.name}
 				<p>Name: {session.user.name}</p>
 			{/if}
-			<button onclick={handleSignOut} disabled={loading}>
+			<button
+				onclick={handleSignOut}
+				disabled={loading}
+				class="mb-2 w-full cursor-pointer rounded border-none bg-[#007bff] px-3 py-3 text-base text-white hover:bg-[#0056b3] disabled:cursor-not-allowed disabled:opacity-60"
+			>
 				{loading ? 'Signing out...' : 'Sign Out'}
 			</button>
 		</div>
 	</div>
 {:else}
-	<div class="auth-container">
-		<div class="auth-card">
-			<h2>{isSignUp ? 'Sign Up' : 'Sign In'}</h2>
+	<div class="flex min-h-[50vh] items-center justify-center p-8">
+		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
+			<h2 class="mt-0 mb-6">{isSignUp ? 'Sign Up' : 'Sign In'}</h2>
 
 			{#if error}
-				<div class="error">{error}</div>
+				<div class="mb-4 rounded bg-[#fee] px-3 py-3 text-[#c33]">{error}</div>
 			{/if}
 
-			<div class="debug-info">
-				<p>
+			<div
+				class="mb-4 rounded border border-[#bae6fd] bg-[#f0f9ff] px-3 py-3 text-sm text-[#0c4a6e]"
+			>
+				<p class="my-1">
 					<strong>Debug:</strong> Check browser DevTools → Application → Cookies to see if auth cookies
 					are set after sign-in.
 				</p>
-				<p>Check the browser console for detailed logs of sign-in and session responses.</p>
+				<p class="my-1">
+					Check the browser console for detailed logs of sign-in and session responses.
+				</p>
 			</div>
 
 			{#if isSignUp}
-				<input type="text" placeholder="Name" bind:value={name} disabled={loading} />
+				<input
+					type="text"
+					placeholder="Name"
+					bind:value={name}
+					disabled={loading}
+					class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
+				/>
 			{/if}
 
-			<input type="email" placeholder="Email" bind:value={email} disabled={loading} />
-			<input type="password" placeholder="Password" bind:value={password} disabled={loading} />
+			<input
+				type="email"
+				placeholder="Email"
+				bind:value={email}
+				disabled={loading}
+				class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
+			/>
+			<input
+				type="password"
+				placeholder="Password"
+				bind:value={password}
+				disabled={loading}
+				class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
+			/>
 
-			<button onclick={isSignUp ? handleSignUp : handleSignIn} disabled={loading}>
+			<button
+				onclick={isSignUp ? handleSignUp : handleSignIn}
+				disabled={loading}
+				class="mb-2 w-full cursor-pointer rounded border-none bg-[#007bff] px-3 py-3 text-base text-white hover:bg-[#0056b3] disabled:cursor-not-allowed disabled:opacity-60"
+			>
 				{loading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}
 			</button>
 
@@ -165,99 +195,10 @@
 					isSignUp = !isSignUp;
 					error = null;
 				}}
-				class="toggle"
+				class="mb-2 w-full cursor-pointer rounded border-none bg-transparent p-2 text-base text-[#007bff] underline hover:bg-transparent hover:no-underline"
 			>
 				{isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
 			</button>
 		</div>
 	</div>
 {/if}
-
-<style>
-	.auth-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		min-height: 50vh;
-		padding: 2rem;
-	}
-
-	.auth-card {
-		background: white;
-		border-radius: 8px;
-		padding: 2rem;
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-		width: 100%;
-		max-width: 400px;
-	}
-
-	.auth-card h2 {
-		margin-top: 0;
-		margin-bottom: 1.5rem;
-	}
-
-	.auth-card input {
-		width: 100%;
-		padding: 0.75rem;
-		margin-bottom: 1rem;
-		border: 1px solid #ddd;
-		border-radius: 4px;
-		font-size: 1rem;
-		box-sizing: border-box;
-	}
-
-	.auth-card button {
-		width: 100%;
-		padding: 0.75rem;
-		background: #007bff;
-		color: white;
-		border: none;
-		border-radius: 4px;
-		font-size: 1rem;
-		cursor: pointer;
-		margin-bottom: 0.5rem;
-	}
-
-	.auth-card button:hover:not(:disabled) {
-		background: #0056b3;
-	}
-
-	.auth-card button:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.auth-card button.toggle {
-		background: transparent;
-		color: #007bff;
-		text-decoration: underline;
-		padding: 0.5rem;
-	}
-
-	.auth-card button.toggle:hover {
-		background: transparent;
-		text-decoration: none;
-	}
-
-	.error {
-		background: #fee;
-		color: #c33;
-		padding: 0.75rem;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-	}
-
-	.debug-info {
-		background: #f0f9ff;
-		border: 1px solid #bae6fd;
-		color: #0c4a6e;
-		padding: 0.75rem;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-		font-size: 0.875rem;
-	}
-
-	.debug-info p {
-		margin: 0.25rem 0;
-	}
-</style>
