@@ -14,8 +14,6 @@
 
 {#if user}
 	<div class="mx-auto max-w-3xl p-8">
-		<h1 class="mb-8 text-4xl text-gray-800">Welcome, {user.name || 'User'}!</h1>
-
 		<div class="mb-8 rounded-lg bg-white p-6 shadow-md">
 			<h2 class="mb-6 border-b-2 border-gray-200 pb-2 text-2xl text-gray-700">
 				Account Information
