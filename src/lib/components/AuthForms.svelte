@@ -2,6 +2,7 @@
 	import { authClient } from '$lib/auth-client';
 
 	const sessionStore = authClient.useSession();
+
 	let email = $state('');
 	let password = $state('');
 	let name = $state('');
@@ -138,18 +139,6 @@
 			{#if error}
 				<div class="mb-4 rounded bg-[#fee] px-3 py-3 text-[#c33]">{error}</div>
 			{/if}
-
-			<div
-				class="mb-4 rounded border border-[#bae6fd] bg-[#f0f9ff] px-3 py-3 text-sm text-[#0c4a6e]"
-			>
-				<p class="my-1">
-					<strong>Debug:</strong> Check browser DevTools → Application → Cookies to see if auth cookies
-					are set after sign-in.
-				</p>
-				<p class="my-1">
-					Check the browser console for detailed logs of sign-in and session responses.
-				</p>
-			</div>
 
 			{#if isSignUp}
 				<input
