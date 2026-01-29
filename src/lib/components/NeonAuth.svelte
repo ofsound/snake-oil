@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
-	import { onMount } from 'svelte';
 
 	const sessionStore = authClient.useSession();
 	let email = $state('');
@@ -11,10 +10,6 @@
 	let error = $state<string | null>(null);
 
 	const session = $derived($sessionStore.data);
-
-	onMount(async () => {
-		// Session is automatically tracked by useSession hook
-	});
 
 	async function handleSignIn() {
 		loading = true;
