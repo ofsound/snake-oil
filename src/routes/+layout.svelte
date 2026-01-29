@@ -8,7 +8,6 @@
 
 	let { data, children }: LayoutProps = $props();
 
-	// This skips the initial network fetch and provides immediate SSR rendering
 	// svelte-ignore state_referenced_locally
 	const initialSessionData =
 		data.session && data.user ? { session: data.session, user: data.user } : null;
