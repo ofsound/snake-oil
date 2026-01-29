@@ -4,9 +4,7 @@ import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { building } from '$app/environment';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	// Session is read from the request Cookie header. For the server to see the session,
-	// auth must run on the same origin as the app (VITE_NEON_AUTH_URL = app URL).
-	// Otherwise the browser never sends auth cookies to this server (cross-origin).
+	// Session is read from the request Cookie header. 
 	const session = await auth.api.getSession({
 		headers: event.request.headers
 	});
