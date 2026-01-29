@@ -1,0 +1,37 @@
+import { error } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+
+import { db } from '$lib/server/db';
+import { user } from '$lib/server/db/schema';
+
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ params }) => {
+	// Validate username parameter exists
+	if (!params.username) {
+		error(400, 'Username parameter is required');
+	}
+
+	// Query user by name (case-sensitive match)
+	const userProfile = await db
+		.select({
+			id: user.id,
+			email: user.email,
+			name: user.name,
+			emailVerified: user.emailVerified,
+			image: user.image,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt
+		})
+		.from(user)
+		.where(eq(user.name, params.username))
+		.limit(1);
+
+	if (!userProfile[0]) {
+		error(404, 'User not found');
+	}
+
+	return {
+		user: userProfile[0]
+	};
+};
