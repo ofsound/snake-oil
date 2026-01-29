@@ -38,6 +38,7 @@
 			<a href="/" class="font-bold">snakeoil.csstune.com</a>
 			<div class="flex gap-4">
 				<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
+				<div>/</div>
 				<button
 					type="button"
 					onclick={handleSignOut}
