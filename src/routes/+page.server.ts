@@ -1,10 +1,32 @@
-// src/routes/+page.server.ts
+import { desc } from 'drizzle-orm';
+
 import { put } from '@vercel/blob';
 import { db } from '$lib/server/db';
 import { tracks } from '$lib/server/db/schema';
 import { fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
+
+
+
+export const load = async () => {
+	// Session is available here when cookies are sent (same origin as app).
+	// Use locals.session / locals.user for server-only logic or to pass to page.
+	try {
+		// Fetch all tracks from Neon, ordered by newest first
+		const allTracks = await db.select().from(tracks).orderBy(desc(tracks.createdAt));
+
+		return {
+			tracks: allTracks
+		};
+	} catch (error) {
+		console.error('Failed to fetch tracks:', error);
+		return {
+			tracks: [],
+			error: 'Could not load music library.'
+		};
+	}
+};
 
 export const actions = {
 	default: async ({ request }: RequestEvent) => {
@@ -47,28 +69,5 @@ export const actions = {
 			console.error(error);
 			return fail(500, { message: 'Upload failed' });
 		}
-	}
-};
-
-// import { db } from '$lib/server/db';
-// import { tracks } from '$lib/server/db/schema';
-import { desc } from 'drizzle-orm';
-
-export const load = async () => {
-	// Session is available here when cookies are sent (same origin as app).
-	// Use locals.session / locals.user for server-only logic or to pass to page.
-	try {
-		// Fetch all tracks from Neon, ordered by newest first
-		const allTracks = await db.select().from(tracks).orderBy(desc(tracks.createdAt));
-
-		return {
-			tracks: allTracks
-		};
-	} catch (error) {
-		console.error('Failed to fetch tracks:', error);
-		return {
-			tracks: [],
-			error: 'Could not load music library.'
-		};
 	}
 };

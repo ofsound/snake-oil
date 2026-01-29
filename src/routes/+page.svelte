@@ -60,10 +60,14 @@
 	<input type="file" name="audio" accept="audio/mpeg,.mp3" required />
 
 	{#if uploadMessage}
-		<div class="message success">{uploadMessage}</div>
+		<div class="mb-4 rounded border border-green-500 bg-green-100 px-3 py-3 text-sm text-green-800">
+			{uploadMessage}
+		</div>
 	{/if}
 	{#if uploadError}
-		<div class="message error">{uploadError}</div>
+		<div class="mb-4 rounded border border-red-500 bg-red-100 px-3 py-3 text-sm text-red-800">
+			{uploadError}
+		</div>
 	{/if}
 
 	<button type="submit" disabled={uploading}>
@@ -71,16 +75,20 @@
 	</button>
 </form>
 
-<main class="container">
+<main class="mx-auto max-w-[600px] p-8">
 	<h2>Music Library</h2>
 
 	{#if data.tracks.length === 0}
 		<p>No tracks found. Go to the upload page to add some!</p>
 	{:else}
-		<ul class="track-list">
+		<ul class="list-none p-0">
 			{#each data.tracks as track (track.id)}
-				<li class:active={currentTrack?.id === track.id}>
-					<div class="track-info">
+				<li
+					class="flex items-center justify-between border-b border-gray-200 p-4"
+					class:bg-blue-50={currentTrack?.id === track.id}
+					class:rounded-lg={currentTrack?.id === track.id}
+				>
+					<div class="flex flex-col">
 						<strong>{track.name}</strong>
 						<span>Added: {track.createdAt?.toLocaleDateString()}</span>
 					</div>
@@ -93,7 +101,9 @@
 	{/if}
 
 	{#if currentTrack}
-		<footer class="player-bar">
+		<footer
+			class="fixed right-0 bottom-0 left-0 flex justify-center bg-white p-4 shadow-[0_-2px_10px_rgba(0,0,0,0.1)]"
+		>
 			<div class="now-playing">
 				<p>Now Playing: <strong>{currentTrack.name}</strong></p>
 				<audio controls src={currentTrack.url} autoplay>
@@ -103,60 +113,3 @@
 		</footer>
 	{/if}
 </main>
-
-<style>
-	.container {
-		max-width: 600px;
-		margin: 0 auto;
-		padding: 2rem;
-	}
-	.track-list {
-		list-style: none;
-		padding: 0;
-	}
-	.track-list li {
-		display: flex;
-		justify-content: space-between;
-		padding: 1rem;
-		border-bottom: 1px solid #eee;
-		align-items: center;
-	}
-	.active {
-		background-color: #f0f9ff;
-		border-radius: 8px;
-	}
-	.track-info {
-		display: flex;
-		flex-direction: column;
-	}
-	.player-bar {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		background: #fff;
-		box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-		padding: 1rem;
-		display: flex;
-		justify-content: center;
-	}
-
-	.message {
-		padding: 0.75rem;
-		border-radius: 4px;
-		margin-bottom: 1rem;
-		font-size: 0.875rem;
-	}
-
-	.message.success {
-		background-color: #d1fae5;
-		color: #065f46;
-		border: 1px solid #10b981;
-	}
-
-	.message.error {
-		background-color: #fee2e2;
-		color: #991b1b;
-		border: 1px solid #ef4444;
-	}
-</style>
