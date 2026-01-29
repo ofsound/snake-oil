@@ -28,18 +28,6 @@
 						</span>
 					</div>
 				{/if}
-
-				{#if user.emailVerified}
-					<div class="flex items-center justify-between rounded-md bg-gray-50 p-3">
-						<span class="font-semibold text-gray-600">Email verified:</span>
-						<span class="font-semibold text-green-600">✓ Verified</span>
-					</div>
-				{:else}
-					<div class="flex items-center justify-between rounded-md bg-gray-50 p-3">
-						<span class="font-semibold text-gray-600">Email verified:</span>
-						<span class="font-semibold text-red-600">✗ Not verified</span>
-					</div>
-				{/if}
 			</div>
 		</div>
 
