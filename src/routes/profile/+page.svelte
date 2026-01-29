@@ -5,6 +5,7 @@
 	let { data }: PageProps = $props();
 
 	// Get client-side session state (hydrated from server data)
+	// svelte-ignore state_referenced_locally
 	const session = useSessionWithInitialData({ session: null, user: data.user });
 
 	// User data is available both from server data and client session

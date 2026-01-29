@@ -1,10 +1,11 @@
 import { redirect } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
+
 import type { PageServerLoad } from './$types';
 
-/** @type {import('./$types').PageServerLoad} */
 export const load: PageServerLoad = async ({ locals }) => {
 	// Ensure user is authenticated - Better Auth handles this in hooks.server.ts
 	// but we can add explicit checks for protected routes
