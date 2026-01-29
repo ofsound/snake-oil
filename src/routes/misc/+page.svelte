@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AuthForms from '$lib/components/AuthForms.svelte';
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 
@@ -30,8 +29,6 @@
 		}
 	});
 </script>
-
-<AuthForms />
 
 <form
 	method="POST"
