@@ -49,6 +49,19 @@
 			</div>
 		</div>
 	</header>
+{:else}
+	<header class="bg-slate-200 px-4 py-2">
+		<div class="flex justify-between gap-2">
+			<a href="/" class="font-bold">snakeoil.csstune.com</a>
+			<button
+				type="button"
+				onclick={() => (window.location.href = '/login')}
+				class="font-inherit cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline"
+			>
+				sign in
+			</button>
+		</div>
+	</header>
 {/if}
 
 {@render children()}
