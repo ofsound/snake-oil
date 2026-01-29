@@ -7,8 +7,6 @@ import { fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { RequestEvent } from '@sveltejs/kit';
 
-
-
 export const load = async () => {
 	// Session is available here when cookies are sent (same origin as app).
 	// Use locals.session / locals.user for server-only logic or to pass to page.

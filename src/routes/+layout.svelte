@@ -17,13 +17,11 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-{#if $session.data?.user?.email}
-	<header>
-		<div>
-			{#if $session.data.user.name}
-				<span><strong>{$session.data.user.name}</strong></span>
-			{/if}
-			<span>{$session.data.user.email}</span>
+{#if $session.data?.user.name}
+	<header class="bg-slate-200 px-4 py-2">
+		<div class="flex justify-between gap-2">
+			<div class="font-bold">snakeoil.csstune.com</div>
+			<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
 		</div>
 	</header>
 {/if}

@@ -23,6 +23,6 @@ This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
 
 - Svelte 5 with SvelteKit
 - TypeScript
-- Tailwind CSS for styling
+- Always use Tailwind CSS for styling instead of a style tag with vanilla css
 - Neon Postgres Database
 - Neon Auth
