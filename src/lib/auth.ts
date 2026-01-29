@@ -18,7 +18,7 @@ if (env.PUBLIC_APP_URL) {
 }
 
 // Also add auth URL origin if it's a different origin
-const authBaseURL = env.BETTER_AUTH_URL || env.BETTER_AUTH_BASE_URL;
+const authBaseURL = env.PUBLIC_BETTER_AUTH_BASE_URL;
 if (authBaseURL) {
 	try {
 		const authUrl = new URL(authBaseURL);
@@ -31,7 +31,7 @@ if (authBaseURL) {
 }
 
 export const auth = betterAuth({
-	baseURL: env.BETTER_AUTH_URL || env.BETTER_AUTH_BASE_URL,
+	baseURL: env.PUBLIC_BETTER_AUTH_BASE_URL,
 	trustedOrigins,
 	secret: env.BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, {

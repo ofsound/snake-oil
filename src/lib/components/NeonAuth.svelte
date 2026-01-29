@@ -27,8 +27,8 @@
 
 			console.log('Sign in result:', result);
 
-			// Check if sign-in was successful
-			if (result.error) {
+			// Check if result is an error type
+			if ('error' in result && result.error) {
 				const msg = result.error.message || 'Failed to sign in';
 				error =
 					msg.toLowerCase().includes('user not found') || msg.toLowerCase().includes('no user')
@@ -37,7 +37,16 @@
 				return;
 			}
 
-			if (result.data) {
+			// Check if result has data property (Data type)
+			if ('data' in result && result.data) {
+				console.log('Sign in successful');
+				email = '';
+				password = '';
+				return;
+			}
+
+			// Check if result has user property (success type)
+			if ('user' in result && result.user) {
 				console.log('Sign in successful');
 				email = '';
 				password = '';
@@ -64,12 +73,23 @@
 
 			console.log('Sign up result:', result);
 
-			if (result.error) {
+			// Check if result is an error type
+			if ('error' in result && result.error) {
 				error = result.error.message || 'Failed to sign up';
 				return;
 			}
 
-			if (result.data) {
+			// Check if result has data property (Data type)
+			if ('data' in result && result.data) {
+				console.log('Sign up successful');
+				email = '';
+				password = '';
+				name = '';
+				return;
+			}
+
+			// Check if result has user property (success type)
+			if ('user' in result && result.user) {
 				console.log('Sign up successful');
 				email = '';
 				password = '';
