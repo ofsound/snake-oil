@@ -1,4 +1,15 @@
-import { pgTable, text, boolean, timestamp, serial } from 'drizzle-orm/pg-core';
+import {
+	pgTable,
+	text,
+	boolean,
+	timestamp,
+	serial,
+	uuid,
+	integer,
+	jsonb,
+	index,
+	uniqueIndex
+} from 'drizzle-orm/pg-core';
 
 // Better Auth core tables (see https://better-auth.com/docs/concepts/database)
 export const user = pgTable('user', {
@@ -49,6 +60,60 @@ export const tracks = pgTable('tracks', {
 	pathname: text('pathname'), // Useful for deleting the file later
 	createdAt: timestamp('created_at').defaultNow()
 });
+
+export const quizzes = pgTable(
+	'quizzes',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		ownerId: text('owner_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		title: text('title').notNull(),
+		slug: text('slug').notNull(),
+		description: text('description').notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => ({
+		slugUnique: uniqueIndex('quizzes_slug_unique').on(table.slug),
+		ownerIdx: index('quizzes_owner_idx').on(table.ownerId)
+	})
+);
+
+export const soundbites = pgTable(
+	'soundbites',
+	{
+		id: serial('id').primaryKey(),
+		quizId: uuid('quiz_id')
+			.notNull()
+			.references(() => quizzes.id, { onDelete: 'cascade' }),
+		trackId: integer('track_id')
+			.notNull()
+			.references(() => tracks.id, { onDelete: 'cascade' }),
+		description: text('description').notNull(),
+		position: integer('position').notNull()
+	},
+	(table) => ({
+		quizIdx: index('soundbites_quiz_idx').on(table.quizId)
+	})
+);
+
+export const quizAnswers = pgTable(
+	'quiz_answers',
+	{
+		id: serial('id').primaryKey(),
+		quizId: uuid('quiz_id')
+			.notNull()
+			.references(() => quizzes.id, { onDelete: 'cascade' }),
+		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+		displayName: text('display_name'),
+		answers: jsonb('answers').$type<Record<string, string>>().notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => ({
+		quizIdx: index('quiz_answers_quiz_idx').on(table.quizId),
+		userIdx: index('quiz_answers_user_idx').on(table.userId)
+	})
+);
 
 // Export types for type safety
 export type User = typeof user.$inferSelect;
