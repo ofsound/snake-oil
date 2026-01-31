@@ -3,7 +3,6 @@ import {
 	text,
 	boolean,
 	timestamp,
-	serial,
 	uuid,
 	integer,
 	jsonb,
@@ -74,10 +73,10 @@ export const quizzes = pgTable(
 		description: text('description').notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
-	(table) => ({
-		slugUnique: uniqueIndex('quizzes_slug_unique').on(table.slug),
-		ownerIdx: index('quizzes_owner_idx').on(table.ownerId)
-	})
+	(table) => [
+		uniqueIndex('quizzes_slug_unique').on(table.slug),
+		index('quizzes_owner_idx').on(table.ownerId)
+	]
 );
 
 export const soundbites = pgTable(
@@ -93,9 +92,9 @@ export const soundbites = pgTable(
 		description: text('description').notNull(),
 		position: integer('position').notNull()
 	},
-	(table) => ({
-		quizIdx: index('soundbites_quiz_idx').on(table.quizId)
-	})
+	(table) => [
+		index('soundbites_quiz_idx').on(table.quizId)
+	]
 );
 
 export const quizAnswers = pgTable(
@@ -110,10 +109,10 @@ export const quizAnswers = pgTable(
 		answers: jsonb('answers').$type<Record<string, string>>().notNull(),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
-	(table) => ({
-		quizIdx: index('quiz_answers_quiz_idx').on(table.quizId),
-		userIdx: index('quiz_answers_user_idx').on(table.userId)
-	})
+	(table) => [
+		index('quiz_answers_quiz_idx').on(table.quizId),
+		index('quiz_answers_user_idx').on(table.userId)
+	]
 );
 
 // Relations

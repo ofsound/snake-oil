@@ -22,5 +22,6 @@ export const authClient = createAuthClient({
 export function useSessionWithInitialData(initialData: { session: unknown; user: unknown } | null) {
 	// Cast the entire function call to bypass TypeScript's strict checking
 	// Better Auth accepts this at runtime even though types don't reflect it
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (authClient.useSession as any)({ data: initialData });
 }
