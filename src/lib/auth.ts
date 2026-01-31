@@ -6,6 +6,11 @@ import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
 
+// Validate required environment variables
+if (!env.BETTER_AUTH_SECRET) {
+	throw new Error('BETTER_AUTH_SECRET is not set');
+}
+
 // Build trusted origins array
 const trustedOrigins: string[] = [
 	'http://localhost:5173', // Development
@@ -49,7 +54,7 @@ export const auth = betterAuth({
 		user: true,
 		session: true
 	},
-	plugins: [sveltekitCookies(getRequestEvent)]
+	plugins: [sveltekitCookies(() => getRequestEvent())]
 });
 
 // Export Better Auth types for use in app.d.ts
