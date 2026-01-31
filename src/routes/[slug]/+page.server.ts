@@ -1,53 +1,43 @@
 import { db } from '$lib/server/db';
-import { quizzes, quizAnswers, soundbites, tracks } from '$lib/server/db/schema';
+import { quizzes, quizAnswers, soundbites } from '$lib/server/db/schema';
 import { error, fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const rows = await db
-		.select({
-			quizId: quizzes.id,
-			title: quizzes.title,
-			slug: quizzes.slug,
-			description: quizzes.description,
-			createdAt: quizzes.createdAt,
-			soundbiteId: soundbites.id,
-			soundbiteDescription: soundbites.description,
-			position: soundbites.position,
-			trackUrl: tracks.url,
-			trackName: tracks.name
-		})
-		.from(quizzes)
-		.leftJoin(soundbites, eq(soundbites.quizId, quizzes.id))
-		.leftJoin(tracks, eq(tracks.id, soundbites.trackId))
-		.where(eq(quizzes.slug, params.slug))
-		.orderBy(asc(soundbites.position));
+	const quiz = await db.query.quizzes.findFirst({
+		where: eq(quizzes.slug, params.slug),
+		with: {
+			soundbites: {
+				with: {
+					track: true
+				},
+				orderBy: asc(soundbites.position)
+			}
+		}
+	});
 
-	if (rows.length === 0) {
+	if (!quiz) {
 		error(404, 'Quiz not found');
 	}
 
-	const quiz = {
-		id: rows[0].quizId,
-		title: rows[0].title,
-		slug: rows[0].slug,
-		description: rows[0].description,
-		createdAt: rows[0].createdAt
-	};
-
-	const soundbiteItems = rows
-		.filter((row) => row.soundbiteId !== null)
-		.map((row) => ({
-			id: row.soundbiteId as number,
-			description: row.soundbiteDescription as string,
-			position: row.position as number,
-			trackUrl: row.trackUrl as string,
-			trackName: row.trackName as string
-		}));
+	// Transform relational data to match frontend expectations
+	const soundbiteItems = quiz.soundbites.map((soundbite) => ({
+		id: soundbite.id,
+		description: soundbite.description,
+		position: soundbite.position,
+		trackUrl: soundbite.track.url,
+		trackName: soundbite.track.name
+	}));
 
 	return {
-		quiz,
+		quiz: {
+			id: quiz.id,
+			title: quiz.title,
+			slug: quiz.slug,
+			description: quiz.description,
+			createdAt: quiz.createdAt
+		},
 		soundbites: soundbiteItems,
 		user: locals.user ? { id: locals.user.id, name: locals.user.name, email: locals.user.email } : null
 	};

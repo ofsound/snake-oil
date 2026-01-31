@@ -1,100 +1,68 @@
 import { db } from '$lib/server/db';
-import { quizAnswers, quizzes, soundbites, tracks, user } from '$lib/server/db/schema';
+import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
+import { slugify, findUniqueSlug } from '$lib/server/db/slug-utils';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
 		redirect(302, '/login');
 	}
 
-	const rows = await db
-		.select({
-			quizId: quizzes.id,
-			title: quizzes.title,
-			slug: quizzes.slug,
-			description: quizzes.description,
-			createdAt: quizzes.createdAt,
-			soundbiteId: soundbites.id,
-			soundbiteDescription: soundbites.description,
-			position: soundbites.position,
-			trackUrl: tracks.url,
-			trackName: tracks.name
-		})
-		.from(quizzes)
-		.leftJoin(soundbites, eq(soundbites.quizId, quizzes.id))
-		.leftJoin(tracks, eq(tracks.id, soundbites.trackId))
-		.where(and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)))
-		.orderBy(asc(soundbites.position));
+	const quiz = await db.query.quizzes.findFirst({
+		where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
+		with: {
+			soundbites: {
+				with: {
+					track: true
+				},
+				orderBy: asc(soundbites.position)
+			},
+			quizAnswers: {
+				with: {
+					user: true
+				},
+				orderBy: asc(quizAnswers.createdAt)
+			}
+		}
+	});
 
-	if (rows.length === 0) {
+	if (!quiz) {
 		error(404, 'Quiz not found');
 	}
 
-	const quiz = {
-		id: rows[0].quizId,
-		title: rows[0].title,
-		slug: rows[0].slug,
-		description: rows[0].description,
-		createdAt: rows[0].createdAt
-	};
+	// Transform relational data to match frontend expectations
+	const soundbiteItems = quiz.soundbites.map((soundbite) => ({
+		id: soundbite.id,
+		description: soundbite.description,
+		position: soundbite.position,
+		trackUrl: soundbite.track.url,
+		trackName: soundbite.track.name
+	}));
 
-	const soundbiteItems = rows
-		.filter((row) => row.soundbiteId !== null)
-		.map((row) => ({
-			id: row.soundbiteId as number,
-			description: row.soundbiteDescription as string,
-			position: row.position as number,
-			trackUrl: row.trackUrl as string,
-			trackName: row.trackName as string
-		}));
-
-	const answerRows = await db
-		.select({
-			id: quizAnswers.id,
-			createdAt: quizAnswers.createdAt,
-			answers: quizAnswers.answers,
-			displayName: quizAnswers.displayName,
-			userName: user.name,
-			userEmail: user.email
-		})
-		.from(quizAnswers)
-		.leftJoin(user, eq(quizAnswers.userId, user.id))
-		.where(eq(quizAnswers.quizId, quiz.id))
-		.orderBy(asc(quizAnswers.createdAt));
+	const answerRows = quiz.quizAnswers.map((answer) => ({
+		id: answer.id,
+		createdAt: answer.createdAt,
+		answers: answer.answers,
+		displayName: answer.displayName,
+		userName: answer.user?.name ?? null,
+		userEmail: answer.user?.email ?? null
+	}));
 
 	return {
-		quiz,
+		quiz: {
+			id: quiz.id,
+			title: quiz.title,
+			slug: quiz.slug,
+			description: quiz.description,
+			createdAt: quiz.createdAt
+		},
 		soundbites: soundbiteItems,
 		answers: answerRows
 	};
-};
-
-const slugify = (value: string) =>
-	value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-const ensureUniqueSlug = async (quizId: string, baseSlug: string) => {
-	const base = baseSlug || 'quiz';
-	let candidate = base;
-	let counter = 2;
-
-	while (true) {
-		const existing = await db
-			.select({ id: quizzes.id })
-			.from(quizzes)
-			.where(and(eq(quizzes.slug, candidate), ne(quizzes.id, quizId)))
-			.limit(1);
-		if (existing.length === 0) return candidate;
-		candidate = `${base}-${counter}`;
-		counter += 1;
-	}
 };
 
 const getExistingSoundbites = (formData: FormData) => {
@@ -174,7 +142,6 @@ export const actions: Actions = {
 		}
 
 		const baseSlug = slugify(rawSlug || title);
-		const slug = await ensureUniqueSlug(params.quizId, baseSlug);
 
 		try {
 			const existingQuiz = await db
@@ -187,7 +154,11 @@ export const actions: Actions = {
 				error(404, 'Quiz not found');
 			}
 
-			await db.update(quizzes).set({ title, slug, description }).where(eq(quizzes.id, params.quizId));
+			const slug = await findUniqueSlug(baseSlug, params.quizId);
+			await db
+				.update(quizzes)
+				.set({ title, slug, description })
+				.where(eq(quizzes.id, params.quizId));
 
 			for (let index = 0; index < ids.length; index += 1) {
 				const id = ids[index];

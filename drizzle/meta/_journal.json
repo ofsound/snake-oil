@@ -8,6 +8,13 @@
       "when": 1769731075742,
       "tag": "0000_even_arclight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1738368000000,
+      "tag": "0001_standardize_naming",
+      "breakpoints": true
     }
   ]
 }

@@ -51,3 +51,7 @@ export const auth = betterAuth({
 	},
 	plugins: [sveltekitCookies(getRequestEvent)]
 });
+
+// Export Better Auth types for use in app.d.ts
+export type Session = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>['session']>;
+export type User = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>['user']>;

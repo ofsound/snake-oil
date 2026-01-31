@@ -5,6 +5,7 @@ import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { slugify, generateUniqueSlug } from '$lib/server/db/slug-utils';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Check for active user session
@@ -14,30 +15,6 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	// Return empty data for now since the page will be blank
 	return {};
-};
-
-const slugify = (value: string) =>
-	value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-const ensureUniqueSlug = async (baseSlug: string) => {
-	const base = baseSlug || 'quiz';
-	let candidate = base;
-	let counter = 2;
-
-	while (true) {
-		const existing = await db
-			.select({ id: quizzes.id })
-			.from(quizzes)
-			.where(eq(quizzes.slug, candidate))
-			.limit(1);
-		if (existing.length === 0) return candidate;
-		candidate = `${base}-${counter}`;
-		counter += 1;
-	}
 };
 
 const getSoundbiteValues = (formData: FormData) => {
@@ -99,18 +76,19 @@ export const actions: Actions = {
 		}
 
 		const baseSlug = slugify(rawSlug || title);
-		const slug = await ensureUniqueSlug(baseSlug);
 
 		try {
-			const [quiz] = await db
-				.insert(quizzes)
-				.values({
-					ownerId: userId,
-					title,
-					slug,
-					description
-				})
-				.returning({ id: quizzes.id, slug: quizzes.slug });
+			const [quiz] = await generateUniqueSlug(baseSlug, async (candidateSlug) => {
+				return await db
+					.insert(quizzes)
+					.values({
+						ownerId: userId,
+						title,
+						slug: candidateSlug,
+						description
+					})
+					.returning({ id: quizzes.id, slug: quizzes.slug });
+			});
 
 			for (let index = 0; index < files.length; index += 1) {
 				const file = files[index];
