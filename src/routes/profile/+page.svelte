@@ -1,15 +1,10 @@
 <script lang="ts">
-	import { useSessionWithInitialData } from '$lib/auth-client';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	// Get client-side session state (hydrated from server data)
-	// svelte-ignore state_referenced_locally
-	const session = useSessionWithInitialData({ session: null, user: data.user });
-
-	// User data is available both from server data and client session
-	let user = $derived($session.data?.user || data.user);
+	// Server load already validates authentication, just use the data directly
+	let user = $derived(data.user);
 	let profile = $derived(data.profile);
 </script>
 

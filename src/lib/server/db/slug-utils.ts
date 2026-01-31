@@ -7,16 +7,6 @@ import { eq, and, ne } from 'drizzle-orm';
  */
 
 /**
- * Converts a string to a URL-friendly slug
- */
-export const slugify = (value: string): string =>
-	value
-		.toLowerCase()
-		.trim()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-+|-+$/g, '');
-
-/**
  * Checks if an error is a PostgreSQL unique constraint violation
  */
 const isUniqueConstraintViolation = (error: unknown): boolean => {

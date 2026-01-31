@@ -1,38 +1,33 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { slugify } from '$lib/utils';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
 	let title = $state('');
-	let slug = $state('');
+	let manualSlug = $state('');
 	let description = $state('');
 	let slugEdited = $state(false);
 	let submitting = $state(false);
-	let successMessage = $derived.by(() => (form?.success ? 'Quiz created successfully.' : null));
-	let errorMessage = $derived.by(() => form?.message ?? null);
+	let successMessage = $derived(form?.success ? 'Quiz created successfully.' : null);
+	let errorMessage = $derived(form?.message ?? null);
 
 	let nextSoundbiteId = $state(1);
 	let soundbites = $state([{ id: 0, description: '' }]);
 
-	const slugify = (value: string) =>
-		value
-			.toLowerCase()
-			.trim()
-			.replace(/[^a-z0-9]+/g, '-')
-			.replace(/^-+|-+$/g, '');
+	// Derived reactive calculation (no side effects)
+	const autoSlug = $derived(slugify(title));
 
-	function handleTitleInput(event: Event) {
-		title = (event.target as HTMLInputElement).value;
+	// When title changes and slug hasn't been edited, update manualSlug to match
+	$effect(() => {
 		if (!slugEdited) {
-			slug = slugify(title);
+			manualSlug = autoSlug;
 		}
-	}
+	});
 
-	function handleSlugInput(event: Event) {
-		slugEdited = true;
-		slug = (event.target as HTMLInputElement).value;
-	}
+	// Reactive slug that auto-updates from title unless manually edited
+	let slug = $derived(slugEdited ? manualSlug : autoSlug);
 
 	function addSoundbite() {
 		soundbites = [...soundbites, { id: nextSoundbiteId, description: '' }];
@@ -72,7 +67,7 @@
 					type="text"
 					placeholder="e.g. Mystery Intros"
 					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					oninput={handleTitleInput}
+					bind:value={title}
 					required
 				/>
 			</div>
@@ -85,9 +80,10 @@
 					type="text"
 					placeholder="mystery-intros"
 					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					oninput={handleSlugInput}
-					bind:value={slug}
-					required
+					bind:value={manualSlug}
+					oninput={() => {
+						slugEdited = true;
+					}}
 				/>
 				<p class="text-xs text-gray-500">This becomes the public URL: /{slug || 'your-quiz'}.</p>
 			</div>

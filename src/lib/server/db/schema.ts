@@ -55,7 +55,7 @@ export const account = pgTable('account', {
 });
 
 export const tracks = pgTable('tracks', {
-	id: serial('id').primaryKey(),
+	id: uuid('id').defaultRandom().primaryKey(),
 	name: text('name').notNull(),
 	url: text('url').notNull(), // The Vercel Blob URL
 	pathname: text('pathname'), // Useful for deleting the file later
@@ -83,11 +83,11 @@ export const quizzes = pgTable(
 export const soundbites = pgTable(
 	'soundbites',
 	{
-		id: serial('id').primaryKey(),
+		id: uuid('id').defaultRandom().primaryKey(),
 		quizId: uuid('quiz_id')
 			.notNull()
 			.references(() => quizzes.id, { onDelete: 'cascade' }),
-		trackId: integer('track_id')
+		trackId: uuid('track_id')
 			.notNull()
 			.references(() => tracks.id, { onDelete: 'cascade' }),
 		description: text('description').notNull(),
@@ -101,7 +101,7 @@ export const soundbites = pgTable(
 export const quizAnswers = pgTable(
 	'quiz_answers',
 	{
-		id: serial('id').primaryKey(),
+		id: uuid('id').defaultRandom().primaryKey(),
 		quizId: uuid('quiz_id')
 			.notNull()
 			.references(() => quizzes.id, { onDelete: 'cascade' }),

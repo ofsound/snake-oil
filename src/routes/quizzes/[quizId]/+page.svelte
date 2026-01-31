@@ -8,8 +8,8 @@
 	let newSoundbites = $state<{ id: number; description: string }[]>([]);
 
 	let submitting = $state(false);
-	let successMessage = $derived.by(() => (form?.success ? 'Quiz updated successfully.' : null));
-	let errorMessage = $derived.by(() => form?.message ?? null);
+	let successMessage = $derived(form?.success ? 'Quiz updated successfully.' : null);
+	let errorMessage = $derived(form?.message ?? null);
 
 	function addNewSoundbite() {
 		newSoundbites = [...newSoundbites, { id: nextNewSoundbiteId, description: '' }];
@@ -23,8 +23,8 @@
 	const getSubmitterLabel = (entry: PageData['answers'][number]) =>
 		entry.userName || entry.userEmail || entry.displayName || 'Anonymous';
 
-	const getAnswer = (answers: Record<string, string> | null, soundbiteId: number) =>
-		answers?.[String(soundbiteId)] ?? '';
+	const getAnswer = (answers: Record<string, string> | null, soundbiteId: string) =>
+		answers?.[soundbiteId] ?? '';
 </script>
 
 <div class="mx-auto max-w-5xl space-y-10 p-8">

@@ -6,10 +6,10 @@
 
 	let submitting = $state(false);
 	let displayName = $state('');
-	let errorMessage = $derived.by(() => form?.message ?? null);
-	let revealAnswers = $derived.by(() => form?.success ?? false);
+	let errorMessage = $derived(form?.message ?? null);
+	let revealAnswers = $derived(form?.success ?? false);
 
-	let signedInLabel = $derived.by(() => data.user?.name || data.user?.email || 'Signed-in user');
+	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 </script>
 
 <div class="mx-auto max-w-4xl space-y-8 p-8">

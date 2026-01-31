@@ -1,14 +1,12 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
 
-	const sessionStore = authClient.useSession();
+	const session = authClient.useSession();
 
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-
-	const session = $derived($sessionStore.data);
 
 	async function handleSignIn() {
 		loading = true;
@@ -19,11 +17,11 @@
 				password
 			});
 
-			console.log('Sign in result:', result);
+			// Better-Auth returns { data, error } consistently
+			const { data, error: authError } = result as { data?: { user: unknown }; error?: { message: string } };
 
-			// Check if result is an error type
-			if ('error' in result && result.error) {
-				const msg = result.error.message || 'Failed to sign in';
+			if (authError) {
+				const msg = authError.message || 'Failed to sign in';
 				error =
 					msg.toLowerCase().includes('user not found') || msg.toLowerCase().includes('no user')
 						? 'No account with this email. Sign up first, then sign in.'
@@ -31,21 +29,11 @@
 				return;
 			}
 
-			// Check if result has data property (Data type)
-			if ('data' in result && result.data) {
-				console.log('Sign in successful');
+			// Success - data contains the session
+			if (data) {
+				console.log('Sign in successful:', data.user);
 				email = '';
 				password = '';
-				return;
-			}
-
-			// Check if result has user property (success type)
-			if ('user' in result && result.user) {
-				console.log('Sign in successful');
-				email = '';
-				password = '';
-			} else {
-				error = 'Sign in failed - no data returned';
 			}
 		} catch (err: unknown) {
 			console.error('Sign in error:', err);
@@ -56,11 +44,11 @@
 	}
 </script>
 
-{#if session}
+{#if $session.data}
 	<div class="flex min-h-[50vh] items-center justify-center p-8">
 		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
 			<h2 class="mt-0 mb-6">You're already signed in!</h2>
-			<p>Welcome back, {session.user?.name || session.user?.email}!</p>
+			<p>Welcome back, {$session.data.user?.name || $session.data.user?.email}!</p>
 			<a href="/" class="text-blue-500 hover:text-blue-700">Return to home</a>
 		</div>
 	</div>

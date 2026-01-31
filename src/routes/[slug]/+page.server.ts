@@ -68,19 +68,18 @@ export const actions: Actions = {
 			return fail(400, { message: 'No answers submitted.' });
 		}
 
-		const existingQuiz = await db
-			.select({ id: quizzes.id })
-			.from(quizzes)
-			.where(eq(quizzes.slug, params.slug))
-			.limit(1);
+		const existingQuiz = await db.query.quizzes.findFirst({
+			where: eq(quizzes.slug, params.slug),
+			columns: { id: true }
+		});
 
-		if (existingQuiz.length === 0) {
+		if (!existingQuiz) {
 			error(404, 'Quiz not found');
 		}
 
 		try {
 			await db.insert(quizAnswers).values({
-				quizId: existingQuiz[0].id,
+				quizId: existingQuiz.id,
 				userId: locals.user?.id ?? null,
 				displayName: locals.user ? null : displayName,
 				answers

@@ -5,7 +5,8 @@ import { and, asc, eq } from 'drizzle-orm';
 import { put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
-import { slugify, findUniqueSlug } from '$lib/server/db/slug-utils';
+import { slugify } from '$lib/utils';
+import { findUniqueSlug } from '$lib/server/db/slug-utils';
 
 export const load: PageServerLoad = async ({ locals, params }) => {
 	if (!locals.user) {
@@ -66,12 +67,12 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 };
 
 const getExistingSoundbites = (formData: FormData) => {
-	const ids = formData.getAll('existingSoundbiteId').map((value) => Number(value));
+	const ids = formData.getAll('existingSoundbiteId').map((value) => String(value));
 	const descriptions = formData
 		.getAll('existingSoundbiteDescription')
 		.map((value) => String(value).trim());
 	const files = formData.getAll('existingSoundbiteFile') as File[];
-	const removed = new Set(formData.getAll('existingSoundbiteRemove').map((value) => Number(value)));
+	const removed = new Set(formData.getAll('existingSoundbiteRemove').map((value) => String(value)));
 
 	return { ids, descriptions, files, removed };
 };
@@ -144,13 +145,12 @@ export const actions: Actions = {
 		const baseSlug = slugify(rawSlug || title);
 
 		try {
-			const existingQuiz = await db
-				.select({ id: quizzes.id })
-				.from(quizzes)
-				.where(and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)))
-				.limit(1);
+			const existingQuiz = await db.query.quizzes.findFirst({
+				where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
+				columns: { id: true }
+			});
 
-			if (existingQuiz.length === 0) {
+			if (!existingQuiz) {
 				error(404, 'Quiz not found');
 			}
 

@@ -5,7 +5,8 @@ import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
-import { slugify, generateUniqueSlug } from '$lib/server/db/slug-utils';
+import { slugify } from '$lib/utils';
+import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	// Check for active user session
@@ -66,6 +67,14 @@ export const actions: Actions = {
 			return fail(400, { message: 'Description is required.' });
 		}
 
+		if (title.length > 200) {
+			return fail(400, { message: 'Title must be 200 characters or less.' });
+		}
+
+		if (description.length > 2000) {
+			return fail(400, { message: 'Description must be 2000 characters or less.' });
+		}
+
 		const fileError = validateFiles(files);
 		if (fileError) {
 			return fail(400, { message: fileError });
@@ -121,8 +130,10 @@ export const actions: Actions = {
 				slug: quiz.slug
 			};
 		} catch (error) {
-			console.error(error);
-			return fail(500, { message: 'Failed to create quiz.' });
+			console.error('Error creating quiz:', error);
+			const errorMessage =
+				error instanceof Error ? error.message : 'Failed to create quiz. Please try again.';
+			return fail(500, { message: errorMessage });
 		}
 	}
 };
