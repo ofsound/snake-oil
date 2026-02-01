@@ -17,9 +17,17 @@
 		<h1 class="text-3xl font-semibold">{data.quiz.title}</h1>
 		<p class="text-sm text-gray-500">
 			{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
+			by
+			<a
+				href="/users/{data.quiz.owner.slug}"
+				class="text-blue-600 hover:text-blue-800 hover:underline"
+			>
+				{data.quiz.owner.name || data.quiz.owner.slug}
+			</a>
 		</p>
-		<p>add Owner</p>
-		<p class="text-base text-gray-700">{data.quiz.description}</p>
+		<p class="rounded-sm border border-stone-200 bg-stone-100 p-4 text-base text-gray-700">
+			{data.quiz.description}
+		</p>
 	</header>
 
 	<form

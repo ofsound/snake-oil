@@ -1,8 +1,8 @@
 import { error } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { user } from '$lib/server/db/schema';
+import { quizzes, user } from '$lib/server/db/schema';
 
 import type { PageServerLoad } from './$types';
 
@@ -34,7 +34,23 @@ export const load: PageServerLoad = async ({ params }) => {
 		error(404, 'User not found');
 	}
 
+	const foundUser = userProfile[0];
+
+	// Fetch all quizzes owned by this user, ordered by creation date (newest first)
+	const userQuizzes = await db.query.quizzes.findMany({
+		where: eq(quizzes.ownerId, foundUser.id),
+		orderBy: desc(quizzes.createdAt),
+		columns: {
+			id: true,
+			title: true,
+			slug: true,
+			description: true,
+			createdAt: true
+		}
+	});
+
 	return {
-		user: userProfile[0]
+		user: foundUser,
+		quizzes: userQuizzes
 	};
 };

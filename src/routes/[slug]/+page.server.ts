@@ -8,6 +8,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const quiz = await db.query.quizzes.findFirst({
 		where: eq(quizzes.slug, params.slug),
 		with: {
+			owner: true,
 			soundbites: {
 				with: {
 					track: true
@@ -36,7 +37,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			title: quiz.title,
 			slug: quiz.slug,
 			description: quiz.description,
-			createdAt: quiz.createdAt
+			createdAt: quiz.createdAt,
+			owner: {
+				id: quiz.owner.id,
+				name: quiz.owner.name,
+				slug: quiz.owner.slug
+			}
 		},
 		soundbites: soundbiteItems,
 		user: locals.user ? { id: locals.user.id, name: locals.user.name, email: locals.user.email } : null

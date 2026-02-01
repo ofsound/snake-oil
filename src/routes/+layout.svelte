@@ -35,7 +35,7 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<header class="bg-slate-200 px-8 py-4">
+<header class="bg-slate-200/80 px-8 py-4">
 	<div class="flex justify-between gap-2">
 		<a href="/" class="text-xl font-bold text-shadow-sm text-shadow-zinc-400/20"
 			>guesstheaudio.com</a

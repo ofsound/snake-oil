@@ -9,7 +9,7 @@
 <div class="mx-auto max-w-4xl p-8">
 	<a
 		href="/create"
-		class="mx-auto my-12 block w-max cursor-pointer rounded-md bg-emerald-600 p-14 px-20 text-xl font-bold text-white text-shadow-sm"
+		class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm"
 		>Create a Quiz</a
 	>
 

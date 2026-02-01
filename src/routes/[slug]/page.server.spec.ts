@@ -48,6 +48,11 @@ describe('[slug] page - load function', () => {
 			slug: 'test-quiz',
 			description: 'Test description',
 			createdAt: new Date('2024-01-01'),
+			owner: {
+				id: 'user-123',
+				name: 'Test User',
+				slug: 'test-user'
+			},
 			soundbites: [
 				{
 					id: 'sb-1',
@@ -84,7 +89,12 @@ describe('[slug] page - load function', () => {
 			title: 'Test Quiz',
 			slug: 'test-quiz',
 			description: 'Test description',
-			createdAt: new Date('2024-01-01')
+			createdAt: new Date('2024-01-01'),
+			owner: {
+				id: 'user-123',
+				name: 'Test User',
+				slug: 'test-user'
+			}
 		});
 
 		expect(result.soundbites).toEqual([
@@ -118,6 +128,11 @@ describe('[slug] page - load function', () => {
 			slug: 'test-quiz',
 			description: 'Test description',
 			createdAt: new Date('2024-01-01'),
+			owner: {
+				id: 'user-123',
+				name: 'Test User',
+				slug: 'test-user'
+			},
 			soundbites: []
 		};
 
@@ -193,7 +208,7 @@ describe('[slug] page - action validation', () => {
 
 	it('allows authenticated users without displayName', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		mockDb.insert.mockReturnValue({
 			values: vi.fn().mockResolvedValue(undefined)
@@ -248,7 +263,7 @@ describe('[slug] page - action validation', () => {
 
 	it('builds answers payload correctly', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		const insertValuesMock = vi.fn().mockResolvedValue(undefined);
 		mockDb.insert.mockReturnValue({
@@ -280,7 +295,7 @@ describe('[slug] page - action validation', () => {
 
 	it('trims answer values', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		const insertValuesMock = vi.fn().mockResolvedValue(undefined);
 		mockDb.insert.mockReturnValue({
@@ -303,7 +318,7 @@ describe('[slug] page - action validation', () => {
 
 	it('handles missing answers gracefully', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		const insertValuesMock = vi.fn().mockResolvedValue(undefined);
 		mockDb.insert.mockReturnValue({
@@ -330,7 +345,7 @@ describe('[slug] page - action validation', () => {
 
 	it('stores userId when user is authenticated', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		const insertValuesMock = vi.fn().mockResolvedValue(undefined);
 		mockDb.insert.mockReturnValue({
@@ -356,7 +371,7 @@ describe('[slug] page - action validation', () => {
 
 	it('returns success on successful submission', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		mockDb.insert.mockReturnValue({
 			values: vi.fn().mockResolvedValue(undefined)
@@ -376,7 +391,7 @@ describe('[slug] page - action validation', () => {
 
 	it('handles database errors gracefully', async () => {
 		vi.mocked(db.query.quizzes.findFirst).mockResolvedValue({ id: 'quiz-123' } as any);
-		
+
 		const mockDb = db as any;
 		mockDb.insert.mockReturnValue({
 			values: vi.fn().mockRejectedValue(new Error('Database error'))

@@ -12,57 +12,39 @@
 {#if user}
 	<div class="mx-auto max-w-3xl p-8">
 		<div class="mb-4 flex border border-gray-100 bg-neutral-100 p-6">
-			<div class="mb-8 flex-1 rounded-lg bg-white">
-				<div class="grid gap-4">
-					<div class="flex items-center gap-2 rounded-md bg-gray-50 p-1">
+			<div class="mr-10 flex-1 rounded-lg">
+				<div class="grid gap-2">
+					<div class="flex items-center gap-2 rounded-md">
 						<span class="font-semibold text-gray-600">Email:</span>
 						<span class="font-medium text-gray-800">{user.email}</span>
 					</div>
 
-					{#if user.name}
-						<div class="items-centergap-2 flex rounded-md bg-gray-50 p-1">
-							<span class="font-semibold text-gray-600">Name:</span>
-							<span class="font-medium text-gray-800">{user.name}</span>
-						</div>
-					{/if}
+					<div class="items-centergap-2 flex rounded-md">
+						<span class="font-semibold text-gray-600">Name:</span>
+						<span class="font-medium text-gray-800">{user.name}</span>
+					</div>
 
-					{#if profile?.slug}
-						<div class="flex items-center gap-2 rounded-md bg-gray-50 p-1">
-							<span class="font-semibold text-gray-600">Public Profile:</span>
-							<a href="/users/{profile.slug}" class="font-medium text-blue-600 hover:underline"
-								>@{profile.slug}</a
-							>
-						</div>
-					{/if}
+					<div class="flex items-center gap-2 rounded-md">
+						<span class="font-semibold text-gray-600">Public Profile:</span>
+						<a href="/users/{profile.slug}" class="font-medium text-blue-600 hover:underline"
+							>@{profile.slug}</a
+						>
+					</div>
 
-					{#if profile?.createdAt}
-						<div class="items-centergap-2 flex rounded-md bg-gray-50 p-1">
-							<span class="font-semibold text-gray-600">Account created:</span>
-							<span class="font-medium text-gray-800"
-								>{new Date(profile.createdAt).toLocaleDateString()}</span
-							>
-						</div>
-					{/if}
+					<div class="items-centergap-2 flex rounded-md">
+						<span class="font-semibold text-gray-600">Account created:</span>
+						<span class="font-medium text-gray-800"
+							>{new Date(profile.createdAt).toLocaleDateString()}</span
+						>
+					</div>
 				</div>
 			</div>
 
 			<div class="flex flex-col gap-4 text-xs">
-				<button
-					class="cursor-pointer rounded-md border-none bg-blue-500 px-3 py-2 font-semibold text-white transition-colors hover:bg-blue-600"
-					>Update Profile</button
-				>
-				<button
-					class="cursor-pointer rounded-md border border-gray-300 bg-gray-100 px-3 py-2 font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-200"
-					>Change Password</button
-				>
-				<button
-					class="cursor-pointer rounded-md border border-gray-300 bg-gray-100 px-3 py-2 font-semibold text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-200"
-					>View Activity</button
-				>
-				<button
-					class="cursor-pointer rounded-md border-none bg-red-600 px-3 py-2 font-semibold text-white transition-colors hover:bg-red-700"
-					>Delete Account</button
-				>
+				<a href="/" class="hover:underline">Update Profile</a>
+				<a href="/" class="hover:underline">Change Password</a>
+				<a href="/" class="hover:underline">View Activity</a>
+				<a href="/" class="hover:underline">Delete Account</a>
 			</div>
 		</div>
 

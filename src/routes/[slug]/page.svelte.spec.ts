@@ -11,7 +11,12 @@ describe('[slug] page component', () => {
 			title: 'Test Quiz',
 			slug: 'test-quiz',
 			description: 'This is a test quiz description',
-			createdAt: new Date('2024-01-01')
+			createdAt: new Date('2024-01-01'),
+			owner: {
+				id: 'user-123',
+				name: 'Test User',
+				slug: 'test-user'
+			}
 		},
 		soundbites: [
 			{
@@ -104,7 +109,7 @@ describe('[slug] page component', () => {
 
 			const count = document.querySelectorAll('input[name^="answer-"]').length;
 			expect(count).toBe(2);
-			
+
 			// Verify first answer input exists
 			const firstInput = document.querySelector('input[name="answer-sb-1"]');
 			expect(firstInput).toBeTruthy();
@@ -192,7 +197,7 @@ describe('[slug] page component', () => {
 			// Set values directly
 			const input1 = document.querySelector('input[name="answer-sb-1"]') as HTMLInputElement;
 			const input2 = document.querySelector('input[name="answer-sb-2"]') as HTMLInputElement;
-			
+
 			if (input1) {
 				input1.value = 'My first answer';
 				input1.dispatchEvent(new Event('input', { bubbles: true }));
@@ -211,7 +216,7 @@ describe('[slug] page component', () => {
 			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const displayNameInput = page.getByRole('textbox', { name: 'Display name' });
-			
+
 			await displayNameInput.fill('Anonymous User');
 
 			await expect.element(displayNameInput).toHaveValue('Anonymous User');
@@ -233,7 +238,7 @@ describe('[slug] page component', () => {
 
 			const count = document.querySelectorAll('a[href="/profile"]').length;
 			expect(count).toBeGreaterThan(0);
-			
+
 			const profileLink = document.querySelector('a[href="/profile"]');
 			expect(profileLink).toBeTruthy();
 		});
@@ -265,7 +270,8 @@ describe('[slug] page component', () => {
 				...mockData,
 				quiz: {
 					...mockData.quiz,
-					description: longDescription
+					description: longDescription,
+					owner: mockData.quiz.owner
 				}
 			};
 

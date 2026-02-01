@@ -3,6 +3,7 @@
 
 	let { data }: PageProps = $props();
 	let user = $derived(data.user);
+	let quizzes = $derived(data.quizzes ?? []);
 </script>
 
 <div class="mx-auto max-w-3xl p-8">
@@ -32,11 +33,29 @@
 		</div>
 	</div>
 
-	<ul class="mt-8 flex flex-col gap-2 rounded-md bg-zinc-100 p-4">
-		<li>
-			Quizzes
-			<p class="italic">This links to, or is, a list of all the quizzes the user has created.</p>
-		</li>
-		<li>This page isn't even that important.</li>
-	</ul>
+	<div class="mb-8 rounded-sm border border-gray-200 bg-white p-6">
+		<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">Quizzes</h2>
+		{#if quizzes.length > 0}
+			<div class="flex flex-col gap-3">
+				{#each quizzes as quiz (quiz.id)}
+					<a
+						href="/quizzes/{quiz.id}"
+						class="flex items-center justify-between rounded-md border-none bg-gray-50 px-3 py-2 text-white transition-colors hover:bg-gray-100"
+					>
+						<div class="flex flex-col">
+							<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
+							<div class="text-sm text-gray-600">{quiz.description}</div>
+						</div>
+						<div class="text-xs text-gray-500">
+							{new Date(quiz.createdAt).toLocaleDateString()}
+						</div>
+					</a>
+				{/each}
+			</div>
+		{:else}
+			<div class="rounded-md bg-gray-50 p-8 text-center">
+				<p class="mb-4 text-gray-600">This user hasn't created any quizzes yet.</p>
+			</div>
+		{/if}
+	</div>
 </div>
