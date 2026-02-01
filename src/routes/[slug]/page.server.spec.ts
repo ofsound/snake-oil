@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { error, fail } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock dependencies
 vi.mock('@sveltejs/kit', async () => {
@@ -76,6 +77,8 @@ describe('[slug] page - load function', () => {
 			locals: { user: { id: 'user-123', name: 'Test User', email: 'test@example.com' } }
 		} as any);
 
+		if (!result) throw new Error('Expected result');
+
 		expect(result.quiz).toEqual({
 			id: 'quiz-123',
 			title: 'Test Quiz',
@@ -125,6 +128,8 @@ describe('[slug] page - load function', () => {
 			locals: { user: null }
 		} as any);
 
+		if (!result) throw new Error('Expected result');
+
 		expect(result.user).toBeNull();
 	});
 
@@ -162,13 +167,13 @@ describe('[slug] page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData, locals: any, params: any): RequestEvent => ({
+	const createMockRequest = (formData: FormData, locals: any, params: any) => ({
 		request: {
 			formData: async () => formData
 		} as Request,
 		locals,
 		params
-	} as RequestEvent);
+	} as any);
 
 	it('requires displayName for anonymous users', async () => {
 		const formData = createFormData({

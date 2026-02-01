@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { redirect, fail } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock dependencies
 vi.mock('@sveltejs/kit', async () => {
@@ -50,20 +51,20 @@ import { env } from '$env/dynamic/private';
 describe('create page - load function', () => {
 	it('redirects unauthenticated users', async () => {
 		const locals = { user: null } as any;
-		
+
 		await expect(load({ locals } as any)).rejects.toMatchObject({
 			status: 302,
 			location: '/'
 		});
-		
+
 		expect(redirect).toHaveBeenCalledWith(302, '/');
 	});
 
 	it('allows authenticated users through', async () => {
 		const locals = { user: { id: 'user-123', name: 'Test User' } } as any;
-		
+
 		const result = await load({ locals } as any);
-		
+
 		expect(result).toEqual({});
 	});
 });
@@ -85,19 +86,25 @@ describe('create page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData): RequestEvent => ({
+	const createMockRequest = (formData: FormData) => ({
 		request: {
 			formData: async () => formData
 		} as Request,
 		locals: {
 			user: { id: 'user-123', name: 'Test User' }
 		}
-	} as RequestEvent);
+	} as any);
 
 	it('requires authentication', async () => {
 		const formData = createFormData({ title: 'Test Quiz' });
-		const event = createMockRequest(formData);
-		event.locals.user = null;
+		const event = {
+			request: {
+				formData: async () => formData
+			} as Request,
+			locals: {
+				user: undefined
+			}
+		} as any;
 
 		const result = await actions.default(event);
 

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { error, fail, redirect } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Mock dependencies
 vi.mock('@sveltejs/kit', async () => {
@@ -151,6 +152,8 @@ describe('quizzes/[quizId] page - load function', () => {
 			params: { quizId: 'quiz-123' }
 		} as any);
 
+		if (!result) throw new Error('Expected result');
+
 		expect(result.quiz).toEqual({
 			id: 'quiz-123',
 			title: 'Test Quiz',
@@ -189,13 +192,13 @@ describe('quizzes/[quizId] page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData, locals: any, params: any): RequestEvent => ({
+	const createMockRequest = (formData: FormData, locals: any, params: any) => ({
 		request: {
 			formData: async () => formData
 		} as Request,
 		locals,
 		params
-	} as RequestEvent);
+	} as any);
 
 	it('requires authentication', async () => {
 		const formData = createFormData({ title: 'Test Quiz' });

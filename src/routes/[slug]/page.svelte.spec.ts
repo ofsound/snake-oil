@@ -5,6 +5,7 @@ import SlugPage from './+page.svelte';
 
 describe('[slug] page component', () => {
 	const mockData = {
+		session: undefined,
 		quiz: {
 			id: 'quiz-123',
 			title: 'Test Quiz',
@@ -33,14 +34,14 @@ describe('[slug] page component', () => {
 
 	describe('rendering', () => {
 		it('displays quiz title and description', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			await expect.element(page.getByRole('heading', { name: 'Test Quiz' })).toBeInTheDocument();
 			await expect.element(page.getByText('This is a test quiz description')).toBeInTheDocument();
 		});
 
 		it('displays quiz creation date', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			// Date format may vary by timezone, so check for any date format
 			const el = document.querySelector('header p.text-sm.text-gray-500');
@@ -50,7 +51,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('renders all soundbites with audio players', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			await expect.element(page.getByText('track1.mp3')).toBeInTheDocument();
 			await expect.element(page.getByText('track2.mp3')).toBeInTheDocument();
@@ -60,7 +61,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('shows display name input for anonymous users', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const displayNameInput = page.getByRole('textbox', { name: 'Display name' });
 			await expect.element(displayNameInput).toBeInTheDocument();
@@ -77,7 +78,7 @@ describe('[slug] page component', () => {
 				}
 			};
 
-			render(SlugPage, { props: { data: dataWithUser } });
+			render(SlugPage, { props: { data: dataWithUser, form: undefined } });
 
 			await expect.element(page.getByText(/Signed in as/)).toBeInTheDocument();
 			await expect.element(page.getByText('Test User')).toBeInTheDocument();
@@ -88,17 +89,18 @@ describe('[slug] page component', () => {
 				...mockData,
 				user: {
 					id: 'user-123',
+					name: '',
 					email: 'test@example.com'
 				}
 			};
 
-			render(SlugPage, { props: { data: dataWithUser } });
+			render(SlugPage, { props: { data: dataWithUser, form: undefined } });
 
 			await expect.element(page.getByText('test@example.com')).toBeInTheDocument();
 		});
 
 		it('renders answer input fields for each soundbite', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const count = document.querySelectorAll('input[name^="answer-"]').length;
 			expect(count).toBe(2);
@@ -109,7 +111,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('renders submit button', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const submitButton = page.getByRole('button', { name: 'Submit answers' });
 			await expect.element(submitButton).toBeInTheDocument();
@@ -119,7 +121,7 @@ describe('[slug] page component', () => {
 
 	describe('form behavior', () => {
 		it('disables submit button when submitting', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const submitButton = page.getByRole('button', { name: 'Submit answers' });
 			await expect.element(submitButton).toBeEnabled();
@@ -153,7 +155,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('does not show answers before submission', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const count = document.querySelectorAll('p.text-green-700').length;
 			expect(count).toBe(0);
@@ -162,7 +164,7 @@ describe('[slug] page component', () => {
 
 	describe('soundbite details', () => {
 		it('includes hidden soundbite ID fields', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const inputs = Array.from(document.querySelectorAll('input[name="soundbiteId"][type="hidden"]'));
 			const count = inputs.length;
@@ -172,7 +174,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('answer inputs have correct names', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const input1 = document.querySelector('#answer-sb-1') as HTMLInputElement;
 			const input2 = document.querySelector('#answer-sb-2') as HTMLInputElement;
@@ -185,7 +187,7 @@ describe('[slug] page component', () => {
 
 	describe('user interaction', () => {
 		it('allows typing in answer fields', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			// Set values directly
 			const input1 = document.querySelector('input[name="answer-sb-1"]') as HTMLInputElement;
@@ -206,7 +208,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('allows typing in display name field for anonymous users', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const displayNameInput = page.getByRole('textbox', { name: 'Display name' });
 			
@@ -227,7 +229,7 @@ describe('[slug] page component', () => {
 				}
 			};
 
-			render(SlugPage, { props: { data: dataWithUser } });
+			render(SlugPage, { props: { data: dataWithUser, form: undefined } });
 
 			const count = document.querySelectorAll('a[href="/profile"]').length;
 			expect(count).toBeGreaterThan(0);
@@ -237,7 +239,7 @@ describe('[slug] page component', () => {
 		});
 
 		it('does not show profile link for anonymous users', async () => {
-			render(SlugPage, { props: { data: mockData } });
+			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			const count = document.querySelectorAll('a[href="/profile"]').length;
 			expect(count).toBe(0);
@@ -251,7 +253,7 @@ describe('[slug] page component', () => {
 				soundbites: []
 			};
 
-			render(SlugPage, { props: { data: dataWithNoSoundbites } });
+			render(SlugPage, { props: { data: dataWithNoSoundbites, form: undefined } });
 
 			const count = document.querySelectorAll('input[name^="answer-"]').length;
 			expect(count).toBe(0);
@@ -267,7 +269,7 @@ describe('[slug] page component', () => {
 				}
 			};
 
-			render(SlugPage, { props: { data: dataWithLongDesc } });
+			render(SlugPage, { props: { data: dataWithLongDesc, form: undefined } });
 
 			await expect.element(page.getByText(longDescription)).toBeInTheDocument();
 		});
@@ -283,7 +285,7 @@ describe('[slug] page component', () => {
 				]
 			};
 
-			render(SlugPage, { props: { data: dataWithSpecialChars } });
+			render(SlugPage, { props: { data: dataWithSpecialChars, form: undefined } });
 
 			await expect.element(page.getByText('track-with-special-chars!@#$%.mp3')).toBeInTheDocument();
 		});

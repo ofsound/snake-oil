@@ -4,7 +4,6 @@ import { put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
 import { slugify } from '$lib/utils';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 

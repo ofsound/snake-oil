@@ -67,5 +67,5 @@ export const auth = betterAuth({
 
 // Export Better Auth types for use in app.d.ts
 type GetSessionResult = Awaited<ReturnType<typeof auth.api.getSession>>;
-export type Session = GetSessionResult extends { session: infer S } ? S : never;
-export type User = GetSessionResult extends { user: infer U } ? U : never;
+export type Session = NonNullable<GetSessionResult>['session'];
+export type User = NonNullable<GetSessionResult>['user'];
