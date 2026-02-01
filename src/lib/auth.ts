@@ -1,6 +1,7 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { sveltekitCookies } from 'better-auth/svelte-kit';
+
 import { db } from '$lib/server/db';
 import * as schema from '$lib/server/db/schema';
 import { env } from '$env/dynamic/private';
