@@ -7,7 +7,7 @@
 </script>
 
 <div class="mx-auto max-w-3xl p-8">
-	<div class="mb-8 flex flex-col rounded-lg bg-white p-6 shadow-md">
+	<div class="mb-8 flex flex-col">
 		{#if user.image}
 			<div class="mb-4 h-32 w-32">
 				<img
@@ -20,20 +20,15 @@
 		<h1 class="mb-2 text-3xl text-gray-700">
 			{user.name || 'User Profile'}
 		</h1>
-		<p class="mb-4 text-gray-600">@{user.slug}</p>
 		<div class="flex gap-2 rounded-md">
 			<span class="font-semibold text-gray-600">Member since:</span>
 			<span class="font-medium text-gray-800">
 				{new Date(user.createdAt).toLocaleDateString()}
 			</span>
 		</div>
-		<div class="mt-2 flex gap-2 rounded-md">
-			<span class="font-semibold text-gray-600">Profile URL:</span>
-			<span class="font-mono text-sm text-gray-800">/users/{user.slug}</span>
-		</div>
 	</div>
 
-	<div class="mb-8 rounded-sm border border-gray-200 bg-white p-6">
+	<div class="mb-8">
 		<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">Quizzes</h2>
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-3">
