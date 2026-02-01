@@ -6,7 +6,7 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async () => {
 	const recentQuizzes = await db.query.quizzes.findMany({
 		orderBy: desc(quizzes.createdAt),
-		limit: 10,
+		limit: 5,
 		columns: {
 			id: true,
 			title: true,

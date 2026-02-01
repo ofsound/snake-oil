@@ -18,6 +18,7 @@
 		<p class="text-sm text-gray-500">
 			{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 		</p>
+		<p>add Owner</p>
 		<p class="text-base text-gray-700">{data.quiz.description}</p>
 	</header>
 
@@ -32,13 +33,9 @@
 			};
 		}}
 	>
-		<section class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-			<h2 class="text-lg font-semibold">Your details</h2>
-			{#if data.user}
-				<p class="text-sm text-gray-600">
-					Signed in as <a class="underline" href="/profile">{signedInLabel}</a>
-				</p>
-			{:else}
+		{#if !data.user}
+			<section class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+				<h2 class="text-lg font-semibold">Your details</h2>
 				<div class="space-y-2">
 					<label class="text-sm font-medium text-gray-700" for="displayName">Display name</label>
 					<input
@@ -51,14 +48,14 @@
 						required
 					/>
 				</div>
-			{/if}
-		</section>
+			</section>
+		{/if}
 
 		<section class="space-y-4">
-			<h2 class="text-lg font-semibold">SoundBites</h2>
+			<h2 class="text-lg font-semibold">Audio Samples</h2>
 			<div class="space-y-5">
 				{#each data.soundbites as soundbite (soundbite.id)}
-					<div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+					<div class="space-y-3 rounded-lg bg-white p-4">
 						<input type="hidden" name="soundbiteId" value={soundbite.id} />
 						<div class="space-y-2">
 							<p class="text-sm font-medium text-gray-700">{soundbite.trackName}</p>

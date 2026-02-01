@@ -35,27 +35,31 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<header class="bg-slate-200 px-4 py-4">
+<header class="bg-slate-200 px-8 py-4">
 	<div class="flex justify-between gap-2">
-		<a href="/" class="font-bold">snakeoil.csstune.com</a>
+		<a href="/" class="text-xl font-bold text-shadow-sm text-shadow-zinc-400/20"
+			>guesstheaudio.com</a
+		>
 
-		<div class="flex gap-4">
+		<div class="flex gap-3">
 			{#if $session.data?.user.name}
-				<a href="/profile" class=" underline"
+				<a
+					href="/profile"
+					class="cursor-pointer rounded-sm border border-stone-300 bg-emerald-800 px-1.5 py-0.5 text-sm text-white"
 					>{$session.data?.user.name} <span class="text-xs">(profile)</span></a
 				>
 				<button
 					type="button"
 					onclick={handleSignOut}
 					disabled={loading}
-					class="font-inherit cursor-pointer border-none bg-transparent p-0 underline hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+					class="cursor-pointer rounded-sm border border-stone-500 bg-zinc-600 px-1.5 py-0.5 text-sm text-white"
 				>
 					log out
 				</button>
 			{:else}
 				<a
 					href="/login"
-					class="font-inherit ml-auto cursor-pointer border-none bg-transparent p-0 underline hover:underline"
+					class="cursor-pointer rounded-sm border border-stone-500 bg-zinc-600 px-1.5 py-0.5 text-sm text-white"
 				>
 					sign in
 				</a>
