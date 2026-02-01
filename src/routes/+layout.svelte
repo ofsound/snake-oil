@@ -1,11 +1,12 @@
 <script lang="ts">
-	import './layout.css';
-
-	import { useSessionWithInitialData, authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 
-	import favicon from '$lib/assets/favicon.svg';
+	import { useSessionWithInitialData, authClient } from '$lib/auth-client';
+
 	import type { LayoutProps } from './$types';
+
+	import favicon from '$lib/assets/favicon.svg';
+	import './layout.css';
 
 	let { data, children }: LayoutProps = $props();
 
@@ -34,11 +35,12 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-{#if $session.data?.user.name}
-	<header class="bg-slate-200 px-4 py-2">
-		<div class="flex justify-between gap-2">
-			<a href="/" class="font-bold">snakeoil.csstune.com</a>
-			<div class="flex flex-1 gap-4">
+<header class="bg-slate-200 px-4 py-2">
+	<div class="flex justify-between gap-2">
+		<a href="/" class="font-bold">snakeoil.csstune.com</a>
+
+		<div class="flex flex-1 gap-4">
+			{#if $session.data?.user.name}
 				<a href="/create" class="mr-auto text-blue-500 hover:text-blue-700">create quiz</a>
 				<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
 
@@ -50,22 +52,16 @@
 				>
 					log out
 				</button>
-			</div>
+			{:else}
+				<a
+					href="/login"
+					class="font-inherit ml-auto cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline"
+				>
+					sign in
+				</a>
+			{/if}
 		</div>
-	</header>
-{:else}
-	<header class="bg-slate-200 px-4 py-2">
-		<div class="flex justify-between gap-2">
-			<a href="/" class="font-bold">snakeoil.csstune.com</a>
-			<button
-				type="button"
-				onclick={() => goto('/login')}
-				class="font-inherit cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline"
-			>
-				sign in
-			</button>
-		</div>
-	</header>
-{/if}
+	</div>
+</header>
 
 {@render children()}

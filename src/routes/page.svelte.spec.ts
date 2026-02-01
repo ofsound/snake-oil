@@ -1,3 +1,5 @@
+// I think I can and will delete this file, pointless test!
+
 import { page } from 'vitest/browser';
 import { describe, expect, it } from 'vitest';
 import { render } from 'vitest-browser-svelte';
