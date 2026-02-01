@@ -35,29 +35,27 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<header class="bg-slate-200 px-4 py-2">
+<header class="bg-slate-200 px-4 py-4">
 	<div class="flex justify-between gap-2">
 		<a href="/" class="font-bold">snakeoil.csstune.com</a>
 
-		<div class="flex flex-1 gap-4">
+		<div class="flex gap-4">
 			{#if $session.data?.user.name}
-				<a href="/create" class="mr-auto text-blue-500 hover:text-blue-700">create quiz</a>
-				<a href="/profile" class="text-blue-500 hover:text-blue-700"
-					>{$session.data.user.name} <span class="text-xs">(view profile)</span></a
+				<a href="/profile" class=" underline"
+					>{$session.data?.user.name} <span class="text-xs">(profile)</span></a
 				>
-
 				<button
 					type="button"
 					onclick={handleSignOut}
 					disabled={loading}
-					class="font-inherit cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+					class="font-inherit cursor-pointer border-none bg-transparent p-0 underline hover:underline disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					log out
 				</button>
 			{:else}
 				<a
 					href="/login"
-					class="font-inherit ml-auto cursor-pointer border-none bg-transparent p-0 text-blue-500 hover:text-blue-700 hover:underline"
+					class="font-inherit ml-auto cursor-pointer border-none bg-transparent p-0 underline hover:underline"
 				>
 					sign in
 				</a>

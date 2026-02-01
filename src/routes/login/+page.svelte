@@ -65,7 +65,7 @@
 	</div>
 {:else}
 	<div class="flex min-h-[50vh] items-center justify-center p-8">
-		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
+		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 pb-6 shadow-md">
 			<h2 class="mt-0 mb-6">Sign In</h2>
 
 			{#if error}
@@ -102,7 +102,7 @@
 				</button>
 			</form>
 
-			<p class="text-center text-sm">
+			<p class="mt-2 text-center text-sm">
 				Don't have an account?
 				<a
 					href="/signup?redirect={encodeURIComponent($page.url.searchParams.get('redirect') || '')}"

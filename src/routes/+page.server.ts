@@ -17,7 +17,8 @@ export const load: PageServerLoad = async () => {
 		with: {
 			owner: {
 				columns: {
-					name: true
+					name: true,
+					slug: true
 				}
 			}
 		}
