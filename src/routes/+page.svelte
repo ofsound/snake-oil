@@ -1,7 +1,39 @@
-<h1 class="mt-12 text-center text-2xl font-bold">Home</h1>
+<script lang="ts">
+	import type { PageProps } from './$types';
 
-<ul class="mx-auto mt-8 flex w-8/10 flex-col gap-2 rounded-md bg-zinc-100 p-4">
-	<li>Intro Banner</li>
-	<li>Latest Public Quizzes</li>
-	<li>Different content for Logged In / Logged Out users</li>
-</ul>
+	let { data }: PageProps = $props();
+
+	let quizzes = $derived(data.quizzes ?? []);
+</script>
+
+<div class="mx-auto max-w-4xl p-8">
+	<div class="mb-8 text-center">
+		<h1 class="mb-2 text-4xl font-bold text-gray-800">Welcome to Snake Oil</h1>
+		<p class="text-lg text-gray-600">Test your knowledge with our latest quizzes</p>
+	</div>
+
+	<div class="mb-8">
+		{#if quizzes.length > 0}
+			<div class="flex flex-col gap-2">
+				{#each quizzes as quiz (quiz.id)}
+					<a
+						href="/{quiz.slug}"
+						class="block rounded-md bg-gray-50 p-4 transition-colors hover:bg-gray-100"
+					>
+						<div class="flex flex-col">
+							<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
+							<p class="mt-2 text-sm text-gray-600">{quiz.description}</p>
+							<p class="mt-2 text-xs text-gray-500">
+								Created: {new Date(quiz.createdAt).toLocaleDateString()}
+							</p>
+						</div>
+					</a>
+				{/each}
+			</div>
+		{:else}
+			<div class="rounded-md bg-gray-50 p-8 text-center">
+				<p class="text-gray-600">No quizzes available yet. Check back soon!</p>
+			</div>
+		{/if}
+	</div>
+</div>

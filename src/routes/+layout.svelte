@@ -42,7 +42,9 @@
 		<div class="flex flex-1 gap-4">
 			{#if $session.data?.user.name}
 				<a href="/create" class="mr-auto text-blue-500 hover:text-blue-700">create quiz</a>
-				<a href="/profile" class="text-blue-500 hover:text-blue-700">{$session.data.user.name}</a>
+				<a href="/profile" class="text-blue-500 hover:text-blue-700"
+					>{$session.data.user.name} <span class="text-xs">(view profile)</span></a
+				>
 
 				<button
 					type="button"

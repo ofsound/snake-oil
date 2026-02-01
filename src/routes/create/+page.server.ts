@@ -7,10 +7,12 @@ import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	// Check for active user session
 	if (!locals.user) {
-		redirect(302, '/');
+		// Capture the current URL and pass it to login for redirect after authentication
+		const returnUrl = url.pathname + url.search;
+		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
 	}
 
 	// Return empty data for now since the page will be blank

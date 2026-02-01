@@ -8,9 +8,11 @@ import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { slugify } from '$lib/utils';
 import { findUniqueSlug } from '$lib/server/db/slug-utils';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
-		redirect(302, '/login');
+		// Capture the current URL and pass it to login for redirect after authentication
+		const returnUrl = url.pathname + url.search;
+		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
 	}
 
 	const quiz = await db.query.quizzes.findFirst({

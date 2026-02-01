@@ -1,5 +1,8 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { validateRedirectUrl } from '$lib/utils';
 
 	const session = authClient.useSession();
 
@@ -8,6 +11,9 @@
 	let name = $state('');
 	let loading = $state(false);
 	let error = $state<string | null>(null);
+
+	// Get and validate the redirect URL from query parameters
+	const redirectUrl = $derived(validateRedirectUrl($page.url.searchParams.get('redirect')));
 
 	async function handleSignUp() {
 		loading = true;
@@ -27,12 +33,14 @@
 				return;
 			}
 
-			// Success - data contains the session
+			// Success - redirect to the return URL or home page
 			if (data) {
 				console.log('Sign up successful:', data.user);
 				email = '';
 				password = '';
 				name = '';
+				// Redirect to the validated return URL
+				goto(redirectUrl);
 			}
 		} catch (err: unknown) {
 			console.error('Sign up error:', err);
@@ -48,7 +56,7 @@
 		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
 			<h2 class="mt-0 mb-6">You're already signed in!</h2>
 			<p>Welcome back, {$session.data.user?.name || $session.data.user?.email}!</p>
-			<a href="/" class="text-blue-500 hover:text-blue-700">Return to home</a>
+			<a href={redirectUrl} class="text-blue-500 hover:text-blue-700">Continue to {$page.url.searchParams.get('redirect') ? 'your destination' : 'home'}</a>
 		</div>
 	</div>
 {:else}
@@ -92,7 +100,7 @@
 
 			<p class="text-center text-sm">
 				Already have an account?
-				<a href="/login" class="text-blue-500 hover:text-blue-700">Sign in here</a>
+				<a href="/login?redirect={encodeURIComponent($page.url.searchParams.get('redirect') || '')}" class="text-blue-500 hover:text-blue-700">Sign in here</a>
 			</p>
 		</div>
 	</div>
