@@ -51,13 +51,14 @@ import { env } from '$env/dynamic/private';
 describe('create page - load function', () => {
 	it('redirects unauthenticated users', async () => {
 		const locals = { user: null } as any;
+		const url = { pathname: '/create', search: '' } as any;
 
-		await expect(load({ locals } as any)).rejects.toMatchObject({
+		await expect(load({ locals, url } as any)).rejects.toMatchObject({
 			status: 302,
-			location: '/'
+			location: '/login?redirect=%2Fcreate'
 		});
 
-		expect(redirect).toHaveBeenCalledWith(302, '/');
+		expect(redirect).toHaveBeenCalledWith(302, '/login?redirect=%2Fcreate');
 	});
 
 	it('allows authenticated users through', async () => {

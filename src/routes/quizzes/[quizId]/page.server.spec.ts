@@ -68,14 +68,15 @@ describe('quizzes/[quizId] page - load function', () => {
 		await expect(
 			load({
 				locals: { user: null },
-				params: { quizId: 'quiz-123' }
+				params: { quizId: 'quiz-123' },
+				url: { pathname: '/quizzes/quiz-123', search: '' }
 			} as any)
 		).rejects.toMatchObject({
 			status: 302,
-			location: '/login'
+			location: '/login?redirect=%2Fquizzes%2Fquiz-123'
 		});
 
-		expect(redirect).toHaveBeenCalledWith(302, '/login');
+		expect(redirect).toHaveBeenCalledWith(302, '/login?redirect=%2Fquizzes%2Fquiz-123');
 	});
 
 	it('returns 404 if quiz does not exist', async () => {
