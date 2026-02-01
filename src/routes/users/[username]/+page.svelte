@@ -34,7 +34,7 @@
 			<div class="flex flex-col gap-3">
 				{#each quizzes as quiz (quiz.id)}
 					<a
-						href="/quizzes/{quiz.id}"
+						href="/{quiz.slug}"
 						class="flex items-center justify-between rounded-md border-none bg-gray-50 px-3 py-2 text-white transition-colors hover:bg-gray-100"
 					>
 						<div class="flex flex-col">
