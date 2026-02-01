@@ -12,7 +12,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		headers: event.request.headers
 	});
 
-	if (session) {
+	if (session?.session) {
 		event.locals.session = session.session;
 		event.locals.user = session.user;
 	}
