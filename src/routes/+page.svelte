@@ -24,7 +24,7 @@
 							<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
 							<p class="mt-2 text-sm text-gray-600">{quiz.description}</p>
 							<p class="mt-2 text-xs text-gray-500">
-								Created: {new Date(quiz.createdAt).toLocaleDateString()}
+								Created by: {quiz.owner.name} on {new Date(quiz.createdAt).toLocaleDateString()}
 							</p>
 						</div>
 					</a>

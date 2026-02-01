@@ -13,6 +13,13 @@ export const load: PageServerLoad = async () => {
 			slug: true,
 			description: true,
 			createdAt: true
+		},
+		with: {
+			owner: {
+				columns: {
+					name: true
+				}
+			}
 		}
 	});
 
