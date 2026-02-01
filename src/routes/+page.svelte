@@ -12,6 +12,10 @@
 		<p class="text-lg text-gray-600">Test your knowledge with our latest quizzes</p>
 	</div>
 
+	<div>
+		<a href="/quizzes" class="text-blue-500 hover:text-blue-700">View all quizzes</a>
+	</div>
+
 	<div class="mb-8">
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-2">

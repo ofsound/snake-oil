@@ -5,7 +5,7 @@
 
 	let { data }: PageProps = $props();
 
-	type SortOption = 'date' | 'title' | 'username';
+	type SortOption = 'relevance' | 'date' | 'title' | 'username';
 	type OrderOption = 'asc' | 'desc';
 
 	function getSortIcon(column: SortOption): string {
@@ -20,21 +20,21 @@
 			// Toggle order if same column
 			params.set('order', data.order === 'asc' ? 'desc' : 'asc');
 		} else {
-			// New column, default to desc for date, asc for others
+			// New column, default to desc for relevance and date, asc for others
 			params.set('sort', column);
-			params.set('order', column === 'date' ? 'desc' : 'asc');
+			params.set('order', column === 'date' || column === 'relevance' ? 'desc' : 'asc');
 		}
 
 		// Reset to page 1 when sorting changes
 		params.set('page', '1');
 
-		goto(`/quizzes?${params.toString()}`);
+		goto(`/results?${params.toString()}`);
 	}
 
 	function handlePageChange(newPage: number): void {
 		const params = new URLSearchParams(page.url.searchParams);
 		params.set('page', String(newPage));
-		goto(`/quizzes?${params.toString()}`);
+		goto(`/results?${params.toString()}`);
 	}
 
 	function formatDate(date: Date): string {
@@ -64,9 +64,9 @@
 
 <div class="mx-auto max-w-6xl p-8">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-800">All Quizzes</h1>
+		<h1 class="text-3xl font-bold text-gray-800">Search Results</h1>
 		<p class="mt-2 text-gray-600">
-			{data.totalCount} quiz{data.totalCount === 1 ? '' : 'zes'} available
+			{data.totalCount} result{data.totalCount === 1 ? '' : 's'} for "{data.query}"
 		</p>
 	</div>
 
@@ -75,6 +75,7 @@
 			<input
 				type="search"
 				name="q"
+				value={data.query}
 				placeholder="Search title, description, or creator"
 				class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
 				required
@@ -210,7 +211,13 @@
 		{/if}
 	{:else}
 		<div class="rounded-md bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No quizzes available yet. Check back soon!</p>
+			<p class="text-gray-600">No quizzes found matching your search.</p>
+			<a
+				href="/quizzes"
+				class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
+			>
+				View all quizzes
+			</a>
 		</div>
 	{/if}
 </div>
