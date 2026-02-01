@@ -13,6 +13,24 @@ export const authClient = createAuthClient({
 	...(baseURL && { baseURL })
 });
 
+// Type for signup with custom fields (slug)
+// Better Auth's additionalFields are passed through to the signup endpoint
+export interface SignUpWithSlug {
+	email: string;
+	password: string;
+	name: string;
+	slug: string;
+}
+
+/**
+ * Sign up with additional slug field
+ * Better Auth passes additional fields to the user table when configured with additionalFields
+ */
+export async function signUpWithSlug(data: SignUpWithSlug) {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return authClient.signUp.email(data as any);
+}
+
 /**
  * Wrapper for useSession that accepts initial server-side session data.
  *

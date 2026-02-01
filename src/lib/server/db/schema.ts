@@ -12,15 +12,20 @@ import {
 import { relations } from 'drizzle-orm';
 
 // Better Auth core tables (see https://better-auth.com/docs/concepts/database)
-export const user = pgTable('user', {
-	id: text('id').primaryKey(),
-	email: text('email').notNull(),
-	name: text('name'),
-	emailVerified: boolean('email_verified'),
-	image: text('image'),
-	createdAt: timestamp('created_at').defaultNow().notNull(),
-	updatedAt: timestamp('updated_at').defaultNow().notNull()
-});
+export const user = pgTable(
+	'user',
+	{
+		id: text('id').primaryKey(),
+		email: text('email').notNull(),
+		name: text('name'),
+		slug: text('slug').notNull(),
+		emailVerified: boolean('email_verified'),
+		image: text('image'),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('user_slug_unique').on(table.slug)]
+);
 
 export const session = pgTable('session', {
 	id: text('id').primaryKey(),

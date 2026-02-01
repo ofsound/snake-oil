@@ -1,5 +1,5 @@
 import { db } from './index';
-import { quizzes } from './schema';
+import { quizzes, user } from './schema';
 import { eq, and, ne } from 'drizzle-orm';
 
 /**
@@ -112,4 +112,47 @@ export async function findUniqueSlug(
 
 	// This should never be reached, but TypeScript needs it
 	throw new Error('Failed to find unique slug');
+}
+
+/**
+ * Finds a unique user slug by querying the database for existing slugs.
+ * Similar to findUniqueSlug but for users.
+ *
+ * @param baseSlug - The base slug to use (will be used as-is if available)
+ * @param excludeUserId - Optional user ID to exclude from uniqueness check
+ * @param maxRetries - Maximum number of retry attempts (default: 100)
+ * @returns A promise that resolves to a unique slug string
+ * @throws An error if max retries exceeded
+ */
+export async function findUniqueUserSlug(
+	baseSlug: string,
+	excludeUserId?: string,
+	maxRetries = 100
+): Promise<string> {
+	const base = baseSlug || 'user';
+	let candidate = base;
+	let counter = 2;
+
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		const conditions = excludeUserId
+			? and(eq(user.slug, candidate), ne(user.id, excludeUserId))
+			: eq(user.slug, candidate);
+
+		const existing = await db.select({ id: user.id }).from(user).where(conditions).limit(1);
+
+		if (existing.length === 0) {
+			return candidate;
+		}
+
+		if (attempt >= maxRetries) {
+			throw new Error(
+				`Failed to find unique user slug after ${maxRetries} attempts. Last candidate: ${candidate}`
+			);
+		}
+
+		candidate = `${base}-${counter}`;
+		counter += 1;
+	}
+
+	throw new Error('Failed to find unique user slug');
 }

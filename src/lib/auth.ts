@@ -59,6 +59,14 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true
 	},
+	user: {
+		additionalFields: {
+			slug: {
+				type: 'string',
+				required: true
+			}
+		}
+	},
 	schema: {
 		user: true,
 		session: true

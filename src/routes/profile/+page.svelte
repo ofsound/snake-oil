@@ -28,6 +28,15 @@
 					</div>
 				{/if}
 
+				{#if profile?.slug}
+					<div class="flex items-center justify-between rounded-md bg-gray-50 p-3">
+						<span class="font-semibold text-gray-600">Public Profile:</span>
+						<a href="/users/{profile.slug}" class="font-medium text-blue-600 hover:underline"
+							>@{profile.slug}</a
+						>
+					</div>
+				{/if}
+
 				{#if profile?.createdAt}
 					<div class="flex items-center justify-between rounded-md bg-gray-50 p-3">
 						<span class="font-semibold text-gray-600">Member since:</span>
