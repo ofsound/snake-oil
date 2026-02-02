@@ -105,6 +105,7 @@ export const actions: Actions = {
 				const descriptionText = descriptions[index] || '';
 				const blob = await put(file.name, file, {
 					access: 'public',
+					addRandomSuffix: true,
 					token: env.BLOB_READ_WRITE_TOKEN
 				});
 

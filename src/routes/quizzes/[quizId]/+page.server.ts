@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
-import { put } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { slugify } from '$lib/utils';
@@ -80,7 +80,9 @@ const getExistingSoundbites = (formData: FormData) => {
 };
 
 const getNewSoundbites = (formData: FormData) => {
-	const descriptions = formData.getAll('newSoundbiteDescription').map((value) => String(value).trim());
+	const descriptions = formData
+		.getAll('newSoundbiteDescription')
+		.map((value) => String(value).trim());
 	const files = formData.getAll('newSoundbiteFile') as File[];
 
 	return { descriptions, files };
@@ -108,9 +110,20 @@ export const actions: Actions = {
 			return fail(401, { message: 'You must be signed in to delete this quiz.' });
 		}
 
+		if (!env.BLOB_READ_WRITE_TOKEN) {
+			return fail(500, { message: 'Blob storage not configured.' });
+		}
+
 		const existingQuiz = await db.query.quizzes.findFirst({
 			where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
-			columns: { id: true }
+			columns: { id: true },
+			with: {
+				soundbites: {
+					with: {
+						track: true
+					}
+				}
+			}
 		});
 
 		if (!existingQuiz) {
@@ -118,7 +131,25 @@ export const actions: Actions = {
 		}
 
 		try {
+			// Delete associated blobs from Vercel Blob storage and collect track IDs
+			const trackIds: string[] = [];
+			for (const soundbite of existingQuiz.soundbites) {
+				if (soundbite.track?.pathname) {
+					await del(soundbite.track.pathname, {
+						token: env.BLOB_READ_WRITE_TOKEN
+					});
+				}
+				if (soundbite.track?.id) {
+					trackIds.push(soundbite.track.id);
+				}
+			}
+
 			await db.delete(quizzes).where(eq(quizzes.id, params.quizId));
+
+			// Delete orphaned tracks after quiz and soundbites are deleted
+			for (const trackId of trackIds) {
+				await db.delete(tracks).where(eq(tracks.id, trackId));
+			}
 		} catch (err) {
 			console.error(err);
 			return fail(500, { message: 'Failed to delete quiz.' });
@@ -151,9 +182,14 @@ export const actions: Actions = {
 		const { ids, descriptions, files, removed } = getExistingSoundbites(formData);
 		const { descriptions: newDescriptions, files: newFiles } = getNewSoundbites(formData);
 
+		const remainingSoundbites = ids.length - removed.size;
+		const addingNewSoundbites = newFiles.length > 0;
+		// Files are only required if all existing soundbites are removed and no new ones are added
+		const filesRequired = remainingSoundbites === 0 && !addingNewSoundbites;
+
 		const fileError = validateFiles(
 			[...files.filter((file) => file.size > 0), ...newFiles.filter((file) => file.size > 0)],
-			ids.length - removed.size + newFiles.length > 0
+			filesRequired
 		);
 		if (fileError) {
 			return fail(400, { message: fileError });
@@ -198,6 +234,7 @@ export const actions: Actions = {
 				if (file && file.size > 0) {
 					const blob = await put(file.name, file, {
 						access: 'public',
+						addRandomSuffix: true, // <--- Add this line
 						token: env.BLOB_READ_WRITE_TOKEN
 					});
 
@@ -215,7 +252,10 @@ export const actions: Actions = {
 						.set({ description: descriptionText, trackId: track.id })
 						.where(eq(soundbites.id, id));
 				} else {
-					await db.update(soundbites).set({ description: descriptionText }).where(eq(soundbites.id, id));
+					await db
+						.update(soundbites)
+						.set({ description: descriptionText })
+						.where(eq(soundbites.id, id));
 				}
 			}
 
@@ -227,6 +267,7 @@ export const actions: Actions = {
 
 				const blob = await put(file.name, file, {
 					access: 'public',
+					addRandomSuffix: true, // <--- Add this line
 					token: env.BLOB_READ_WRITE_TOKEN
 				});
 

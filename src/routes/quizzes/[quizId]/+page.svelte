@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
@@ -11,6 +12,35 @@
 	let submitting = $state(false);
 	let successMessage = $derived(form?.success ? 'Quiz updated successfully.' : null);
 	let errorMessage = $derived(form?.message ?? null);
+
+	// Track the quiz ID to prevent resetting form fields when updating the same quiz
+	let lastQuizId = $state<string>(data.quiz.id);
+
+	// Local state for form fields - initialize from data once
+	let title = $state(data.quiz.title);
+	let slug = $state(data.quiz.slug);
+	let description = $state(data.quiz.description);
+	let existingSoundbiteDescriptions = $state<Record<string, string>>(
+		Object.fromEntries(data.soundbites.map((sb) => [sb.id, sb.description]))
+	);
+
+	// Only update when navigating to a different quiz
+	// Use untrack to avoid creating reactive dependencies that cause infinite loops
+	$effect(() => {
+		const quizId = data.quiz.id;
+		if (lastQuizId !== quizId) {
+			// Navigating to a different quiz - update all fields
+			untrack(() => {
+				title = data.quiz.title;
+				slug = data.quiz.slug;
+				description = data.quiz.description;
+				existingSoundbiteDescriptions = Object.fromEntries(
+					data.soundbites.map((sb) => [sb.id, sb.description])
+				);
+				lastQuizId = quizId;
+			});
+		}
+	});
 
 	function addNewSoundbite() {
 		newSoundbites = [...newSoundbites, { id: nextNewSoundbiteId, description: '' }];
@@ -33,14 +63,15 @@
 		<div class="flex items-start justify-between">
 			<div class="space-y-2">
 				<h1 class="text-3xl font-semibold">Manage Quiz</h1>
-				<p class="text-sm text-gray-500">Update quiz details and review submitted answers.</p>
+				<a class="text-sm underline" href={`/${slug}`}>View public page</a>
 			</div>
 			<form
 				method="POST"
 				action="?/delete"
-				use:enhance={() => {
+				use:enhance={({ cancel }) => {
 					if (!confirm('Are you sure you want to delete this quiz?')) {
-						return () => {};
+						cancel();
+						return;
 					}
 					return async ({ result, update }) => {
 						// If redirect, navigate to the location
@@ -55,7 +86,7 @@
 			>
 				<button
 					type="submit"
-					class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+					class="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
 				>
 					Delete Quiz
 				</button>
@@ -70,14 +101,28 @@
 		class="space-y-6"
 		use:enhance={() => {
 			submitting = true;
-			return async ({ update }) => {
+			return async ({ result, update }) => {
+				if (result.type === 'success') {
+					// Store current field values before update
+					const currentTitle = title;
+					const currentSlug = slug;
+					const currentDescription = description;
+					await update({ reset: false });
+					// Restore field values to preserve user input after successful save
+					title = currentTitle;
+					slug = currentSlug;
+					description = currentDescription;
+					// Clear new soundbites since they've been saved
+					newSoundbites = [];
+					nextNewSoundbiteId = 0;
+				} else {
+					await update({ reset: false });
+				}
 				submitting = false;
-				await update();
 			};
 		}}
 	>
 		<section class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-			<h2 class="text-lg font-semibold">Quiz details</h2>
 			<div class="space-y-3">
 				<label class="text-sm font-medium text-gray-700" for="title">Title</label>
 				<input
@@ -85,7 +130,7 @@
 					name="title"
 					type="text"
 					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					value={data.quiz.title}
+					bind:value={title}
 					required
 				/>
 			</div>
@@ -96,10 +141,9 @@
 					name="slug"
 					type="text"
 					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					value={data.quiz.slug}
+					bind:value={slug}
 					required
 				/>
-				<a class="text-xs text-gray-500 underline" href={`/${data.quiz.slug}`}>View public page</a>
 			</div>
 			<div class="space-y-2">
 				<label class="text-sm font-medium text-gray-700" for="description">Description</label>
@@ -108,8 +152,9 @@
 					name="description"
 					rows="4"
 					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					required>{data.quiz.description}</textarea
-				>
+					bind:value={description}
+					required
+				></textarea>
 			</div>
 		</section>
 
@@ -139,7 +184,7 @@
 									name="existingSoundbiteDescription"
 									type="text"
 									class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-									value={soundbite.description}
+									bind:value={existingSoundbiteDescriptions[soundbite.id]}
 									required
 								/>
 							</div>
@@ -249,7 +294,7 @@
 		</div>
 	</form>
 
-	<section class="space-y-4">
+	<section class="space-y-4 border-t border-gray-200 pt-4">
 		<h2 class="text-xl font-semibold">Submitted answers</h2>
 		{#if data.answers.length === 0}
 			<p class="text-sm text-gray-500">No submissions yet.</p>
