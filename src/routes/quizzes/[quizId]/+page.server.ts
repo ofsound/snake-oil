@@ -103,7 +103,30 @@ const validateFiles = (files: File[], isRequired: boolean) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, params }: RequestEvent) => {
+	delete: async ({ locals, params }: RequestEvent) => {
+		if (!locals.user) {
+			return fail(401, { message: 'You must be signed in to delete this quiz.' });
+		}
+
+		const existingQuiz = await db.query.quizzes.findFirst({
+			where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
+			columns: { id: true }
+		});
+
+		if (!existingQuiz) {
+			return fail(404, { message: 'Quiz not found or you do not have permission to delete it.' });
+		}
+
+		try {
+			await db.delete(quizzes).where(eq(quizzes.id, params.quizId));
+		} catch (err) {
+			console.error(err);
+			return fail(500, { message: 'Failed to delete quiz.' });
+		}
+
+		redirect(302, '/profile');
+	},
+	update: async ({ request, locals, params }: RequestEvent) => {
 		if (!locals.user) {
 			return fail(401, { message: 'You must be signed in to edit this quiz.' });
 		}

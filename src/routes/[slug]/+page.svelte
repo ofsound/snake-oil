@@ -25,7 +25,7 @@
 				{data.quiz.owner.name || data.quiz.owner.slug}
 			</a>
 		</p>
-		<p class="rounded-sm border border-stone-200 bg-stone-100 p-4 text-base text-gray-700">
+		<p class="mt-4 text-base">
 			{data.quiz.description}
 		</p>
 	</header>
@@ -60,13 +60,12 @@
 		{/if}
 
 		<section class="space-y-4">
-			<h2 class="text-lg font-semibold">Audio Samples</h2>
 			<div class="space-y-5">
-				{#each data.soundbites as soundbite (soundbite.id)}
+				{#each data.soundbites as soundbite, index (soundbite.id)}
 					<div class="space-y-3 rounded-lg bg-white p-4">
 						<input type="hidden" name="soundbiteId" value={soundbite.id} />
 						<div class="space-y-2">
-							<p class="text-sm font-medium text-gray-700">{soundbite.trackName}</p>
+							<p class="text-sm font-medium text-gray-700">Audio #{index + 1}</p>
 							<audio controls class="w-full">
 								<source src={soundbite.trackUrl} type="audio/mpeg" />
 								Your browser does not support the audio element.

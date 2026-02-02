@@ -49,7 +49,14 @@
 		</div>
 
 		<div class="mb-8 rounded-sm border border-gray-200 bg-white p-6">
-			<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">My Quizzes</h2>
+			<div class="flex items-center justify-between">
+				<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">My Quizzes</h2>
+				<a
+					href="/create"
+					class="inline-block rounded-md border-none bg-blue-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-600"
+					>Create Quiz</a
+				>
+			</div>
 			{#if quizzes.length > 0}
 				<div class="flex flex-col gap-3">
 					{#each quizzes as quiz (quiz.id)}

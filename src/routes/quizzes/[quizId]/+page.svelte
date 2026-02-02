@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
@@ -28,13 +29,43 @@
 </script>
 
 <div class="mx-auto max-w-5xl space-y-10 p-8">
-	<header class="space-y-2">
-		<h1 class="text-3xl font-semibold">Manage Quiz</h1>
-		<p class="text-sm text-gray-500">Update quiz details and review submitted answers.</p>
+	<header class="relative space-y-2">
+		<div class="flex items-start justify-between">
+			<div class="space-y-2">
+				<h1 class="text-3xl font-semibold">Manage Quiz</h1>
+				<p class="text-sm text-gray-500">Update quiz details and review submitted answers.</p>
+			</div>
+			<form
+				method="POST"
+				action="?/delete"
+				use:enhance={() => {
+					if (!confirm('Are you sure you want to delete this quiz?')) {
+						return () => {};
+					}
+					return async ({ result, update }) => {
+						// If redirect, navigate to the location
+						if (result.type === 'redirect') {
+							await goto(result.location);
+							return;
+						}
+						// For other result types (success, failure), update the page
+						await update();
+					};
+				}}
+			>
+				<button
+					type="submit"
+					class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+				>
+					Delete Quiz
+				</button>
+			</form>
+		</div>
 	</header>
 
 	<form
 		method="POST"
+		action="?/update"
 		enctype="multipart/form-data"
 		class="space-y-6"
 		use:enhance={() => {
