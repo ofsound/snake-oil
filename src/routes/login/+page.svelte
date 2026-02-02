@@ -44,8 +44,8 @@
 			// Success - redirect to the return URL or home page
 			if (data) {
 				console.log('Sign in successful:', data.user);
-				// Redirect to the validated return URL
-				goto(redirectUrl);
+				// Redirect to the validated return URL and refresh session data
+				goto(redirectUrl, { invalidateAll: true });
 			}
 		} catch (err: unknown) {
 			console.error('Sign in error:', err);

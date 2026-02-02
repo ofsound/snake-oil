@@ -30,16 +30,3 @@ export async function signUpWithSlug(data: SignUpWithSlug) {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return authClient.signUp.email(data as any);
 }
-
-/**
- * Wrapper for useSession that accepts initial server-side session data.
- *
- * Better Auth's useSession accepts initial data at runtime, but TypeScript types
- * don't reflect this yet. Using `as any` is a pragmatic workaround.
- */
-export function useSessionWithInitialData(initialData: { session: unknown; user: unknown } | null) {
-	// Cast the entire function call to bypass TypeScript's strict checking
-	// Better Auth accepts this at runtime even though types don't reflect it
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return (authClient.useSession as any)({ data: initialData });
-}

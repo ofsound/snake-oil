@@ -75,8 +75,8 @@
 				password = '';
 				name = '';
 				slug = '';
-				// Redirect to the validated return URL
-				goto(redirectUrl);
+				// Redirect to the validated return URL and refresh session data
+				goto(redirectUrl, { invalidateAll: true });
 			}
 		} catch (err: unknown) {
 			console.error('Sign up error:', err);

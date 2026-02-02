@@ -1,19 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
-	import { useSessionWithInitialData, authClient } from '$lib/auth-client';
-
+	import { authClient } from '$lib/auth-client';
 	import type { LayoutProps } from './$types';
-
 	import favicon from '$lib/assets/favicon.svg';
 	import './layout.css';
 
 	let { data, children }: LayoutProps = $props();
-
-	// svelte-ignore state_referenced_locally
-	const session = useSessionWithInitialData(
-		data.session ? { session: data.session, user: data.user } : null
-	);
 
 	let loading = $state(false);
 	let error = $state<string | null>(null);
@@ -41,12 +33,13 @@
 		>
 
 		<div class="flex gap-3">
-			{#if $session.data?.user.name}
+			{#if data.user?.name}
 				<a
 					href="/profile"
 					class="cursor-pointer self-baseline rounded-sm bg-emerald-800 px-2 py-1 text-sm text-white hover:bg-emerald-700"
-					>{$session.data?.user.name} <span class="text-xs">(profile)</span></a
 				>
+					{data.user.name} <span class="text-xs">(profile)</span>
+				</a>
 				<button
 					type="button"
 					onclick={handleSignOut}
