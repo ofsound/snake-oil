@@ -44,21 +44,21 @@
 			{#if $session.data?.user.name}
 				<a
 					href="/profile"
-					class="cursor-pointer rounded-sm border border-stone-300 bg-emerald-800 px-1.5 py-0.5 text-sm text-white"
+					class="cursor-pointer self-baseline rounded-sm bg-emerald-800 px-2 py-1 text-sm text-white hover:bg-emerald-700"
 					>{$session.data?.user.name} <span class="text-xs">(profile)</span></a
 				>
 				<button
 					type="button"
 					onclick={handleSignOut}
 					disabled={loading}
-					class="cursor-pointer rounded-sm border border-stone-500 bg-zinc-600 px-1.5 py-0.5 text-sm text-white"
+					class="cursor-pointer self-baseline rounded-sm bg-zinc-600 px-2 py-1 text-sm text-white hover:bg-zinc-700"
 				>
 					log out
 				</button>
 			{:else}
 				<a
 					href="/login"
-					class="cursor-pointer rounded-sm border border-stone-500 bg-zinc-600 px-1.5 py-0.5 text-sm text-white"
+					class="cursor-pointer self-baseline rounded-sm bg-zinc-600 px-2 py-1 text-sm text-white hover:bg-zinc-700"
 				>
 					sign in
 				</a>

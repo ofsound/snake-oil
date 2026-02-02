@@ -43,7 +43,7 @@
 <div class="mx-auto max-w-3xl space-y-6 p-8">
 	<header class="space-y-2">
 		<h1 class="text-3xl font-semibold">Create Quiz</h1>
-		<p class="text-sm text-gray-500">Upload SoundBites and add descriptions for each one.</p>
+		<p class="text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
 	</header>
 
 	<form
@@ -60,42 +60,44 @@
 	>
 		<div class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-gray-700" for="title">Quiz title</label>
+				<label class="mb-1 text-sm font-medium text-gray-700" for="title">Quiz title</label>
 				<input
 					id="title"
 					name="title"
 					type="text"
 					placeholder="e.g. Mystery Intros"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
 					bind:value={title}
 					required
 				/>
 			</div>
 
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-gray-700" for="slug">Slug</label>
+				<label class="mb-1 text-sm font-medium text-gray-700" for="slug">URL</label>
 				<input
 					id="slug"
 					name="slug"
 					type="text"
 					placeholder="mystery-intros"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
 					bind:value={manualSlug}
 					oninput={() => {
 						slugEdited = true;
 					}}
 				/>
-				<p class="text-xs text-gray-500">This becomes the public URL: /{slug || 'your-quiz'}.</p>
+				<p class="hidden text-xs text-gray-500">
+					This becomes the public URL: /{slug || 'your-quiz'}.
+				</p>
 			</div>
 
 			<div class="space-y-2">
-				<label class="text-sm font-medium text-gray-700" for="description">Description</label>
+				<label class="mb-1 text-sm font-medium text-gray-700" for="description">Description</label>
 				<textarea
 					id="description"
 					name="description"
 					rows="4"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					placeholder="Tell listeners what to expect from this quiz."
+					class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					placeholder=""
 					bind:value={description}
 					required
 				></textarea>
@@ -134,14 +136,14 @@
 									class="text-sm font-medium text-gray-700"
 									for={`soundbite-desc-${soundbite.id}`}
 								>
-									Description
+									Answer
 								</label>
 								<input
 									id={`soundbite-desc-${soundbite.id}`}
 									name="soundbiteDescription"
 									type="text"
 									class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-									placeholder="Short hint for this audio clip"
+									placeholder=""
 									bind:value={soundbite.description}
 									required
 								/>
@@ -189,7 +191,7 @@
 		<div class="flex justify-end">
 			<button
 				type="submit"
-				class="rounded-md bg-black px-5 py-2 text-sm font-medium text-white"
+				class="rounded-md bg-emerald-800 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700"
 				disabled={submitting}
 			>
 				{submitting ? 'Creating...' : 'Create quiz'}

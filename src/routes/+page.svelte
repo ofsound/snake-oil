@@ -9,7 +9,7 @@
 <div class="mx-auto max-w-4xl p-8">
 	<a
 		href="/create"
-		class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm"
+		class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm hover:bg-emerald-400"
 		>Create a Quiz</a
 	>
 
@@ -42,7 +42,7 @@
 
 	<a
 		href="/quizzes"
-		class="mx-auto block w-max rounded-sm bg-slate-400 px-1.5 py-1 text-center text-sm text-white"
+		class="mx-auto block w-max rounded-sm bg-slate-400 px-2 py-1 text-center text-sm text-white hover:bg-slate-500"
 		>Browse All Quizzes</a
 	>
 </div>

@@ -26,8 +26,9 @@
 
 					<div class="flex items-center gap-2 rounded-md">
 						<span class="font-semibold text-gray-600">Public Profile:</span>
-						<a href="/users/{profile.slug}" class="font-medium text-blue-600 hover:underline"
-							>@{profile.slug}</a
+						<a
+							href="/users/{profile.slug}"
+							class="font-medium text-indigo-600 hover:text-indigo-700">@{profile.slug}</a
 						>
 					</div>
 
@@ -50,12 +51,14 @@
 
 		<div class="mb-8 rounded-sm border border-gray-200 bg-white p-6">
 			<div class="flex items-center justify-between">
-				<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">My Quizzes</h2>
-				<a
-					href="/create"
-					class="inline-block rounded-md border-none bg-blue-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-600"
-					>Create Quiz</a
-				>
+				<h2 class="mb-6 flex-1 border-b border-gray-200 pb-2 text-2xl text-gray-700">My Quizzes</h2>
+				{#if quizzes.length > 0}
+					<a
+						href="/create"
+						class="inline-block rounded-md border-none bg-indigo-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-600"
+						>Create Quiz</a
+					>
+				{/if}
 			</div>
 			{#if quizzes.length > 0}
 				<div class="flex flex-col gap-3">
@@ -79,7 +82,7 @@
 					<p class="mb-4 text-gray-600">You haven't created any quizzes yet.</p>
 					<a
 						href="/create"
-						class="inline-block rounded-md border-none bg-blue-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-600"
+						class="inline-block rounded-md border-none bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700"
 						>Create Your First Quiz</a
 					>
 				</div>

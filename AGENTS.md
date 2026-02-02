@@ -90,3 +90,32 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
+# For OpenCode Especially: Svelte Project
+
+## Critical: Svelte Code Quality
+
+**MANDATORY**: When writing or modifying ANY Svelte (.svelte) file or any .ts file in the src directory, you MUST:
+
+1. Use the `svelte-autofixer` MCP tool (via `user-svelte` server) to analyze the code
+2. Call it with the complete Svelte component code
+3. Iterate until no issues or suggestions are returned
+4. Apply all suggested fixes before finalizing the code
+5. Make sure to use TypeScript type annotations instead of JSDoc comments
+
+This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
+
+## Svelte MCP Tools
+
+- **svelte-autofixer**: MUST be used for all Svelte code changes
+- **list-sections**: Use FIRST when asked about Svelte/SvelteKit topics
+- **get-documentation**: Fetch relevant docs after listing sections
+- **playground-link**: Only on user request, never for code written to files
+
+## Project Context
+
+- Svelte 5 with SvelteKit
+- TypeScript
+- Always use Tailwind CSS for styling instead of a style tag with vanilla css
+- Neon Postgres Database
+- Neon Auth

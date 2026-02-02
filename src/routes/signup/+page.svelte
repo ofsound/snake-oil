@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { authClient, signUpWithSlug } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { validateRedirectUrl, slugify } from '$lib/utils';
+	import AuthForm from '$lib/components/AuthForm.svelte';
+	import FormInput from '$lib/components/AuthFormInput.svelte';
+	import type { PageProps } from './$types';
 
-	const session = authClient.useSession();
+	let { data }: PageProps = $props();
 
 	let email = $state('');
 	let password = $state('');
@@ -22,7 +25,7 @@
 	});
 
 	// Get and validate the redirect URL from query parameters
-	const redirectUrl = $derived(validateRedirectUrl($page.url.searchParams.get('redirect')));
+	const redirectUrl = $derived(validateRedirectUrl(page.url.searchParams.get('redirect')));
 
 	async function handleSignUp() {
 		loading = true;
@@ -84,77 +87,53 @@
 	}
 </script>
 
-{#if $session.data}
-	<div class="flex min-h-[50vh] items-center justify-center p-8">
-		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
-			<h2 class="mt-0 mb-6">You're already signed in!</h2>
-			<p>Welcome back, {$session.data.user?.name || $session.data.user?.email}!</p>
-			<a href={redirectUrl} class="text-blue-500 hover:text-blue-700">Continue to {$page.url.searchParams.get('redirect') ? 'your destination' : 'home'}</a>
-		</div>
-	</div>
-{:else}
-	<div class="flex min-h-[50vh] items-center justify-center p-8">
-		<div class="w-full max-w-[400px] rounded-lg bg-white p-8 shadow-md">
-			<h2 class="mt-0 mb-6">Sign Up</h2>
+<AuthForm
+	title="Sign Up"
+	{loading}
+	{error}
+	isAuthenticated={!!data.session}
+	userName={data.user?.name || data.user?.email}
+	{redirectUrl}
+	redirectLabel={page.url.searchParams.get('redirect') ? 'your destination' : 'home'}
+	onsubmit={(e) => {
+		e.preventDefault();
+		handleSignUp();
+	}}
+>
+	{#snippet children()}
+		<FormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
 
-			{#if error}
-				<div class="mb-4 rounded bg-[#fee] px-3 py-3 text-[#c33]">{error}</div>
-			{/if}
-
-			<input
+		<div>
+			<FormInput
 				type="text"
-				placeholder="Name"
-				bind:value={name}
+				placeholder="Username (for your profile URL)"
+				bind:value={slug}
 				required
 				disabled={loading}
-				class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
 			/>
-
-			<div class="mb-4">
-				<input
-					type="text"
-					placeholder="Username (for your profile URL)"
-					bind:value={slug}
-					required
-					disabled={loading}
-					class="box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
-				/>
-				{#if slug}
-					<p class="mt-1 text-sm text-gray-600">
-						Your profile URL: <span class="font-mono">/users/{slug}</span>
-					</p>
-				{/if}
-			</div>
-
-			<input
-				type="email"
-				placeholder="Email"
-				bind:value={email}
-				required
-				disabled={loading}
-				class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
-			/>
-			<input
-				type="password"
-				placeholder="Password"
-				bind:value={password}
-				required
-				disabled={loading}
-				class="mb-4 box-border w-full rounded border border-gray-300 px-3 py-3 text-base"
-			/>
-
-			<button
-				onclick={handleSignUp}
-				disabled={loading}
-				class="mb-2 w-full cursor-pointer rounded border-none bg-[#007bff] px-3 py-3 text-base text-white hover:bg-[#0056b3] disabled:cursor-not-allowed disabled:opacity-60"
-			>
-				{loading ? 'Please wait...' : 'Sign Up'}
-			</button>
-
-			<p class="text-center text-sm">
-				Already have an account?
-				<a href="/login?redirect={encodeURIComponent($page.url.searchParams.get('redirect') || '')}" class="text-blue-500 hover:text-blue-700">Sign in here</a>
-			</p>
+			{#if slug}
+				<p class="mt-1 text-sm text-gray-600">
+					Your profile URL: <span class="font-mono">/users/{slug}</span>
+				</p>
+			{/if}
 		</div>
-	</div>
-{/if}
+
+		<FormInput type="email" placeholder="Email" bind:value={email} required disabled={loading} />
+		<FormInput
+			type="password"
+			placeholder="Password"
+			bind:value={password}
+			required
+			disabled={loading}
+		/>
+	{/snippet}
+
+	{#snippet footer()}
+		<p>
+			Already have an account?
+			<a href="/login?redirect={encodeURIComponent(page.url.searchParams.get('redirect') || '')}">
+				Sign in here
+			</a>
+		</p>
+	{/snippet}
+</AuthForm>
