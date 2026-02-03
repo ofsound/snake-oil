@@ -5,8 +5,13 @@
 	import VariantSelector from '$lib/components/VariantSelector.svelte';
 	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from '$lib/components/MultipleChoiceEditor.svelte';
+	import MultipleResponseEditor from '$lib/components/MultipleResponseEditor.svelte';
 	import type { ActionData } from './$types';
-	import type { VariantType, MultipleChoiceOption } from '$lib/variant-types';
+	import type {
+		VariantType,
+		MultipleChoiceOption,
+		MultipleResponseOption
+	} from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
 	let { form }: { form: ActionData | undefined } = $props();
@@ -24,6 +29,7 @@
 		variantType: VariantType;
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
+		multipleResponseOptions: MultipleResponseOption[];
 		question: string;
 	};
 
@@ -34,6 +40,7 @@
 			variantType: 'simple_guess',
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 			question: ''
 		}
 	]);
@@ -59,6 +66,7 @@
 				variantType: 'simple_guess',
 				simpleGuessAnswer: '',
 				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 				question: ''
 			}
 		];
@@ -81,6 +89,12 @@
 	function updateMultipleChoiceOptions(id: number, options: MultipleChoiceOption[]) {
 		soundbites = soundbites.map((sb) =>
 			sb.id === id ? { ...sb, multipleChoiceOptions: options } : sb
+		);
+	}
+
+	function updateMultipleResponseOptions(id: number, options: MultipleResponseOption[]) {
+		soundbites = soundbites.map((sb) =>
+			sb.id === id ? { ...sb, multipleResponseOptions: options } : sb
 		);
 	}
 
@@ -252,6 +266,20 @@
 								value={JSON.stringify({
 									type: 'multiple_choice',
 									options: soundbite.multipleChoiceOptions
+								})}
+							/>
+						{:else if soundbite.variantType === 'multiple_response'}
+							<MultipleResponseEditor
+								idPrefix={`mr-${soundbite.id}`}
+								options={soundbite.multipleResponseOptions}
+								onchange={(options) => updateMultipleResponseOptions(soundbite.id, options)}
+							/>
+							<input
+								type="hidden"
+								name="soundbiteVariantConfig"
+								value={JSON.stringify({
+									type: 'multiple_response',
+									options: soundbite.multipleResponseOptions
 								})}
 							/>
 						{/if}

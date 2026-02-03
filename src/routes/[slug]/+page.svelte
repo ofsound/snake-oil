@@ -5,7 +5,12 @@
 	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
 	import AnswerResultCard from '$lib/components/AnswerResultCard.svelte';
 	import type { ActionData, PageData } from './$types';
-	import type { AnswersPayload, MultipleChoiceConfig } from '$lib/variant-types';
+	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
+	import type {
+		AnswersPayload,
+		MultipleChoiceConfig,
+		MultipleResponseConfig
+	} from '$lib/variant-types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
@@ -15,13 +20,23 @@
 	let hasResults = $derived(form?.success && form?.results);
 
 	// Track user answers for each soundbite
+	// For simple_guess and multiple_choice: string
+	// For multiple_response: comma-separated string (parsed on submit)
 	let userAnswers = $state<Record<string, string>>({});
+	// Track multiple response selections separately (id -> array of option ids)
+	let multipleResponseSelections = $state<Record<string, string[]>>({});
 
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
 
 	function updateAnswer(soundbiteId: string, value: string) {
 		userAnswers = { ...userAnswers, [soundbiteId]: value };
+	}
+
+	function updateMultipleResponseSelections(soundbiteId: string, optionIds: string[]) {
+		multipleResponseSelections = { ...multipleResponseSelections, [soundbiteId]: optionIds };
+		// Also update userAnswers with comma-separated values for form submission
+		userAnswers = { ...userAnswers, [soundbiteId]: optionIds.join(',') };
 	}
 
 	// Get results from form action
@@ -172,6 +187,14 @@
 								options={config.options}
 								selectedOptionId={userAnswers[soundbite.id] ?? ''}
 								onselect={(optionId) => updateAnswer(soundbite.id, optionId)}
+							/>
+						{:else if soundbite.variantType === 'multiple_response'}
+							{@const config = soundbite.variantConfig as MultipleResponseConfig}
+							<MultipleResponseInput
+								soundbiteId={soundbite.id}
+								options={config.options}
+								selectedOptionIds={multipleResponseSelections[soundbite.id] ?? []}
+								onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
 							/>
 						{/if}
 					</div>

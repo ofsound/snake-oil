@@ -25,14 +25,23 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	// Transform relational data to match frontend expectations
-	// For multiple_choice, we only send the options (not which is correct) for quiz taking
+	// For multiple_choice and multiple_response, we only send the options (not which is correct) for quiz taking
 	const soundbiteItems = quiz.soundbites.map((soundbite) => {
 		const config = soundbite.variantConfig;
-		// For quiz taking, strip out isCorrect from multiple choice options
+		// For quiz taking, strip out isCorrect from options
 		let safeConfig: VariantConfig;
 		if (config.type === 'multiple_choice') {
 			safeConfig = {
 				type: 'multiple_choice',
+				options: config.options.map((opt) => ({
+					id: opt.id,
+					text: opt.text,
+					isCorrect: false // Don't reveal correct answer to client
+				}))
+			};
+		} else if (config.type === 'multiple_response') {
+			safeConfig = {
+				type: 'multiple_response',
 				options: config.options.map((opt) => ({
 					id: opt.id,
 					text: opt.text,
@@ -116,16 +125,26 @@ export const actions: Actions = {
 			const soundbite = soundbiteMap.get(soundbiteId);
 			if (!soundbite) continue;
 
-			const guess = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
+			let guess = '';
+			let selectedOptionId: string | undefined;
+			let selectedOptionIds: string[] | undefined;
 
-			// For multiple choice, the guess is the option ID
-			const selectedOptionId =
-				soundbite.variantType === 'multiple_choice' ? guess : undefined;
+			if (soundbite.variantType === 'multiple_response') {
+				// For multiple response, get all selected option IDs
+				const values = formData.getAll(`answer-${soundbiteId}`);
+				selectedOptionIds = values.map((v) => String(v)).filter((v) => v.length > 0);
+				guess = selectedOptionIds.join(','); // Store as comma-separated for reference
+			} else {
+				guess = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
+				// For multiple choice, the guess is the option ID
+				selectedOptionId = soundbite.variantType === 'multiple_choice' ? guess : undefined;
+			}
 
 			answersPayload[soundbiteId] = buildAnswerDetail(
 				guess,
 				soundbite.variantConfig,
-				selectedOptionId
+				selectedOptionId,
+				selectedOptionIds
 			);
 		}
 
@@ -160,6 +179,9 @@ export const actions: Actions = {
 							} else if (sb.variantConfig.type === 'multiple_choice') {
 								const correctOption = sb.variantConfig.options.find((opt) => opt.isCorrect);
 								return [sb.id, correctOption?.text ?? ''];
+							} else if (sb.variantConfig.type === 'multiple_response') {
+								const correctOptions = sb.variantConfig.options.filter((opt) => opt.isCorrect);
+								return [sb.id, correctOptions.map((opt) => opt.text).join(', ')];
 							}
 							return [sb.id, ''];
 						})

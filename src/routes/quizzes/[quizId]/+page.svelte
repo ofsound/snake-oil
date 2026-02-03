@@ -6,10 +6,12 @@
 	import VariantSelector from '$lib/components/VariantSelector.svelte';
 	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from '$lib/components/MultipleChoiceEditor.svelte';
+	import MultipleResponseEditor from '$lib/components/MultipleResponseEditor.svelte';
 	import type { ActionData, PageData } from './$types';
 	import type {
 		VariantType,
 		MultipleChoiceOption,
+		MultipleResponseOption,
 		VariantConfig,
 		AnswersPayload
 	} from '$lib/variant-types';
@@ -22,6 +24,7 @@
 		variantType: VariantType;
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
+		multipleResponseOptions: MultipleResponseOption[];
 		question: string;
 	};
 
@@ -29,6 +32,7 @@
 		variantType: VariantType;
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
+		multipleResponseOptions: MultipleResponseOption[];
 		question: string;
 	};
 
@@ -58,6 +62,7 @@
 				variantType: 'simple_guess',
 				simpleGuessAnswer: config.correctAnswer,
 				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 				question: question ?? ''
 			};
 		} else if (config.type === 'multiple_choice') {
@@ -65,6 +70,15 @@
 				variantType: 'multiple_choice',
 				simpleGuessAnswer: '',
 				multipleChoiceOptions: config.options,
+				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+				question: question ?? ''
+			};
+		} else if (config.type === 'multiple_response') {
+			return {
+				variantType: 'multiple_response',
+				simpleGuessAnswer: '',
+				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+				multipleResponseOptions: config.options,
 				question: question ?? ''
 			};
 		}
@@ -72,6 +86,7 @@
 			variantType: 'simple_guess',
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 			question: question ?? ''
 		};
 	}
@@ -102,6 +117,7 @@
 				variantType: 'simple_guess',
 				simpleGuessAnswer: '',
 				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 				question: ''
 			}
 		];
@@ -133,6 +149,13 @@
 		};
 	}
 
+	function updateExistingMultipleResponseOptions(id: string, options: MultipleResponseOption[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], multipleResponseOptions: options }
+		};
+	}
+
 	function updateExistingQuestion(id: string, question: string) {
 		existingSoundbiteState = {
 			...existingSoundbiteState,
@@ -156,6 +179,12 @@
 		);
 	}
 
+	function updateNewMultipleResponseOptions(id: number, options: MultipleResponseOption[]) {
+		newSoundbites = newSoundbites.map((sb) =>
+			sb.id === id ? { ...sb, multipleResponseOptions: options } : sb
+		);
+	}
+
 	function updateNewQuestion(id: number, question: string) {
 		newSoundbites = newSoundbites.map((sb) => (sb.id === id ? { ...sb, question } : sb));
 	}
@@ -163,9 +192,12 @@
 	function getVariantConfigJson(state: ExistingSoundbiteState | NewSoundbiteState): string {
 		if (state.variantType === 'simple_guess') {
 			return JSON.stringify({ type: 'simple_guess', correctAnswer: state.simpleGuessAnswer });
-		} else {
+		} else if (state.variantType === 'multiple_choice') {
 			return JSON.stringify({ type: 'multiple_choice', options: state.multipleChoiceOptions });
+		} else if (state.variantType === 'multiple_response') {
+			return JSON.stringify({ type: 'multiple_response', options: state.multipleResponseOptions });
 		}
+		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
 	}
 
 	const getSubmitterLabel = (entry: PageData['answers'][number]) =>
@@ -185,6 +217,14 @@
 			if (config.type === 'multiple_choice') {
 				const option = config.options.find((o) => o.id === detail.selectedOptionId);
 				guessText = option?.text ?? detail.guess;
+			}
+		} else if (detail.variantType === 'multiple_response' && detail.selectedOptionIds) {
+			const config = soundbite.variantConfig;
+			if (config.type === 'multiple_response') {
+				const texts = detail.selectedOptionIds
+					.map((id) => config.options.find((o) => o.id === id)?.text)
+					.filter(Boolean);
+				guessText = texts.join(', ');
 			}
 		}
 
@@ -367,6 +407,13 @@
 									options={state.multipleChoiceOptions}
 									onchange={(options) => updateExistingMultipleChoiceOptions(soundbite.id, options)}
 								/>
+							{:else if state.variantType === 'multiple_response'}
+								<MultipleResponseEditor
+									idPrefix={`existing-mr-${soundbite.id}`}
+									options={state.multipleResponseOptions}
+									onchange={(options) =>
+										updateExistingMultipleResponseOptions(soundbite.id, options)}
+								/>
 							{/if}
 
 							<input
@@ -464,6 +511,12 @@
 									idPrefix={`new-mc-${soundbite.id}`}
 									options={soundbite.multipleChoiceOptions}
 									onchange={(options) => updateNewMultipleChoiceOptions(soundbite.id, options)}
+								/>
+							{:else if soundbite.variantType === 'multiple_response'}
+								<MultipleResponseEditor
+									idPrefix={`new-mr-${soundbite.id}`}
+									options={soundbite.multipleResponseOptions}
+									onchange={(options) => updateNewMultipleResponseOptions(soundbite.id, options)}
 								/>
 							{/if}
 

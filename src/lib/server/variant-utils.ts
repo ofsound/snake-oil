@@ -2,6 +2,7 @@ import type {
 	VariantConfig,
 	SimpleGuessConfig,
 	MultipleChoiceConfig,
+	MultipleResponseConfig,
 	AnswersPayload,
 	AnswerDetail
 } from './db/schema';
@@ -40,6 +41,28 @@ export function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
 }
 
 /**
+ * Validate a MultipleResponse config
+ * - Must have 2-10 options
+ * - Each option must have id, text
+ * - At least one option must be marked correct (can have multiple correct)
+ */
+export function validateMultipleResponse(config: MultipleResponseConfig): boolean {
+	if (config.type !== 'multiple_response') return false;
+	if (!Array.isArray(config.options)) return false;
+	if (config.options.length < 2 || config.options.length > 10) return false;
+
+	const correctCount = config.options.filter((opt) => opt.isCorrect).length;
+	if (correctCount < 1) return false; // At least one must be correct
+
+	for (const option of config.options) {
+		if (typeof option.id !== 'string' || option.id.trim().length === 0) return false;
+		if (typeof option.text !== 'string' || option.text.trim().length === 0) return false;
+	}
+
+	return true;
+}
+
+/**
  * Validate any variant config
  */
 export function validateVariantConfig(config: VariantConfig): boolean {
@@ -48,6 +71,8 @@ export function validateVariantConfig(config: VariantConfig): boolean {
 			return validateSimpleGuess(config);
 		case 'multiple_choice':
 			return validateMultipleChoice(config);
+		case 'multiple_response':
+			return validateMultipleResponse(config);
 		default:
 			return false;
 	}
@@ -75,18 +100,40 @@ export function checkMultipleChoiceCorrect(
 }
 
 /**
+ * Check if a multiple response answer is correct
+ * All correct options must be selected, and no incorrect options can be selected
+ */
+export function checkMultipleResponseCorrect(
+	selectedOptionIds: string[],
+	config: MultipleResponseConfig
+): boolean {
+	const correctOptionIds = config.options.filter((opt) => opt.isCorrect).map((opt) => opt.id);
+
+	// Must select all correct options
+	if (selectedOptionIds.length !== correctOptionIds.length) {
+		return false;
+	}
+
+	// All selected must be correct
+	return selectedOptionIds.every((id) => correctOptionIds.includes(id));
+}
+
+/**
  * Check if an answer is correct based on variant type
  */
 export function checkAnswerCorrect(
 	guess: string,
 	config: VariantConfig,
-	selectedOptionId?: string
+	selectedOptionId?: string,
+	selectedOptionIds?: string[]
 ): boolean {
 	switch (config.type) {
 		case 'simple_guess':
 			return checkSimpleGuessCorrect(guess, config.correctAnswer);
 		case 'multiple_choice':
 			return selectedOptionId ? checkMultipleChoiceCorrect(selectedOptionId, config) : false;
+		case 'multiple_response':
+			return selectedOptionIds ? checkMultipleResponseCorrect(selectedOptionIds, config) : false;
 		default:
 			return false;
 	}
@@ -114,15 +161,17 @@ export function calculateScore(answers: AnswersPayload): {
 export function buildAnswerDetail(
 	guess: string,
 	config: VariantConfig,
-	selectedOptionId?: string
+	selectedOptionId?: string,
+	selectedOptionIds?: string[]
 ): AnswerDetail {
-	const isCorrect = checkAnswerCorrect(guess, config, selectedOptionId);
+	const isCorrect = checkAnswerCorrect(guess, config, selectedOptionId, selectedOptionIds);
 
 	return {
 		guess,
 		isCorrect,
 		variantType: config.type,
-		...(config.type === 'multiple_choice' && selectedOptionId ? { selectedOptionId } : {})
+		...(config.type === 'multiple_choice' && selectedOptionId ? { selectedOptionId } : {}),
+		...(config.type === 'multiple_response' && selectedOptionIds ? { selectedOptionIds } : {})
 	};
 }
 
@@ -136,6 +185,10 @@ export function getCorrectAnswerText(config: VariantConfig): string {
 		case 'multiple_choice': {
 			const correctOption = config.options.find((opt) => opt.isCorrect);
 			return correctOption?.text ?? '';
+		}
+		case 'multiple_response': {
+			const correctOptions = config.options.filter((opt) => opt.isCorrect);
+			return correctOptions.map((opt) => opt.text).join(', ');
 		}
 		default:
 			return '';

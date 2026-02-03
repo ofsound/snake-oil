@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { VariantConfig, AnswerDetail, MultipleChoiceConfig } from '$lib/variant-types';
+	import type {
+		VariantConfig,
+		AnswerDetail,
+		MultipleChoiceConfig,
+		MultipleResponseConfig
+	} from '$lib/variant-types';
 
 	type Props = {
 		answerDetail: AnswerDetail;
@@ -15,6 +20,9 @@
 		} else if (variantConfig.type === 'multiple_choice') {
 			const correctOption = variantConfig.options.find((opt) => opt.isCorrect);
 			return correctOption?.text ?? '';
+		} else if (variantConfig.type === 'multiple_response') {
+			const correctOptions = variantConfig.options.filter((opt) => opt.isCorrect);
+			return correctOptions.map((opt) => opt.text).join(', ');
 		}
 		return '';
 	}
@@ -26,6 +34,16 @@
 			const config = variantConfig as MultipleChoiceConfig;
 			const selectedOption = config.options.find((opt) => opt.id === answerDetail.selectedOptionId);
 			return selectedOption?.text ?? answerDetail.guess;
+		} else if (
+			answerDetail.variantType === 'multiple_response' &&
+			answerDetail.selectedOptionIds &&
+			answerDetail.selectedOptionIds.length > 0
+		) {
+			const config = variantConfig as MultipleResponseConfig;
+			const selectedTexts = answerDetail.selectedOptionIds
+				.map((id) => config.options.find((opt) => opt.id === id)?.text)
+				.filter(Boolean);
+			return selectedTexts.join(', ') || answerDetail.guess;
 		}
 		return answerDetail.guess;
 	}

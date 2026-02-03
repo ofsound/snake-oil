@@ -10,7 +10,7 @@
 
 	let { value, onchange, id = 'variant-type' }: Props = $props();
 
-	const variantOptions: VariantType[] = ['simple_guess', 'multiple_choice'];
+	const variantOptions: VariantType[] = ['simple_guess', 'multiple_choice', 'multiple_response'];
 </script>
 
 <div class="space-y-2">

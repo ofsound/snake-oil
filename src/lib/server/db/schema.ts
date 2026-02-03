@@ -18,8 +18,10 @@ export {
 	VARIANT_LABELS,
 	type VariantType,
 	type MultipleChoiceOption,
+	type MultipleResponseOption,
 	type SimpleGuessConfig,
 	type MultipleChoiceConfig,
+	type MultipleResponseConfig,
 	type VariantConfig,
 	type AnswerDetail,
 	type AnswersPayload
