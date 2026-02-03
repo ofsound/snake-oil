@@ -34,7 +34,7 @@
 						>
 					</div>
 
-					<div class="items-centergap-2 flex rounded-md">
+					<div class="flex items-center rounded-md">
 						<span class="w-26 text-gray-600">Join Date:</span>
 						<span class="font-medium text-gray-800"
 							>{new Date(profile.createdAt).toLocaleDateString()}</span

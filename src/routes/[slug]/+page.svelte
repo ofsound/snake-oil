@@ -72,7 +72,7 @@
 						<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
 						<audio controls class="w-full">
 							<source src={soundbite.trackUrl} type="audio/mpeg" />
-							Your browser does not support the audio element.
+							Your browse r does not support the audio element.
 						</audio>
 					</div>
 					<div class="flex flex-col gap-2">
