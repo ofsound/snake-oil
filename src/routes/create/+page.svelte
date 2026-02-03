@@ -219,7 +219,7 @@
 								oninput={(e) => updateQuestion(soundbite.id, e.currentTarget.value)}
 							></textarea>
 							<p class="text-xs text-gray-500">
-								This appears below the audio player to guide quiz takers.
+								Appears below the audio player to guide quiz takers.
 							</p>
 						</div>
 
