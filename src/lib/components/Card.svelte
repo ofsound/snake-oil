@@ -8,15 +8,16 @@
 		children: Snippet;
 	}
 
-	let { variant = 'elevated', padding = 'md', class: className = '', children }: Props = $props();
+	let { variant = 'flat', padding = 'md', class: className = '', children }: Props = $props();
 
 	const variantClasses: Record<string, string> = {
-		elevated: 'rounded-lg border border-gray-200 bg-white shadow-sm',
-		flat: 'rounded-lg border border-gray-200 bg-white',
-		ghost: 'rounded-lg border border-gray-200',
-		interactive:
-			'rounded-lg border border-gray-200 bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
+		elevated: 'bg-white shadow-sm',
+		flat: 'bg-white',
+		ghost: '',
+		interactive: 'bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
 	};
+
+	const baseClasses = 'rounded-sm border border-gray-200';
 
 	const paddingClasses: Record<string, string> = {
 		none: '',
@@ -26,7 +27,9 @@
 	};
 
 	let classes = $derived.by(() => {
-		return [variantClasses[variant], paddingClasses[padding], className].filter(Boolean).join(' ');
+		return [baseClasses, variantClasses[variant], paddingClasses[padding], className]
+			.filter(Boolean)
+			.join(' ');
 	});
 </script>
 
