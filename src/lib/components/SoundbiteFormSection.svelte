@@ -108,7 +108,7 @@
 
 	<div class="space-y-4">
 		{#each soundbites as soundbite, index (soundbite.id)}
-			<Card variant="elevated" padding="sm">
+			<Card variant="flat" padding="sm">
 				<div class="flex items-center justify-between">
 					<span class="text-sm font-medium text-gray-700">{cardTitle(index)}</span>
 					<button

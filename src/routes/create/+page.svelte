@@ -79,7 +79,7 @@
 			};
 		}}
 	>
-		<Card variant="elevated" padding="md">
+		<Card variant="flat" padding="md">
 			<div class="space-y-2">
 				<label class="mb-1 text-sm font-medium text-gray-700" for="title">Quiz title</label>
 				<input
