@@ -4,8 +4,10 @@ import { put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
+import type { VariantType, VariantConfig } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
+import { validateVariantConfig } from '$lib/server/variant-utils';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Check for active user session
@@ -20,10 +22,22 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 const getSoundbiteValues = (formData: FormData) => {
-	const descriptions = formData.getAll('soundbiteDescription').map((value) => String(value).trim());
 	const files = formData.getAll('soundbiteFile') as File[];
+	const questions = formData
+		.getAll('soundbiteQuestion')
+		.map((value) => String(value).trim() || null);
+	const variantTypes = formData
+		.getAll('soundbiteVariantType')
+		.map((value) => String(value) as VariantType);
+	const variantConfigs = formData.getAll('soundbiteVariantConfig').map((value) => {
+		try {
+			return JSON.parse(String(value)) as VariantConfig;
+		} catch {
+			return null;
+		}
+	});
 
-	return { descriptions, files };
+	return { files, questions, variantTypes, variantConfigs };
 };
 
 const validateFiles = (files: File[]) => {
@@ -58,7 +72,7 @@ export const actions: Actions = {
 		const title = String(formData.get('title') ?? '').trim();
 		const rawSlug = String(formData.get('slug') ?? '').trim();
 		const description = String(formData.get('description') ?? '').trim();
-		const { descriptions, files } = getSoundbiteValues(formData);
+		const { files, questions, variantTypes, variantConfigs } = getSoundbiteValues(formData);
 
 		if (!title) {
 			return fail(400, { message: 'Title is required.' });
@@ -81,8 +95,16 @@ export const actions: Actions = {
 			return fail(400, { message: fileError });
 		}
 
-		if (descriptions.length !== files.length) {
-			return fail(400, { message: 'Each SoundBite needs a description and file.' });
+		if (variantTypes.length !== files.length || variantConfigs.length !== files.length) {
+			return fail(400, { message: 'Each SoundBite needs variant configuration.' });
+		}
+
+		// Validate all variant configs
+		for (let i = 0; i < variantConfigs.length; i++) {
+			const config = variantConfigs[i];
+			if (!config || !validateVariantConfig(config)) {
+				return fail(400, { message: `Invalid configuration for SoundBite ${i + 1}.` });
+			}
 		}
 
 		const baseSlug = slugify(rawSlug || title);
@@ -102,7 +124,9 @@ export const actions: Actions = {
 
 			for (let index = 0; index < files.length; index += 1) {
 				const file = files[index];
-				const descriptionText = descriptions[index] || '';
+				const variantType = variantTypes[index];
+				const variantConfig = variantConfigs[index]!;
+
 				const blob = await put(file.name, file, {
 					access: 'public',
 					addRandomSuffix: true,
@@ -121,8 +145,10 @@ export const actions: Actions = {
 				await db.insert(soundbites).values({
 					quizId: quiz.id,
 					trackId: track.id,
-					description: descriptionText,
-					position: index
+					position: index,
+					question: questions[index],
+					variantType,
+					variantConfig
 				});
 			}
 

@@ -2,7 +2,12 @@
 	import { enhance } from '$app/forms';
 	import { slugify } from '$lib/utils';
 	import Card from '$lib/components/Card.svelte';
+	import VariantSelector from '$lib/components/VariantSelector.svelte';
+	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
+	import MultipleChoiceEditor from '$lib/components/MultipleChoiceEditor.svelte';
 	import type { ActionData } from './$types';
+	import type { VariantType, MultipleChoiceOption } from '$lib/variant-types';
+	import { createEmptyOption } from '$lib/variant-client-utils';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
@@ -14,8 +19,24 @@
 	let successMessage = $derived(form?.success ? 'Quiz created successfully.' : null);
 	let errorMessage = $derived(form?.message ?? null);
 
+	type SoundbiteState = {
+		id: number;
+		variantType: VariantType;
+		simpleGuessAnswer: string;
+		multipleChoiceOptions: MultipleChoiceOption[];
+		question: string;
+	};
+
 	let nextSoundbiteId = $state(1);
-	let soundbites = $state([{ id: 0, description: '' }]);
+	let soundbites = $state<SoundbiteState[]>([
+		{
+			id: 0,
+			variantType: 'simple_guess',
+			simpleGuessAnswer: '',
+			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+			question: ''
+		}
+	]);
 
 	// Derived reactive calculation (no side effects)
 	const autoSlug = $derived(slugify(title));
@@ -31,13 +52,40 @@
 	let slug = $derived(slugEdited ? manualSlug : autoSlug);
 
 	function addSoundbite() {
-		soundbites = [...soundbites, { id: nextSoundbiteId, description: '' }];
+		soundbites = [
+			...soundbites,
+			{
+				id: nextSoundbiteId,
+				variantType: 'simple_guess',
+				simpleGuessAnswer: '',
+				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
+				question: ''
+			}
+		];
 		nextSoundbiteId += 1;
 	}
 
 	function removeSoundbite(id: number) {
 		if (soundbites.length <= 1) return;
 		soundbites = soundbites.filter((soundbite) => soundbite.id !== id);
+	}
+
+	function updateVariantType(id: number, variantType: VariantType) {
+		soundbites = soundbites.map((sb) => (sb.id === id ? { ...sb, variantType } : sb));
+	}
+
+	function updateSimpleGuessAnswer(id: number, answer: string) {
+		soundbites = soundbites.map((sb) => (sb.id === id ? { ...sb, simpleGuessAnswer: answer } : sb));
+	}
+
+	function updateMultipleChoiceOptions(id: number, options: MultipleChoiceOption[]) {
+		soundbites = soundbites.map((sb) =>
+			sb.id === id ? { ...sb, multipleChoiceOptions: options } : sb
+		);
+	}
+
+	function updateQuestion(id: number, question: string) {
+		soundbites = soundbites.map((sb) => (sb.id === id ? { ...sb, question } : sb));
 	}
 </script>
 
@@ -53,7 +101,7 @@
 		class="space-y-6"
 		use:enhance={() => {
 			submitting = true;
-			return async ({ update, result }) => {
+			return async ({ update }) => {
 				submitting = false;
 				await update();
 			};
@@ -118,10 +166,10 @@
 			</div>
 
 			<div class="space-y-4">
-				{#each soundbites as soundbite (soundbite.id)}
+				{#each soundbites as soundbite, index (soundbite.id)}
 					<Card variant="elevated" padding="sm">
 						<div class="flex items-center justify-between">
-							<span class="text-sm font-medium text-gray-700">SoundBite</span>
+							<span class="text-sm font-medium text-gray-700">SoundBite #{index + 1}</span>
 							<button
 								type="button"
 								class="text-xs text-gray-500 hover:text-gray-700"
@@ -131,24 +179,8 @@
 								Remove
 							</button>
 						</div>
-						<div class="grid gap-3 md:grid-cols-[1.2fr_1fr]">
-							<div class="space-y-2">
-								<label
-									class="text-sm font-medium text-gray-700"
-									for={`soundbite-desc-${soundbite.id}`}
-								>
-									Answer
-								</label>
-								<input
-									id={`soundbite-desc-${soundbite.id}`}
-									name="soundbiteDescription"
-									type="text"
-									class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-									placeholder=""
-									bind:value={soundbite.description}
-									required
-								/>
-							</div>
+
+						<div class="grid gap-4 md:grid-cols-2">
 							<div class="space-y-2">
 								<label
 									class="text-sm font-medium text-gray-700"
@@ -165,7 +197,64 @@
 									required
 								/>
 							</div>
+
+							<VariantSelector
+								id={`variant-type-${soundbite.id}`}
+								value={soundbite.variantType}
+								onchange={(value) => updateVariantType(soundbite.id, value)}
+							/>
 						</div>
+
+						<div class="space-y-2">
+							<label class="text-sm font-medium text-gray-700" for={`question-${soundbite.id}`}>
+								Question (optional)
+							</label>
+							<textarea
+								id={`question-${soundbite.id}`}
+								name="soundbiteQuestion"
+								rows="2"
+								class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+								placeholder="e.g., What guitar is being played?"
+								value={soundbite.question}
+								oninput={(e) => updateQuestion(soundbite.id, e.currentTarget.value)}
+							></textarea>
+							<p class="text-xs text-gray-500">
+								This appears below the audio player to guide quiz takers.
+							</p>
+						</div>
+
+						<!-- Hidden inputs to send variant data to server -->
+						<input type="hidden" name="soundbiteVariantType" value={soundbite.variantType} />
+
+						{#if soundbite.variantType === 'simple_guess'}
+							<SimpleGuessEditor
+								id={`simple-guess-${soundbite.id}`}
+								value={soundbite.simpleGuessAnswer}
+								oninput={(value) => updateSimpleGuessAnswer(soundbite.id, value)}
+							/>
+							<input
+								type="hidden"
+								name="soundbiteVariantConfig"
+								value={JSON.stringify({
+									type: 'simple_guess',
+									correctAnswer: soundbite.simpleGuessAnswer
+								})}
+							/>
+						{:else if soundbite.variantType === 'multiple_choice'}
+							<MultipleChoiceEditor
+								idPrefix={`mc-${soundbite.id}`}
+								options={soundbite.multipleChoiceOptions}
+								onchange={(options) => updateMultipleChoiceOptions(soundbite.id, options)}
+							/>
+							<input
+								type="hidden"
+								name="soundbiteVariantConfig"
+								value={JSON.stringify({
+									type: 'multiple_choice',
+									options: soundbite.multipleChoiceOptions
+								})}
+							/>
+						{/if}
 					</Card>
 				{/each}
 			</div>

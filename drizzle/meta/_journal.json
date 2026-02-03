@@ -29,6 +29,20 @@
       "when": 1738540800000,
       "tag": "0003_add_user_slugs",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1738627200000,
+      "tag": "0004_add_variant_system",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1738713600000,
+      "tag": "0005_add_soundbite_question",
+      "breakpoints": true
     }
   ]
 }

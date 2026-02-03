@@ -1,17 +1,41 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Card from '$lib/components/Card.svelte';
+	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
+	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
+	import AnswerResultCard from '$lib/components/AnswerResultCard.svelte';
 	import type { ActionData, PageData } from './$types';
+	import type { AnswersPayload, MultipleChoiceConfig } from '$lib/variant-types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let submitting = $state(false);
 	let displayName = $state('');
 	let errorMessage = $derived(form?.message ?? null);
-	let revealAnswers = $derived(form?.success ?? false);
+	let hasResults = $derived(form?.success && form?.results);
+
+	// Track user answers for each soundbite
+	let userAnswers = $state<Record<string, string>>({});
 
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
+
+	function updateAnswer(soundbiteId: string, value: string) {
+		userAnswers = { ...userAnswers, [soundbiteId]: value };
+	}
+
+	// Get results from form action
+	let results = $derived(
+		form?.results as
+			| {
+					answers: AnswersPayload;
+					score: number;
+					totalCorrect: number;
+					totalQuestions: number;
+					correctAnswers: Record<string, string>;
+			  }
+			| undefined
+	);
 </script>
 
 <div class="mx-auto max-w-4xl p-8">
@@ -28,7 +52,7 @@
 			</a>
 			{#if isOwner}
 				<span class="text-sm text-gray-500">
-					(<a href="/quizzes/{data.quiz.id}" class=" hover:underline"> Manage Quiz </a>)
+					(<a href="/quizzes/{data.quiz.id}" class="hover:underline">Manage Quiz</a>)
 				</span>
 			{/if}
 		</div>
@@ -38,76 +62,137 @@
 		</div>
 	</header>
 
-	<form
-		method="POST"
-		class=""
-		use:enhance={() => {
-			submitting = true;
-			return async ({ update }) => {
-				submitting = false;
-				await update();
-			};
-		}}
-	>
-		{#if !data.user}
+	{#if hasResults && results}
+		<!-- Results Display -->
+		<div class="space-y-6">
 			<Card variant="elevated" padding="md">
-				<label class="text-sm font-medium text-gray-700" for="displayName">Display name</label>
-				<input
-					id="displayName"
-					name="displayName"
-					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-					placeholder="Anonymous listener"
-					bind:value={displayName}
-					required
-				/>
-			</Card>
-		{/if}
-
-		<section class="flex flex-col gap-4 pt-6">
-			{#each data.soundbites as soundbite, index (soundbite.id)}
-				<div class="flex flex-col gap-6 rounded-sm bg-neutral-50 p-4">
-					<input type="hidden" name="soundbiteId" value={soundbite.id} />
-					<div class="flex flex-col gap-2">
-						<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
-						<audio controls class="w-full">
-							<source src={soundbite.trackUrl} type="audio/mpeg" />
-							Your browse r does not support the audio element.
-						</audio>
-					</div>
-					<div class="flex flex-col gap-2">
-						<label class="text-sm font-medium text-gray-700" for={`answer-${soundbite.id}`}>
-							Your answer:
-						</label>
-						<input
-							id={`answer-${soundbite.id}`}
-							name={`answer-${soundbite.id}`}
-							type="text"
-							class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-							placeholder=""
-						/>
-					</div>
-					{#if revealAnswers}
-						<p class="text-sm text-green-700">Answer: {soundbite.description}</p>
-					{/if}
+				<div class="text-center">
+					<h2 class="text-2xl font-bold text-emerald-700">
+						Your Score: {results.totalCorrect}/{results.totalQuestions}
+					</h2>
+					<p class="mt-1 text-lg text-gray-600">{results.score}% correct</p>
 				</div>
-			{/each}
-		</section>
+			</Card>
 
-		{#if errorMessage}
-			<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-				{errorMessage}
+			<section class="space-y-4">
+				<h3 class="text-lg font-semibold">Your Answers</h3>
+				{#each data.soundbites as soundbite, index (soundbite.id)}
+					{@const answerDetail = results.answers[soundbite.id]}
+					{@const correctAnswer = results.correctAnswers[soundbite.id]}
+					{#if answerDetail}
+						<div class="rounded-sm bg-neutral-50 p-4">
+							<div class="mb-3">
+								<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
+								<audio controls class="w-full">
+									<source src={soundbite.trackUrl} type="audio/mpeg" />
+									Your browser does not support the audio element.
+								</audio>
+								{#if soundbite.question}
+									<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
+								{/if}
+							</div>
+							<AnswerResultCard
+								{answerDetail}
+								variantConfig={{
+									...soundbite.variantConfig,
+									...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
+								}}
+								{index}
+							/>
+						</div>
+					{/if}
+				{/each}
+			</section>
+
+			<div class="flex justify-center">
+				<a
+					href={`/${data.quiz.slug}`}
+					class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium hover:bg-gray-50"
+					onclick={() => {
+						// Reset to take the quiz again
+						userAnswers = {};
+					}}
+				>
+					Take Quiz Again
+				</a>
 			</div>
-		{/if}
-
-		<div class="mt-6 flex justify-end">
-			<button
-				type="submit"
-				class="rounded-md bg-emerald-800 px-5 py-2 text-sm font-medium text-white"
-				disabled={submitting}
-			>
-				{submitting ? 'Submitting...' : 'Submit answers'}
-			</button>
 		</div>
-	</form>
+	{:else}
+		<!-- Quiz Form -->
+		<form
+			method="POST"
+			use:enhance={() => {
+				submitting = true;
+				return async ({ update }) => {
+					submitting = false;
+					await update();
+				};
+			}}
+		>
+			{#if !data.user}
+				<Card variant="elevated" padding="md">
+					<label class="text-sm font-medium text-gray-700" for="displayName">Display name</label>
+					<input
+						id="displayName"
+						name="displayName"
+						type="text"
+						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+						placeholder="Anonymous listener"
+						bind:value={displayName}
+						required
+					/>
+				</Card>
+			{/if}
+
+			<section class="flex flex-col gap-4 pt-6">
+				{#each data.soundbites as soundbite, index (soundbite.id)}
+					<div class="flex flex-col gap-6 rounded-sm bg-neutral-50 p-4">
+						<input type="hidden" name="soundbiteId" value={soundbite.id} />
+						<div class="flex flex-col gap-2">
+							<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
+							<audio controls class="w-full">
+								<source src={soundbite.trackUrl} type="audio/mpeg" />
+								Your browser does not support the audio element.
+							</audio>
+							{#if soundbite.question}
+								<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
+							{/if}
+						</div>
+
+						{#if soundbite.variantType === 'simple_guess'}
+							<SimpleGuessInput
+								soundbiteId={soundbite.id}
+								value={userAnswers[soundbite.id] ?? ''}
+								oninput={(value) => updateAnswer(soundbite.id, value)}
+							/>
+						{:else if soundbite.variantType === 'multiple_choice'}
+							{@const config = soundbite.variantConfig as MultipleChoiceConfig}
+							<MultipleChoiceInput
+								soundbiteId={soundbite.id}
+								options={config.options}
+								selectedOptionId={userAnswers[soundbite.id] ?? ''}
+								onselect={(optionId) => updateAnswer(soundbite.id, optionId)}
+							/>
+						{/if}
+					</div>
+				{/each}
+			</section>
+
+			{#if errorMessage}
+				<div class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+					{errorMessage}
+				</div>
+			{/if}
+
+			<div class="mt-6 flex justify-end">
+				<button
+					type="submit"
+					class="rounded-md bg-emerald-800 px-5 py-2 text-sm font-medium text-white"
+					disabled={submitting}
+				>
+					{submitting ? 'Submitting...' : 'Submit answers'}
+				</button>
+			</div>
+		</form>
+	{/if}
 </div>

@@ -11,6 +11,22 @@ import {
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
+// Re-export variant types from shared file for convenience
+// Using relative import for drizzle-kit compatibility
+export {
+	VARIANT_TYPES,
+	VARIANT_LABELS,
+	type VariantType,
+	type MultipleChoiceOption,
+	type SimpleGuessConfig,
+	type MultipleChoiceConfig,
+	type VariantConfig,
+	type AnswerDetail,
+	type AnswersPayload
+} from '../../variant-types';
+
+import type { VariantType, VariantConfig, AnswersPayload } from '../../variant-types';
+
 // Better Auth core tables (see https://better-auth.com/docs/concepts/database)
 export const user = pgTable(
 	'user',
@@ -94,8 +110,10 @@ export const soundbites = pgTable(
 		trackId: uuid('track_id')
 			.notNull()
 			.references(() => tracks.id, { onDelete: 'cascade' }),
-		description: text('description').notNull(),
-		position: integer('position').notNull()
+		position: integer('position').notNull(),
+		question: text('question'), // Optional question shown below audio player
+		variantType: text('variant_type').$type<VariantType>().notNull().default('simple_guess'),
+		variantConfig: jsonb('variant_config').$type<VariantConfig>().notNull()
 	},
 	(table) => [index('soundbites_quiz_idx').on(table.quizId)]
 );
@@ -109,7 +127,11 @@ export const quizAnswers = pgTable(
 			.references(() => quizzes.id, { onDelete: 'cascade' }),
 		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
 		displayName: text('display_name'),
-		answers: jsonb('answers').$type<Record<string, string>>().notNull(),
+		answers: jsonb('answers').$type<AnswersPayload>().notNull(),
+		score: integer('score').notNull(), // Stored as percentage (0-100)
+		totalCorrect: integer('total_correct').notNull(),
+		totalQuestions: integer('total_questions').notNull(),
+		completedAt: timestamp('completed_at'), // For future timer variants
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [
@@ -157,3 +179,7 @@ export const quizAnswersRelations = relations(quizAnswers, ({ one }) => ({
 // Export types for type safety
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
+export type Soundbite = typeof soundbites.$inferSelect;
+export type NewSoundbite = typeof soundbites.$inferInsert;
+export type QuizAnswer = typeof quizAnswers.$inferSelect;
+export type NewQuizAnswer = typeof quizAnswers.$inferInsert;

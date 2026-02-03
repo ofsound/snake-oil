@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
+import type { VariantType, VariantConfig } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { del, put } from '@vercel/blob';
@@ -7,6 +8,7 @@ import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { slugify } from '$lib/utils';
 import { findUniqueSlug } from '$lib/server/db/slug-utils';
+import { validateVariantConfig } from '$lib/server/variant-utils';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
@@ -40,16 +42,21 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	// Transform relational data to match frontend expectations
 	const soundbiteItems = quiz.soundbites.map((soundbite) => ({
 		id: soundbite.id,
-		description: soundbite.description,
 		position: soundbite.position,
 		trackUrl: soundbite.track.url,
-		trackName: soundbite.track.name
+		trackName: soundbite.track.name,
+		question: soundbite.question,
+		variantType: soundbite.variantType,
+		variantConfig: soundbite.variantConfig
 	}));
 
 	const answerRows = quiz.quizAnswers.map((answer) => ({
 		id: answer.id,
 		createdAt: answer.createdAt,
 		answers: answer.answers,
+		score: answer.score,
+		totalCorrect: answer.totalCorrect,
+		totalQuestions: answer.totalQuestions,
 		displayName: answer.displayName,
 		userName: answer.user?.name ?? null,
 		userEmail: answer.user?.email ?? null
@@ -70,22 +77,42 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 
 const getExistingSoundbites = (formData: FormData) => {
 	const ids = formData.getAll('existingSoundbiteId').map((value) => String(value));
-	const descriptions = formData
-		.getAll('existingSoundbiteDescription')
-		.map((value) => String(value).trim());
+	const questions = formData
+		.getAll('existingSoundbiteQuestion')
+		.map((value) => String(value).trim() || null);
+	const variantTypes = formData
+		.getAll('existingSoundbiteVariantType')
+		.map((value) => String(value) as VariantType);
+	const variantConfigs = formData.getAll('existingSoundbiteVariantConfig').map((value) => {
+		try {
+			return JSON.parse(String(value)) as VariantConfig;
+		} catch {
+			return null;
+		}
+	});
 	const files = formData.getAll('existingSoundbiteFile') as File[];
 	const removed = new Set(formData.getAll('existingSoundbiteRemove').map((value) => String(value)));
 
-	return { ids, descriptions, files, removed };
+	return { ids, questions, variantTypes, variantConfigs, files, removed };
 };
 
 const getNewSoundbites = (formData: FormData) => {
-	const descriptions = formData
-		.getAll('newSoundbiteDescription')
-		.map((value) => String(value).trim());
+	const questions = formData
+		.getAll('newSoundbiteQuestion')
+		.map((value) => String(value).trim() || null);
+	const variantTypes = formData
+		.getAll('newSoundbiteVariantType')
+		.map((value) => String(value) as VariantType);
+	const variantConfigs = formData.getAll('newSoundbiteVariantConfig').map((value) => {
+		try {
+			return JSON.parse(String(value)) as VariantConfig;
+		} catch {
+			return null;
+		}
+	});
 	const files = formData.getAll('newSoundbiteFile') as File[];
 
-	return { descriptions, files };
+	return { questions, variantTypes, variantConfigs, files };
 };
 
 const validateFiles = (files: File[], isRequired: boolean) => {
@@ -179,8 +206,14 @@ export const actions: Actions = {
 			return fail(400, { message: 'Description is required.' });
 		}
 
-		const { ids, descriptions, files, removed } = getExistingSoundbites(formData);
-		const { descriptions: newDescriptions, files: newFiles } = getNewSoundbites(formData);
+		const { ids, questions, variantTypes, variantConfigs, files, removed } =
+			getExistingSoundbites(formData);
+		const {
+			questions: newQuestions,
+			variantTypes: newVariantTypes,
+			variantConfigs: newVariantConfigs,
+			files: newFiles
+		} = getNewSoundbites(formData);
 
 		const remainingSoundbites = ids.length - removed.size;
 		const addingNewSoundbites = newFiles.length > 0;
@@ -195,12 +228,27 @@ export const actions: Actions = {
 			return fail(400, { message: fileError });
 		}
 
-		if (descriptions.length !== ids.length) {
-			return fail(400, { message: 'SoundBite descriptions are missing.' });
+		if (variantTypes.length !== ids.length || variantConfigs.length !== ids.length) {
+			return fail(400, { message: 'SoundBite variant configuration is missing.' });
 		}
 
-		if (newDescriptions.length !== newFiles.length) {
-			return fail(400, { message: 'Each new SoundBite needs a description and file.' });
+		if (newVariantTypes.length !== newFiles.length || newVariantConfigs.length !== newFiles.length) {
+			return fail(400, { message: 'Each new SoundBite needs variant configuration.' });
+		}
+
+		// Validate all variant configs
+		for (let i = 0; i < variantConfigs.length; i++) {
+			const config = variantConfigs[i];
+			if (!removed.has(ids[i]) && (!config || !validateVariantConfig(config))) {
+				return fail(400, { message: `Invalid configuration for SoundBite ${i + 1}.` });
+			}
+		}
+
+		for (let i = 0; i < newVariantConfigs.length; i++) {
+			const config = newVariantConfigs[i];
+			if (!config || !validateVariantConfig(config)) {
+				return fail(400, { message: `Invalid configuration for new SoundBite ${i + 1}.` });
+			}
 		}
 
 		const baseSlug = slugify(rawSlug || title);
@@ -228,13 +276,15 @@ export const actions: Actions = {
 					continue;
 				}
 
-				const descriptionText = descriptions[index] || '';
+				const question = questions[index];
+				const variantType = variantTypes[index];
+				const variantConfig = variantConfigs[index]!;
 				const file = files[index];
 
 				if (file && file.size > 0) {
 					const blob = await put(file.name, file, {
 						access: 'public',
-						addRandomSuffix: true, // <--- Add this line
+						addRandomSuffix: true,
 						token: env.BLOB_READ_WRITE_TOKEN
 					});
 
@@ -249,12 +299,12 @@ export const actions: Actions = {
 
 					await db
 						.update(soundbites)
-						.set({ description: descriptionText, trackId: track.id })
+						.set({ question, variantType, variantConfig, trackId: track.id })
 						.where(eq(soundbites.id, id));
 				} else {
 					await db
 						.update(soundbites)
-						.set({ description: descriptionText })
+						.set({ question, variantType, variantConfig })
 						.where(eq(soundbites.id, id));
 				}
 			}
@@ -263,11 +313,13 @@ export const actions: Actions = {
 
 			for (let index = 0; index < newFiles.length; index += 1) {
 				const file = newFiles[index];
-				const descriptionText = newDescriptions[index] || '';
+				const question = newQuestions[index];
+				const variantType = newVariantTypes[index];
+				const variantConfig = newVariantConfigs[index]!;
 
 				const blob = await put(file.name, file, {
 					access: 'public',
-					addRandomSuffix: true, // <--- Add this line
+					addRandomSuffix: true,
 					token: env.BLOB_READ_WRITE_TOKEN
 				});
 
@@ -283,8 +335,10 @@ export const actions: Actions = {
 				await db.insert(soundbites).values({
 					quizId: params.quizId,
 					trackId: track.id,
-					description: descriptionText,
-					position: currentMaxPosition + index
+					position: currentMaxPosition + index,
+					question,
+					variantType,
+					variantConfig
 				});
 			}
 

@@ -41,12 +41,21 @@ vi.mock('$lib/server/db/slug-utils', () => ({
 	generateUniqueSlug: vi.fn()
 }));
 
+vi.mock('$lib/server/variant-utils', () => ({
+	validateVariantConfig: vi.fn(() => true)
+}));
+
 // Import after mocks
 import { load, actions } from './+page.server';
 import { put } from '@vercel/blob';
 import { db } from '$lib/server/db';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 import { env } from '$env/dynamic/private';
+import { validateVariantConfig } from '$lib/server/variant-utils';
+
+// Helper to create valid variant config for tests
+const createSimpleGuessConfig = (correctAnswer: string) =>
+	JSON.stringify({ type: 'simple_guess', correctAnswer });
 
 describe('create page - load function', () => {
 	it('redirects unauthenticated users', async () => {
@@ -121,7 +130,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: '',
 			description: 'Test description',
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -138,7 +148,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: '',
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -156,7 +167,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: longTitle,
 			description: 'Test description',
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -174,7 +186,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: longDescription,
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -191,7 +204,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: 'Test description',
-			soundbiteDescription: [],
+			soundbiteVariantType: [],
+			soundbiteVariantConfig: [],
 			soundbiteFile: []
 		});
 		const event = createMockRequest(formData);
@@ -209,7 +223,8 @@ describe('create page - action validation', () => {
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: 'Test description',
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [emptyFile]
 		});
 		const event = createMockRequest(formData);
@@ -222,11 +237,12 @@ describe('create page - action validation', () => {
 		});
 	});
 
-	it('validates soundbite descriptions match files count', async () => {
+	it('validates soundbite variant config matches files count', async () => {
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: 'Test description',
-			soundbiteDescription: ['Soundbite 1', 'Soundbite 2'],
+			soundbiteVariantType: ['simple_guess', 'simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer 1'), createSimpleGuessConfig('Answer 2')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -235,7 +251,7 @@ describe('create page - action validation', () => {
 
 		expect(result).toEqual({
 			status: 400,
-			data: { message: 'Each SoundBite needs a description and file.' }
+			data: { message: 'Each SoundBite needs variant configuration.' }
 		});
 	});
 
@@ -256,11 +272,14 @@ describe('create page - action validation', () => {
 			pathname: 'test.mp3'
 		} as any);
 
+		vi.mocked(validateVariantConfig).mockReturnValue(true);
+
 		const formData = createFormData({
 			title: '  Test Quiz  ',
 			slug: '  custom-slug  ',
 			description: '  Test description  ',
-			soundbiteDescription: ['  Soundbite 1  '],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);
@@ -290,10 +309,13 @@ describe('create page - action validation', () => {
 			pathname: 'test.mp3'
 		} as any);
 
+		vi.mocked(validateVariantConfig).mockReturnValue(true);
+
 		const formData = createFormData({
 			title: 'Test Quiz',
 			description: 'Test description',
-			soundbiteDescription: ['Soundbite 1'],
+			soundbiteVariantType: ['simple_guess'],
+			soundbiteVariantConfig: [createSimpleGuessConfig('Answer')],
 			soundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })]
 		});
 		const event = createMockRequest(formData);

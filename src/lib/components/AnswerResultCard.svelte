@@ -1,0 +1,68 @@
+<script lang="ts">
+	import type { VariantConfig, AnswerDetail, MultipleChoiceConfig } from '$lib/variant-types';
+
+	type Props = {
+		answerDetail: AnswerDetail;
+		variantConfig: VariantConfig;
+		index: number;
+	};
+
+	let { answerDetail, variantConfig, index }: Props = $props();
+
+	function getCorrectAnswerText(): string {
+		if (variantConfig.type === 'simple_guess') {
+			return variantConfig.correctAnswer;
+		} else if (variantConfig.type === 'multiple_choice') {
+			const correctOption = variantConfig.options.find((opt) => opt.isCorrect);
+			return correctOption?.text ?? '';
+		}
+		return '';
+	}
+
+	function getUserAnswerText(): string {
+		if (answerDetail.variantType === 'simple_guess') {
+			return answerDetail.guess;
+		} else if (answerDetail.variantType === 'multiple_choice' && answerDetail.selectedOptionId) {
+			const config = variantConfig as MultipleChoiceConfig;
+			const selectedOption = config.options.find((opt) => opt.id === answerDetail.selectedOptionId);
+			return selectedOption?.text ?? answerDetail.guess;
+		}
+		return answerDetail.guess;
+	}
+
+	let correctAnswerText = $derived(getCorrectAnswerText());
+	let userAnswerText = $derived(getUserAnswerText());
+</script>
+
+<div
+	class="rounded-md border p-3"
+	class:border-green-200={answerDetail.isCorrect}
+	class:bg-green-50={answerDetail.isCorrect}
+	class:border-red-200={!answerDetail.isCorrect}
+	class:bg-red-50={!answerDetail.isCorrect}
+>
+	<div class="flex items-start justify-between">
+		<span class="text-sm font-medium text-gray-700">Question #{index + 1}</span>
+		<span
+			class="text-sm font-semibold"
+			class:text-green-700={answerDetail.isCorrect}
+			class:text-red-700={!answerDetail.isCorrect}
+		>
+			{answerDetail.isCorrect ? 'Correct' : 'Incorrect'}
+		</span>
+	</div>
+	<div class="mt-2 space-y-1 text-sm">
+		<p>
+			<span class="text-gray-500">Your answer:</span>
+			<span class="ml-1" class:text-red-700={!answerDetail.isCorrect}
+				>{userAnswerText || '(no answer)'}</span
+			>
+		</p>
+		{#if !answerDetail.isCorrect}
+			<p>
+				<span class="text-gray-500">Correct answer:</span>
+				<span class="ml-1 text-green-700">{correctAnswerText}</span>
+			</p>
+		{/if}
+	</div>
+</div>
