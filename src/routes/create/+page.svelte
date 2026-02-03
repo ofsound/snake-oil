@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { slugify } from '$lib/utils';
+	import Card from '$lib/components/Card.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData | undefined } = $props();
@@ -58,7 +59,7 @@
 			};
 		}}
 	>
-		<div class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+		<Card variant="elevated" padding="md">
 			<div class="space-y-2">
 				<label class="mb-1 text-sm font-medium text-gray-700" for="title">Quiz title</label>
 				<input
@@ -102,7 +103,7 @@
 					required
 				></textarea>
 			</div>
-		</div>
+		</Card>
 
 		<section class="space-y-4">
 			<div class="flex items-center justify-between">
@@ -118,7 +119,7 @@
 
 			<div class="space-y-4">
 				{#each soundbites as soundbite (soundbite.id)}
-					<div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+					<Card variant="elevated" padding="sm">
 						<div class="flex items-center justify-between">
 							<span class="text-sm font-medium text-gray-700">SoundBite</span>
 							<button
@@ -165,7 +166,7 @@
 								/>
 							</div>
 						</div>
-					</div>
+					</Card>
 				{/each}
 			</div>
 		</section>

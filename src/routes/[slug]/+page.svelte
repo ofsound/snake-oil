@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Card from '$lib/components/Card.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
@@ -10,6 +11,7 @@
 	let revealAnswers = $derived(form?.success ?? false);
 
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
+	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
 </script>
 
 <div class="mx-auto max-w-4xl p-8">
@@ -24,7 +26,13 @@
 			>
 				{data.quiz.owner.name || data.quiz.owner.slug}
 			</a>
+			{#if isOwner}
+				<span class="text-sm text-gray-500">
+					(<a href="/quizzes/{data.quiz.id}" class=" hover:underline"> Manage Quiz </a>)
+				</span>
+			{/if}
 		</div>
+
 		<div class="mt-6">
 			{data.quiz.description}
 		</div>
@@ -42,20 +50,18 @@
 		}}
 	>
 		{#if !data.user}
-			<section class="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-				<div class="">
-					<label class="text-sm font-medium text-gray-700" for="displayName">Display name</label>
-					<input
-						id="displayName"
-						name="displayName"
-						type="text"
-						class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-						placeholder="Anonymous listener"
-						bind:value={displayName}
-						required
-					/>
-				</div>
-			</section>
+			<Card variant="elevated" padding="md">
+				<label class="text-sm font-medium text-gray-700" for="displayName">Display name</label>
+				<input
+					id="displayName"
+					name="displayName"
+					type="text"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					placeholder="Anonymous listener"
+					bind:value={displayName}
+					required
+				/>
+			</Card>
 		{/if}
 
 		<section class="flex flex-col gap-4 pt-6">

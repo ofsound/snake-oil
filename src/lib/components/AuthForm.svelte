@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import Card from './Card.svelte';
 
 	interface Props {
 		title: string;
@@ -15,7 +16,7 @@
 </script>
 
 <div class="mt-14 flex justify-center p-8">
-	<div class="w-full max-w-[400px] rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+	<Card class="w-full max-w-[400px]">
 		<h2 class="mt-0 mb-6 text-center text-lg font-semibold text-gray-900">{title}</h2>
 
 		{#if error}
@@ -41,5 +42,5 @@
 		>
 			{@render footer()}
 		</div>
-	</div>
+	</Card>
 </div>

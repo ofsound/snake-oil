@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import Button from '$lib/components/Button.svelte';
+	import Card from '$lib/components/Card.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -85,7 +86,7 @@
 	</form>
 
 	{#if data.quizzes.length > 0}
-		<div class="overflow-x-auto rounded-lg border border-gray-200">
+		<Card variant="flat" padding="none" class="overflow-x-auto">
 			<table class="min-w-full divide-y divide-gray-200">
 				<thead class="bg-gray-50">
 					<tr>
@@ -153,7 +154,7 @@
 					{/each}
 				</tbody>
 			</table>
-		</div>
+		</Card>
 
 		{#if data.totalPages > 1}
 			<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">

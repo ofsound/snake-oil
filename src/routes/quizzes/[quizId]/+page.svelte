@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
+	import Card from '$lib/components/Card.svelte';
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
@@ -14,15 +15,13 @@
 	let errorMessage = $derived(form?.message ?? null);
 
 	// Track the quiz ID to prevent resetting form fields when updating the same quiz
-	let lastQuizId = $state<string>(data.quiz.id);
+	let lastQuizId = $state<string>('');
 
 	// Local state for form fields - initialize from data once
-	let title = $state(data.quiz.title);
-	let slug = $state(data.quiz.slug);
-	let description = $state(data.quiz.description);
-	let existingSoundbiteDescriptions = $state<Record<string, string>>(
-		Object.fromEntries(data.soundbites.map((sb) => [sb.id, sb.description]))
-	);
+	let title = $state('');
+	let slug = $state('');
+	let description = $state('');
+	let existingSoundbiteDescriptions = $state<Record<string, string>>({});
 
 	// Only update when navigating to a different quiz
 	// Use untrack to avoid creating reactive dependencies that cause infinite loops
@@ -63,7 +62,7 @@
 		<div class="flex items-start justify-between">
 			<div class="space-y-2">
 				<h1 class="text-3xl font-semibold">Manage Quiz</h1>
-				<a class="text-sm underline" href={`/${slug}`}>View public page</a>
+				<a class="text-sm underline" href={`/${slug}`}>View Public Quiz</a>
 			</div>
 			<form
 				method="POST"
@@ -122,7 +121,7 @@
 			};
 		}}
 	>
-		<section class="space-y-4 rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+		<Card variant="elevated" padding="md" class="space-y-4">
 			<div class="space-y-3">
 				<label class="text-sm font-medium text-gray-700" for="title">Title</label>
 				<input
@@ -156,13 +155,13 @@
 					required
 				></textarea>
 			</div>
-		</section>
+		</Card>
 
 		<section class="space-y-4">
 			<h2 class="text-lg font-semibold">Existing SoundBites</h2>
 			<div class="space-y-4">
 				{#each data.soundbites as soundbite (soundbite.id)}
-					<div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+					<Card variant="elevated" padding="sm" class="space-y-3">
 						<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
 						<div class="flex items-center justify-between">
 							<p class="text-sm font-medium text-gray-700">{soundbite.trackName}</p>
@@ -204,7 +203,7 @@
 								/>
 							</div>
 						</div>
-					</div>
+					</Card>
 				{/each}
 			</div>
 		</section>
@@ -225,7 +224,7 @@
 			{:else}
 				<div class="space-y-4">
 					{#each newSoundbites as soundbite (soundbite.id)}
-						<div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+						<Card variant="elevated" padding="sm" class="space-y-3">
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium text-gray-700">New SoundBite</span>
 								<button
@@ -265,7 +264,7 @@
 									/>
 								</div>
 							</div>
-						</div>
+						</Card>
 					{/each}
 				</div>
 			{/if}
@@ -301,7 +300,7 @@
 		{:else}
 			<div class="space-y-4">
 				{#each data.answers as submission (submission.id)}
-					<div class="space-y-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+					<Card variant="elevated" padding="sm" class="space-y-3">
 						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
 							<span>From: {getSubmitterLabel(submission)}</span>
 							<span>
@@ -318,7 +317,7 @@
 								</div>
 							{/each}
 						</div>
-					</div>
+					</Card>
 				{/each}
 			</div>
 		{/if}
