@@ -1,13 +1,12 @@
 import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions, RequestEvent } from './$types';
-import { put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
-import type { VariantType, VariantConfig } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 import { validateVariantConfig } from '$lib/server/variant-utils';
+import { getSoundbiteValues, validateFiles, uploadToBlob } from '$lib/server/quiz-utils';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Check for active user session
@@ -19,42 +18,6 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	// Return empty data for now since the page will be blank
 	return {};
-};
-
-const getSoundbiteValues = (formData: FormData) => {
-	const files = formData.getAll('soundbiteFile') as File[];
-	const questions = formData
-		.getAll('soundbiteQuestion')
-		.map((value) => String(value).trim() || null);
-	const variantTypes = formData
-		.getAll('soundbiteVariantType')
-		.map((value) => String(value) as VariantType);
-	const variantConfigs = formData.getAll('soundbiteVariantConfig').map((value) => {
-		try {
-			return JSON.parse(String(value)) as VariantConfig;
-		} catch {
-			return null;
-		}
-	});
-
-	return { files, questions, variantTypes, variantConfigs };
-};
-
-const validateFiles = (files: File[]) => {
-	if (files.length === 0) {
-		return 'At least one SoundBite is required.';
-	}
-
-	for (const file of files) {
-		if (!file || file.size === 0) {
-			return 'Each SoundBite must include an MP3 file.';
-		}
-		if (!file.type.startsWith('audio/') && !file.name.endsWith('.mp3')) {
-			return 'All SoundBite files must be MP3 audio.';
-		}
-	}
-
-	return null;
 };
 
 export const actions: Actions = {
@@ -90,7 +53,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'Description must be 2000 characters or less.' });
 		}
 
-		const fileError = validateFiles(files);
+		const fileError = validateFiles(files, true);
 		if (fileError) {
 			return fail(400, { message: fileError });
 		}
@@ -127,11 +90,7 @@ export const actions: Actions = {
 				const variantType = variantTypes[index];
 				const variantConfig = variantConfigs[index]!;
 
-				const blob = await put(file.name, file, {
-					access: 'public',
-					addRandomSuffix: true,
-					token: env.BLOB_READ_WRITE_TOKEN
-				});
+				const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
 
 				const [track] = await db
 					.insert(tracks)

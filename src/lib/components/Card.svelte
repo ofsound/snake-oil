@@ -2,7 +2,7 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		variant?: 'elevated' | 'flat' | 'ghost' | 'interactive';
+		variant?: 'elevated' | 'flat' | 'neutral' | 'ghost' | 'interactive';
 		padding?: 'none' | 'sm' | 'md' | 'lg';
 		class?: string;
 		children: Snippet;
@@ -13,6 +13,7 @@
 	const variantClasses: Record<string, string> = {
 		elevated: 'bg-white shadow-sm',
 		flat: 'bg-white',
+		neutral: 'bg-neutral-50 border-none',
 		ghost: '',
 		interactive: 'bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
 	};

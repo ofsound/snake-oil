@@ -162,16 +162,20 @@
 
 			<section class="flex flex-col gap-4 pt-6">
 				{#each data.soundbites as soundbite, index (soundbite.id)}
-					<div class="flex flex-col gap-6 rounded-sm bg-neutral-50 p-4">
+					<Card variant="neutral" padding="sm" class="flex flex-col gap-6 bg-neutral-50">
 						<input type="hidden" name="soundbiteId" value={soundbite.id} />
 						<div class="flex flex-col gap-2">
-							<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
+							<div
+								class="mb-2 w-max rounded-sm bg-neutral-600 px-2 py-1 text-sm font-medium text-white"
+							>
+								{index + 1}
+							</div>
 							<audio controls class="w-full">
 								<source src={soundbite.trackUrl} type="audio/mpeg" />
 								Your browser does not support the audio element.
 							</audio>
 							{#if soundbite.question}
-								<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
+								<p class="mt-6 font-semibold">{soundbite.question}</p>
 							{/if}
 						</div>
 
@@ -198,7 +202,7 @@
 								onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
 							/>
 						{/if}
-					</div>
+					</Card>
 				{/each}
 			</section>
 
@@ -209,7 +213,7 @@
 			{/if}
 
 			<div class="mt-6 flex justify-end">
-				<Button type="submit" variant="accent" size="md" disabled={submitting}>
+				<Button type="submit" variant="primary" size="md" disabled={submitting}>
 					{submitting ? 'Submitting...' : 'Submit answers'}
 				</Button>
 			</div>

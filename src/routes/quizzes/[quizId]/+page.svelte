@@ -4,10 +4,8 @@
 	import { untrack } from 'svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
-	import VariantSelector from '$lib/components/VariantSelector.svelte';
-	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
-	import MultipleChoiceEditor from '$lib/components/MultipleChoiceEditor.svelte';
-	import MultipleResponseEditor from '$lib/components/MultipleResponseEditor.svelte';
+	import SoundbiteEditor from '$lib/components/SoundbiteEditor.svelte';
+	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import type { ActionData, PageData } from './$types';
 	import type {
 		VariantType,
@@ -110,23 +108,8 @@
 		}
 	});
 
-	function addNewSoundbite() {
-		newSoundbites = [
-			...newSoundbites,
-			{
-				id: nextNewSoundbiteId,
-				variantType: 'simple_guess',
-				simpleGuessAnswer: '',
-				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
-				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
-				question: ''
-			}
-		];
-		nextNewSoundbiteId += 1;
-	}
-
-	function removeNewSoundbite(id: number) {
-		newSoundbites = newSoundbites.filter((soundbite) => soundbite.id !== id);
+	function handleNewSoundbitesChange(newSoundbitesList: NewSoundbiteState[]) {
+		newSoundbites = newSoundbitesList;
 	}
 
 	function updateExistingVariantType(id: string, variantType: VariantType) {
@@ -162,43 +145,6 @@
 			...existingSoundbiteState,
 			[id]: { ...existingSoundbiteState[id], question }
 		};
-	}
-
-	function updateNewVariantType(id: number, variantType: VariantType) {
-		newSoundbites = newSoundbites.map((sb) => (sb.id === id ? { ...sb, variantType } : sb));
-	}
-
-	function updateNewSimpleGuessAnswer(id: number, answer: string) {
-		newSoundbites = newSoundbites.map((sb) =>
-			sb.id === id ? { ...sb, simpleGuessAnswer: answer } : sb
-		);
-	}
-
-	function updateNewMultipleChoiceOptions(id: number, options: MultipleChoiceOption[]) {
-		newSoundbites = newSoundbites.map((sb) =>
-			sb.id === id ? { ...sb, multipleChoiceOptions: options } : sb
-		);
-	}
-
-	function updateNewMultipleResponseOptions(id: number, options: MultipleResponseOption[]) {
-		newSoundbites = newSoundbites.map((sb) =>
-			sb.id === id ? { ...sb, multipleResponseOptions: options } : sb
-		);
-	}
-
-	function updateNewQuestion(id: number, question: string) {
-		newSoundbites = newSoundbites.map((sb) => (sb.id === id ? { ...sb, question } : sb));
-	}
-
-	function getVariantConfigJson(state: ExistingSoundbiteState | NewSoundbiteState): string {
-		if (state.variantType === 'simple_guess') {
-			return JSON.stringify({ type: 'simple_guess', correctAnswer: state.simpleGuessAnswer });
-		} else if (state.variantType === 'multiple_choice') {
-			return JSON.stringify({ type: 'multiple_choice', options: state.multipleChoiceOptions });
-		} else if (state.variantType === 'multiple_response') {
-			return JSON.stringify({ type: 'multiple_response', options: state.multipleResponseOptions });
-		}
-		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
 	}
 
 	const getSubmitterLabel = (entry: PageData['answers'][number]) =>
@@ -292,7 +238,7 @@
 			};
 		}}
 	>
-		<Card variant="elevated" padding="md" class="space-y-4">
+		<Card variant="flat" padding="md" class="space-y-4">
 			<div class="space-y-3">
 				<label class="text-sm font-medium text-gray-700" for="title">Title</label>
 				<input
@@ -334,7 +280,7 @@
 				{#each data.soundbites as soundbite (soundbite.id)}
 					{@const state = existingSoundbiteState[soundbite.id]}
 					{#if state}
-						<Card variant="elevated" padding="sm" class="space-y-3">
+						<Card variant="flat" padding="sm" class="space-y-3">
 							<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
 							<div class="flex items-center justify-between">
 								<p class="text-sm font-medium text-gray-700">{soundbite.trackName}</p>
@@ -344,78 +290,28 @@
 								</label>
 							</div>
 
-							<div class="grid gap-4 md:grid-cols-2">
-								<div class="space-y-2">
-									<label
-										class="text-sm font-medium text-gray-700"
-										for={`existing-file-${soundbite.id}`}
-									>
-										Replace MP3 (optional)
-									</label>
-									<input
-										id={`existing-file-${soundbite.id}`}
-										name="existingSoundbiteFile"
-										type="file"
-										accept="audio/mpeg,.mp3"
-										class="w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5"
-									/>
-								</div>
-
-								<VariantSelector
-									id={`existing-variant-${soundbite.id}`}
-									value={state.variantType}
-									onchange={(value) => updateExistingVariantType(soundbite.id, value)}
-								/>
-							</div>
-
-							<div class="space-y-2">
-								<label
-									class="text-sm font-medium text-gray-700"
-									for={`existing-question-${soundbite.id}`}
-								>
-									Question (optional)
-								</label>
-								<textarea
-									id={`existing-question-${soundbite.id}`}
-									name="existingSoundbiteQuestion"
-									rows="2"
-									class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-									placeholder="e.g., What guitar is being played?"
-									value={state.question}
-									oninput={(e) => updateExistingQuestion(soundbite.id, e.currentTarget.value)}
-								></textarea>
-								<p class="text-xs text-gray-500">
-									This appears below the audio player to guide quiz takers.
-								</p>
-							</div>
-
-							<input type="hidden" name="existingSoundbiteVariantType" value={state.variantType} />
-
-							{#if state.variantType === 'simple_guess'}
-								<SimpleGuessEditor
-									id={`existing-simple-guess-${soundbite.id}`}
-									value={state.simpleGuessAnswer}
-									oninput={(value) => updateExistingSimpleGuessAnswer(soundbite.id, value)}
-								/>
-							{:else if state.variantType === 'multiple_choice'}
-								<MultipleChoiceEditor
-									idPrefix={`existing-mc-${soundbite.id}`}
-									options={state.multipleChoiceOptions}
-									onchange={(options) => updateExistingMultipleChoiceOptions(soundbite.id, options)}
-								/>
-							{:else if state.variantType === 'multiple_response'}
-								<MultipleResponseEditor
-									idPrefix={`existing-mr-${soundbite.id}`}
-									options={state.multipleResponseOptions}
-									onchange={(options) =>
-										updateExistingMultipleResponseOptions(soundbite.id, options)}
-								/>
-							{/if}
-
-							<input
-								type="hidden"
-								name="existingSoundbiteVariantConfig"
-								value={getVariantConfigJson(state)}
+							<SoundbiteEditor
+								id={`existing-${soundbite.id}`}
+								variantType={state.variantType}
+								question={state.question}
+								simpleGuessAnswer={state.simpleGuessAnswer}
+								multipleChoiceOptions={state.multipleChoiceOptions}
+								multipleResponseOptions={state.multipleResponseOptions}
+								variantTypeName="existingSoundbiteVariantType"
+								variantConfigName="existingSoundbiteVariantConfig"
+								questionName="existingSoundbiteQuestion"
+								fileInputName="existingSoundbiteFile"
+								fileInputRequired={false}
+								fileInputLabel="Replace MP3 (optional)"
+								fileInputId={`existing-file-${soundbite.id}`}
+								onVariantTypeChange={(value) => updateExistingVariantType(soundbite.id, value)}
+								onQuestionChange={(value) => updateExistingQuestion(soundbite.id, value)}
+								onSimpleGuessAnswerChange={(value) =>
+									updateExistingSimpleGuessAnswer(soundbite.id, value)}
+								onMultipleChoiceOptionsChange={(options) =>
+									updateExistingMultipleChoiceOptions(soundbite.id, options)}
+								onMultipleResponseOptionsChange={(options) =>
+									updateExistingMultipleResponseOptions(soundbite.id, options)}
 							/>
 						</Card>
 					{/if}
@@ -423,103 +319,18 @@
 			</div>
 		</section>
 
-		<section class="space-y-4">
-			<div class="flex items-center justify-between">
-				<h2 class="text-lg font-semibold">Add new SoundBites</h2>
-				<Button variant="outline" size="sm" onclick={addNewSoundbite}>Add SoundBite</Button>
-			</div>
-			{#if newSoundbites.length === 0}
-				<p class="text-sm text-gray-500">No new SoundBites added yet.</p>
-			{:else}
-				<div class="space-y-4">
-					{#each newSoundbites as soundbite (soundbite.id)}
-						<Card variant="elevated" padding="sm" class="space-y-3">
-							<div class="flex items-center justify-between">
-								<span class="text-sm font-medium text-gray-700">New SoundBite</span>
-								<button
-									type="button"
-									class="text-xs text-gray-500 hover:text-gray-700"
-									onclick={() => removeNewSoundbite(soundbite.id)}
-								>
-									Remove
-								</button>
-							</div>
-
-							<div class="grid gap-4 md:grid-cols-2">
-								<div class="space-y-2">
-									<label class="text-sm font-medium text-gray-700" for={`new-file-${soundbite.id}`}>
-										MP3 file
-									</label>
-									<input
-										id={`new-file-${soundbite.id}`}
-										name="newSoundbiteFile"
-										type="file"
-										accept="audio/mpeg,.mp3"
-										class="w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5"
-										required
-									/>
-								</div>
-
-								<VariantSelector
-									id={`new-variant-${soundbite.id}`}
-									value={soundbite.variantType}
-									onchange={(value) => updateNewVariantType(soundbite.id, value)}
-								/>
-							</div>
-
-							<div class="space-y-2">
-								<label
-									class="text-sm font-medium text-gray-700"
-									for={`new-question-${soundbite.id}`}
-								>
-									Question (optional)
-								</label>
-								<textarea
-									id={`new-question-${soundbite.id}`}
-									name="newSoundbiteQuestion"
-									rows="2"
-									class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-									placeholder="e.g., What guitar is being played?"
-									value={soundbite.question}
-									oninput={(e) => updateNewQuestion(soundbite.id, e.currentTarget.value)}
-								></textarea>
-								<p class="text-xs text-gray-500">
-									This appears below the audio player to guide quiz takers.
-								</p>
-							</div>
-
-							<input type="hidden" name="newSoundbiteVariantType" value={soundbite.variantType} />
-
-							{#if soundbite.variantType === 'simple_guess'}
-								<SimpleGuessEditor
-									id={`new-simple-guess-${soundbite.id}`}
-									value={soundbite.simpleGuessAnswer}
-									oninput={(value) => updateNewSimpleGuessAnswer(soundbite.id, value)}
-								/>
-							{:else if soundbite.variantType === 'multiple_choice'}
-								<MultipleChoiceEditor
-									idPrefix={`new-mc-${soundbite.id}`}
-									options={soundbite.multipleChoiceOptions}
-									onchange={(options) => updateNewMultipleChoiceOptions(soundbite.id, options)}
-								/>
-							{:else if soundbite.variantType === 'multiple_response'}
-								<MultipleResponseEditor
-									idPrefix={`new-mr-${soundbite.id}`}
-									options={soundbite.multipleResponseOptions}
-									onchange={(options) => updateNewMultipleResponseOptions(soundbite.id, options)}
-								/>
-							{/if}
-
-							<input
-								type="hidden"
-								name="newSoundbiteVariantConfig"
-								value={getVariantConfigJson(soundbite)}
-							/>
-						</Card>
-					{/each}
-				</div>
-			{/if}
-		</section>
+		<SoundbiteFormSection
+			bind:soundbites={newSoundbites}
+			headerTitle="Add new SoundBites"
+			addButtonText="Add SoundBite"
+			cardTitle={() => 'New SoundBite'}
+			variantTypeName="newSoundbiteVariantType"
+			variantConfigName="newSoundbiteVariantConfig"
+			questionName="newSoundbiteQuestion"
+			fileInputName="newSoundbiteFile"
+			fileInputRequired={true}
+			onChange={handleNewSoundbitesChange}
+		/>
 
 		{#if successMessage}
 			<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">

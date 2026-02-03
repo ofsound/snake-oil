@@ -1,14 +1,19 @@
 import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
-import type { VariantType, VariantConfig } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
-import { del, put } from '@vercel/blob';
 import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { slugify } from '$lib/utils';
 import { findUniqueSlug } from '$lib/server/db/slug-utils';
 import { validateVariantConfig } from '$lib/server/variant-utils';
+import {
+	getExistingSoundbites,
+	getNewSoundbites,
+	validateFiles,
+	uploadToBlob,
+	deleteFromBlob
+} from '$lib/server/quiz-utils';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
@@ -75,62 +80,6 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	};
 };
 
-const getExistingSoundbites = (formData: FormData) => {
-	const ids = formData.getAll('existingSoundbiteId').map((value) => String(value));
-	const questions = formData
-		.getAll('existingSoundbiteQuestion')
-		.map((value) => String(value).trim() || null);
-	const variantTypes = formData
-		.getAll('existingSoundbiteVariantType')
-		.map((value) => String(value) as VariantType);
-	const variantConfigs = formData.getAll('existingSoundbiteVariantConfig').map((value) => {
-		try {
-			return JSON.parse(String(value)) as VariantConfig;
-		} catch {
-			return null;
-		}
-	});
-	const files = formData.getAll('existingSoundbiteFile') as File[];
-	const removed = new Set(formData.getAll('existingSoundbiteRemove').map((value) => String(value)));
-
-	return { ids, questions, variantTypes, variantConfigs, files, removed };
-};
-
-const getNewSoundbites = (formData: FormData) => {
-	const questions = formData
-		.getAll('newSoundbiteQuestion')
-		.map((value) => String(value).trim() || null);
-	const variantTypes = formData
-		.getAll('newSoundbiteVariantType')
-		.map((value) => String(value) as VariantType);
-	const variantConfigs = formData.getAll('newSoundbiteVariantConfig').map((value) => {
-		try {
-			return JSON.parse(String(value)) as VariantConfig;
-		} catch {
-			return null;
-		}
-	});
-	const files = formData.getAll('newSoundbiteFile') as File[];
-
-	return { questions, variantTypes, variantConfigs, files };
-};
-
-const validateFiles = (files: File[], isRequired: boolean) => {
-	if (isRequired && files.length === 0) {
-		return 'At least one SoundBite is required.';
-	}
-
-	for (const file of files) {
-		if (file && file.size > 0) {
-			if (!file.type.startsWith('audio/') && !file.name.endsWith('.mp3')) {
-				return 'All SoundBite files must be MP3 audio.';
-			}
-		}
-	}
-
-	return null;
-};
-
 export const actions: Actions = {
 	delete: async ({ locals, params }: RequestEvent) => {
 		if (!locals.user) {
@@ -162,9 +111,7 @@ export const actions: Actions = {
 			const trackIds: string[] = [];
 			for (const soundbite of existingQuiz.soundbites) {
 				if (soundbite.track?.pathname) {
-					await del(soundbite.track.pathname, {
-						token: env.BLOB_READ_WRITE_TOKEN
-					});
+					await deleteFromBlob(soundbite.track.pathname, env.BLOB_READ_WRITE_TOKEN);
 				}
 				if (soundbite.track?.id) {
 					trackIds.push(soundbite.track.id);
@@ -232,7 +179,10 @@ export const actions: Actions = {
 			return fail(400, { message: 'SoundBite variant configuration is missing.' });
 		}
 
-		if (newVariantTypes.length !== newFiles.length || newVariantConfigs.length !== newFiles.length) {
+		if (
+			newVariantTypes.length !== newFiles.length ||
+			newVariantConfigs.length !== newFiles.length
+		) {
 			return fail(400, { message: 'Each new SoundBite needs variant configuration.' });
 		}
 
@@ -282,11 +232,7 @@ export const actions: Actions = {
 				const file = files[index];
 
 				if (file && file.size > 0) {
-					const blob = await put(file.name, file, {
-						access: 'public',
-						addRandomSuffix: true,
-						token: env.BLOB_READ_WRITE_TOKEN
-					});
+					const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
 
 					const [track] = await db
 						.insert(tracks)
@@ -317,11 +263,7 @@ export const actions: Actions = {
 				const variantType = newVariantTypes[index];
 				const variantConfig = newVariantConfigs[index]!;
 
-				const blob = await put(file.name, file, {
-					access: 'public',
-					addRandomSuffix: true,
-					token: env.BLOB_READ_WRITE_TOKEN
-				});
+				const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
 
 				const [track] = await db
 					.insert(tracks)
