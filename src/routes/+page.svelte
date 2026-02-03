@@ -30,6 +30,6 @@
 	</div>
 
 	<div class="flex justify-center">
-		<Button variant="secondary" size="sm" href="/quizzes">Browse All Quizzes</Button>
+		<Button variant="accent" size="md" href="/quizzes">Browse All Quizzes</Button>
 	</div>
 </div>

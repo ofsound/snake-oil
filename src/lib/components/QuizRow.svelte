@@ -41,14 +41,14 @@
 			window.location.href = `/${quiz.slug}`;
 		}
 	}}
-	class="flex cursor-pointer items-center justify-between rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100"
+	class="flex cursor-pointer items-center justify-between rounded-md bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/80"
 >
 	<div class="flex flex-col">
 		<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
 		<div class="text-sm text-gray-600">{quiz.description}</div>
 	</div>
-	<div class="flex flex-col items-end gap-1 text-xs">
-		<div>
+	<div class="flex flex-col items-end gap-1">
+		<div class="text-xs">
 			{new Date(quiz.createdAt).toLocaleDateString()}
 		</div>
 		{#if showOwner && quiz.owner && quiz.owner.name}
@@ -56,7 +56,7 @@
 				data-owner-link
 				href="/users/{quiz.owner.slug}"
 				onclick={handleOwnerClick}
-				class="font-semibold hover:text-emerald-800"
+				class="text-sm font-semibold hover:text-emerald-800"
 			>
 				{quiz.owner.name}
 			</a>

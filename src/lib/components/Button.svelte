@@ -34,7 +34,7 @@
 	const variantClasses: Record<string, string> = {
 		primary: 'bg-emerald-800 text-white hover:bg-emerald-900',
 		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700',
-		accent: 'bg-blue-600 text-white hover:bg-blue-700',
+		accent: 'bg-indigo-600 text-white hover:bg-indigo-700',
 		danger: 'bg-red-600 text-white hover:bg-red-700',
 		outline: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50',
 		ghost: 'bg-transparent text-gray-500 hover:text-gray-700'
@@ -43,12 +43,12 @@
 	const sizeClasses: Record<string, string> = {
 		xs: 'px-2 py-1 text-xs',
 		sm: 'px-3 py-1.5 text-sm',
-		md: 'px-5 py-2 text-sm',
+		md: 'px-4 py-1.5 text-md',
 		lg: 'px-4 py-3 text-sm'
 	};
 
 	const baseClasses =
-		'cursor-pointer rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
+		'cursor-pointer rounded-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
 	let classes = $derived.by(() => {
 		// If active and outline variant, show accent styling instead

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
@@ -54,11 +55,7 @@
 		<div class="mt-10 flex items-center justify-between border-b border-gray-200 pb-2">
 			<h2 class="flex-1 text-2xl text-gray-700">My Quizzes</h2>
 			{#if quizzes.length > 0}
-				<a
-					href="/create"
-					class="block rounded-md border-none bg-indigo-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-600"
-					>Create Quiz</a
-				>
+				<Button variant="accent" size="md" href="/create">Create Quiz</Button>
 			{/if}
 		</div>
 
@@ -71,11 +68,7 @@
 		{:else}
 			<div class="rounded-md bg-gray-50 p-8 text-center">
 				<p class="mb-4 text-gray-600">You haven't created any quizzes yet.</p>
-				<a
-					href="/create"
-					class="inline-block rounded-md border-none bg-indigo-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-indigo-700"
-					>Create Your First Quiz</a
-				>
+				<Button variant="accent" size="md" href="/create">Create Your First Quiz</Button>
 			</div>
 		{/if}
 	</div>

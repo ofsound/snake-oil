@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
 	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
@@ -120,16 +121,16 @@
 			</section>
 
 			<div class="flex justify-center">
-				<a
+				<Button
 					href={`/${data.quiz.slug}`}
-					class="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium hover:bg-gray-50"
+					variant="outline"
+					size="sm"
 					onclick={() => {
-						// Reset to take the quiz again
 						userAnswers = {};
 					}}
 				>
 					Take Quiz Again
-				</a>
+				</Button>
 			</div>
 		</div>
 	{:else}
@@ -208,13 +209,9 @@
 			{/if}
 
 			<div class="mt-6 flex justify-end">
-				<button
-					type="submit"
-					class="rounded-md bg-emerald-800 px-5 py-2 text-sm font-medium text-white"
-					disabled={submitting}
-				>
+				<Button type="submit" variant="accent" size="md" disabled={submitting}>
 					{submitting ? 'Submitting...' : 'Submit answers'}
-				</button>
+				</Button>
 			</div>
 		</form>
 	{/if}
