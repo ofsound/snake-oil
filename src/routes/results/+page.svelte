@@ -1,213 +1,31 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/state';
-	import Button from '$lib/components/Button.svelte';
-	import Card from '$lib/components/Card.svelte';
+	import QuizList from '$lib/components/QuizList.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
-	type SortOption = 'relevance' | 'date' | 'title' | 'username';
-	type OrderOption = 'asc' | 'desc';
-
-	function getSortIcon(column: SortOption): string {
-		if (data.sort !== column) return '';
-		return data.order === 'asc' ? ' ↑' : ' ↓';
-	}
-
-	function handleSort(column: SortOption): void {
-		const params = new URLSearchParams(page.url.searchParams);
-
-		if (data.sort === column) {
-			// Toggle order if same column
-			params.set('order', data.order === 'asc' ? 'desc' : 'asc');
-		} else {
-			// New column, default to desc for relevance and date, asc for others
-			params.set('sort', column);
-			params.set('order', column === 'date' || column === 'relevance' ? 'desc' : 'asc');
-		}
-
-		// Reset to page 1 when sorting changes
-		params.set('page', '1');
-
-		goto(`/results?${params.toString()}`);
-	}
-
-	function handlePageChange(newPage: number): void {
-		const params = new URLSearchParams(page.url.searchParams);
-		params.set('page', String(newPage));
-		goto(`/results?${params.toString()}`);
-	}
-
-	function formatDate(date: Date): string {
-		return new Date(date).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
-	}
-
-	// Generate page numbers for pagination
-	function getPageNumbers(current: number, total: number): (number | '...')[] {
-		const pages: (number | '...')[] = [];
-		const delta = 2;
-
-		for (let i = 1; i <= total; i++) {
-			if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-				pages.push(i);
-			} else if (pages[pages.length - 1] !== '...') {
-				pages.push('...');
-			}
-		}
-
-		return pages;
+	function getDefaultOrder(column: string): 'asc' | 'desc' {
+		return column === 'date' || column === 'relevance' ? 'desc' : 'asc';
 	}
 </script>
 
-<div class="mx-auto max-w-6xl p-8">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-800">Search Results</h1>
-		<p class="mt-2 text-gray-600">
-			{data.totalCount} result{data.totalCount === 1 ? '' : 's'} for "{data.query}"
-		</p>
-	</div>
-
-	<form method="get" action="/results" class="mb-6">
-		<div class="flex gap-3">
-			<input
-				type="search"
-				name="q"
-				value={data.query}
-				placeholder="Search title, description, or creator"
-				class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-				required
-			/>
-			<Button variant="accent" size="md" type="submit">Search</Button>
-		</div>
-	</form>
-
-	{#if data.quizzes.length > 0}
-		<Card variant="flat" padding="none" class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('title')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Title{getSortIcon('title')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('username')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Creator{getSortIcon('username')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('date')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Created{getSortIcon('date')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<span class="text-xs font-medium tracking-wider text-gray-500 uppercase">
-								Actions
-							</span>
-						</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white">
-					{#each data.quizzes as quiz (quiz.id)}
-						<tr class="transition-colors hover:bg-gray-50">
-							<td class="px-6 py-4">
-								<a
-									href="/{quiz.slug}"
-									class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-								>
-									{quiz.title}
-								</a>
-								<p class="mt-1 text-sm text-gray-500">{quiz.description}</p>
-							</td>
-							<td class="px-6 py-4">
-								<a
-									href="/users/{quiz.owner.slug}"
-									class="text-gray-700 hover:text-blue-600 hover:underline"
-								>
-									{quiz.owner.name}
-								</a>
-							</td>
-							<td class="px-6 py-4 text-sm text-gray-500">
-								{formatDate(quiz.createdAt)}
-							</td>
-							<td class="px-6 py-4">
-								<Button variant="accent" size="sm" href="/{quiz.slug}">View</Button>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</Card>
-
-		{#if data.totalPages > 1}
-			<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
-				<div class="text-sm text-gray-600">
-					Page {data.currentPage} of {data.totalPages}
-				</div>
-
-				<div class="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onclick={() => handlePageChange(data.currentPage - 1)}
-						disabled={data.currentPage === 1}
-					>
-						Previous
-					</Button>
-
-					{#each getPageNumbers(data.currentPage, data.totalPages) as pageNum, idx (idx)}
-						{#if pageNum === '...'}
-							<span class="px-2 text-gray-500">...</span>
-						{:else}
-							<Button
-								variant="outline"
-								size="sm"
-								onclick={() => handlePageChange(pageNum)}
-								active={pageNum === data.currentPage}
-							>
-								{pageNum}
-							</Button>
-						{/if}
-					{/each}
-
-					<Button
-						variant="outline"
-						size="sm"
-						onclick={() => handlePageChange(data.currentPage + 1)}
-						disabled={data.currentPage === data.totalPages}
-					>
-						Next
-					</Button>
-				</div>
-			</nav>
-		{/if}
-	{:else}
-		<div class="rounded-md bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">No quizzes found matching your search.</p>
-			<a
-				href="/quizzes"
-				class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
-			>
-				View all quizzes
-			</a>
-		</div>
-	{/if}
-</div>
+<QuizList
+	quizzes={data.quizzes}
+	totalCount={data.totalCount}
+	currentPage={data.currentPage}
+	totalPages={data.totalPages}
+	sort={data.sort}
+	order={data.order}
+	title="Search Results"
+	description="{data.totalCount} result{data.totalCount === 1
+		? ''
+		: 's'} for &quot;{data.query}&quot;"
+	basePath="/results"
+	searchValue={data.query}
+	sortOptions={['relevance', 'title', 'username', 'date']}
+	onSortDefaultOrder={getDefaultOrder}
+	emptyState={{
+		message: 'No quizzes found matching your search.',
+		link: { text: 'View all quizzes', href: '/quizzes' }
+	}}
+/>
