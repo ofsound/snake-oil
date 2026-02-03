@@ -30,7 +30,8 @@
 
 <header class="bg-slate-200/80 px-8 py-4">
 	<div class="flex justify-between gap-2">
-		<a href="/" class="text-xl font-bold text-shadow-sm text-shadow-zinc-400/20">guessmyaudio.com</a
+		<a href="/" class="text-xl font-bold text-shadow-sm text-shadow-zinc-400/20"
+			>catchy-app-name.io</a
 		>
 
 		<div class="flex gap-3">
