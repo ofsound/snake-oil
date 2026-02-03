@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
+	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -37,14 +38,6 @@
 		const params = new URLSearchParams(page.url.searchParams);
 		params.set('page', String(newPage));
 		goto(`/quizzes?${params.toString()}`);
-	}
-
-	function formatDate(date: Date): string {
-		return new Date(date).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
 	}
 
 	// Generate page numbers for pagination
@@ -86,75 +79,36 @@
 	</form>
 
 	{#if data.quizzes.length > 0}
-		<Card variant="flat" padding="none" class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('title')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Title{getSortIcon('title')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('username')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Creator{getSortIcon('username')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<button
-								type="button"
-								onclick={() => handleSort('date')}
-								class="flex items-center gap-1 text-xs font-medium tracking-wider text-gray-500 uppercase hover:text-gray-700"
-							>
-								Created{getSortIcon('date')}
-							</button>
-						</th>
-						<th class="px-6 py-3 text-left">
-							<span class="text-xs font-medium tracking-wider text-gray-500 uppercase">
-								Actions
-							</span>
-						</th>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white">
-					{#each data.quizzes as quiz (quiz.id)}
-						<tr class="transition-colors hover:bg-gray-50">
-							<td class="px-6 py-4">
-								<a
-									href="/{quiz.slug}"
-									class="font-medium text-blue-600 hover:text-blue-800 hover:underline"
-								>
-									{quiz.title}
-								</a>
-								<p class="mt-1 text-sm text-gray-500">{quiz.description}</p>
-							</td>
-							<td class="px-6 py-4">
-								<a
-									href="/users/{quiz.owner.slug}"
-									class="text-gray-700 hover:text-blue-600 hover:underline"
-								>
-									{quiz.owner.name}
-								</a>
-							</td>
-							<td class="px-6 py-4 text-sm text-gray-500">
-								{formatDate(quiz.createdAt)}
-							</td>
-							<td class="px-6 py-4">
-								<Button variant="accent" size="sm" href="/{quiz.slug}">View</Button>
-							</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</Card>
+		<div class="mb-6 flex items-center gap-4 rounded-md bg-gray-50 px-4 py-3">
+			<span class="text-sm font-medium text-gray-600">Sort by:</span>
+			<button
+				type="button"
+				onclick={() => handleSort('title')}
+				class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+			>
+				Title{getSortIcon('title')}
+			</button>
+			<button
+				type="button"
+				onclick={() => handleSort('username')}
+				class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+			>
+				Creator{getSortIcon('username')}
+			</button>
+			<button
+				type="button"
+				onclick={() => handleSort('date')}
+				class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+			>
+				Created{getSortIcon('date')}
+			</button>
+		</div>
+
+		<div class="flex flex-col gap-3">
+			{#each data.quizzes as quiz (quiz.id)}
+				<QuizRow {quiz} showOwner={true} />
+			{/each}
+		</div>
 
 		{#if data.totalPages > 1}
 			<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">

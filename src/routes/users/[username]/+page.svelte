@@ -1,4 +1,5 @@
 <script lang="ts">
+	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -33,18 +34,7 @@
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-3">
 				{#each quizzes as quiz (quiz.id)}
-					<a
-						href="/{quiz.slug}"
-						class="flex items-center justify-between rounded-md border-none bg-gray-50 px-3 py-2 text-white transition-colors hover:bg-gray-100"
-					>
-						<div class="flex flex-col">
-							<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
-							<div class="text-sm text-gray-600">{quiz.description}</div>
-						</div>
-						<div class="text-xs text-gray-500">
-							{new Date(quiz.createdAt).toLocaleDateString()}
-						</div>
-					</a>
+					<QuizRow {quiz} showOwner={false} />
 				{/each}
 			</div>
 		{:else}

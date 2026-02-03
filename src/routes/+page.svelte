@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
+	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -18,20 +19,7 @@
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-2">
 				{#each quizzes as quiz (quiz.id)}
-					<div class="block rounded-md bg-gray-50 p-4 transition-colors hover:bg-gray-100">
-						<div class="flex flex-col">
-							<a href="/{quiz.slug}" class="flex justify-between">
-								<div>
-									<div class="text-lg font-semibold">{quiz.title}</div>
-									<div>{quiz.description}</div>
-								</div>
-								<div class="mt-2 justify-end text-xs">
-									<div>{new Date(quiz.createdAt).toLocaleDateString()}</div>
-									<div>{quiz.owner.name}</div>
-								</div>
-							</a>
-						</div>
-					</div>
+					<QuizRow {quiz} showOwner={true} />
 				{/each}
 			</div>
 		{:else}
