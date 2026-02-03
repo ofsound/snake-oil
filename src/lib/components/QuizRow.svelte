@@ -47,8 +47,8 @@
 		<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
 		<div class="text-sm text-gray-600">{quiz.description}</div>
 	</div>
-	<div class="flex flex-col items-end gap-1">
-		<div class="text-xs text-gray-500">
+	<div class="flex flex-col items-end gap-1 text-xs">
+		<div>
 			{new Date(quiz.createdAt).toLocaleDateString()}
 		</div>
 		{#if showOwner && quiz.owner && quiz.owner.name}
@@ -56,7 +56,7 @@
 				data-owner-link
 				href="/users/{quiz.owner.slug}"
 				onclick={handleOwnerClick}
-				class="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+				class="font-semibold hover:text-emerald-800"
 			>
 				{quiz.owner.name}
 			</a>
