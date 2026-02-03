@@ -193,13 +193,14 @@ describe('quizzes/[quizId] page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData, locals: any, params: any) => ({
-		request: {
-			formData: async () => formData
-		} as Request,
-		locals,
-		params
-	} as any);
+	const createMockRequest = (formData: FormData, locals: any, params: any) =>
+		({
+			request: {
+				formData: async () => formData
+			} as Request,
+			locals,
+			params
+		}) as any;
 
 	it('requires authentication', async () => {
 		const formData = createFormData({ title: 'Test Quiz' });
@@ -221,11 +222,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			existingSoundbiteDescription: ['Soundbite 1'],
 			existingSoundbiteFile: [new File([], '', { type: '' })]
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -243,11 +240,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			existingSoundbiteDescription: ['Soundbite 1'],
 			existingSoundbiteFile: [new File([], '', { type: '' })]
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -267,11 +260,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			newSoundbiteDescription: [],
 			newSoundbiteFile: []
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -292,11 +281,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			newSoundbiteDescription: ['New Soundbite 1', 'New Soundbite 2'],
 			newSoundbiteFile: [new File(['audio'], 'test.mp3', { type: 'audio/mpeg' })] // missing one
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -327,11 +312,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			existingSoundbiteDescription: [],
 			existingSoundbiteFile: []
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -346,11 +327,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			title: 'Test Quiz',
 			description: 'Test description'
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -389,11 +366,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			existingSoundbiteDescription: ['Updated description'],
 			existingSoundbiteFile: [new File(['audio'], 'new.mp3', { type: 'audio/mpeg' })]
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 
@@ -411,11 +384,7 @@ describe('quizzes/[quizId] page - action validation', () => {
 			existingSoundbiteDescription: [],
 			existingSoundbiteFile: []
 		});
-		const event = createMockRequest(
-			formData,
-			{ user: { id: 'user-123' } },
-			{ quizId: 'quiz-123' }
-		);
+		const event = createMockRequest(formData, { user: { id: 'user-123' } }, { quizId: 'quiz-123' });
 
 		const result = await actions.default(event);
 

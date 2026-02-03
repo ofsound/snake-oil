@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { authClient } from '$lib/auth-client';
+	import Button from '$lib/components/Button.svelte';
 	import type { LayoutProps } from './$types';
 	import favicon from '$lib/assets/favicon.svg';
 	import './layout.css';
@@ -34,27 +35,14 @@
 
 		<div class="flex gap-3">
 			{#if data.user?.name}
-				<a
-					href="/profile"
-					class="cursor-pointer self-baseline rounded-sm bg-emerald-800 px-2 py-1 text-sm text-white hover:bg-emerald-700"
-				>
+				<Button variant="primary" size="sm" href="/profile">
 					{data.user.name} <span class="text-xs">(profile)</span>
-				</a>
-				<button
-					type="button"
-					onclick={handleSignOut}
-					disabled={loading}
-					class="cursor-pointer self-baseline rounded-sm bg-zinc-600 px-2 py-1 text-sm text-white hover:bg-zinc-700"
-				>
+				</Button>
+				<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
 					log out
-				</button>
+				</Button>
 			{:else}
-				<a
-					href="/login"
-					class="cursor-pointer self-baseline rounded-sm bg-zinc-600 px-2 py-1 text-sm text-white hover:bg-zinc-700"
-				>
-					sign in
-				</a>
+				<Button variant="secondary" size="sm" href="/login">sign in</Button>
 			{/if}
 		</div>
 	</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import Button from '$lib/components/Button.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -76,15 +77,10 @@
 				type="search"
 				name="q"
 				placeholder="Search title, description, or creator"
-				class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+				class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
 				required
 			/>
-			<button
-				type="submit"
-				class="rounded-md bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-			>
-				Search
-			</button>
+			<Button variant="accent" size="md" type="submit">Search</Button>
 		</div>
 	</form>
 
@@ -151,12 +147,7 @@
 								{formatDate(quiz.createdAt)}
 							</td>
 							<td class="px-6 py-4">
-								<a
-									href="/{quiz.slug}"
-									class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-								>
-									View
-								</a>
+								<Button variant="accent" size="sm" href="/{quiz.slug}">View</Button>
 							</td>
 						</tr>
 					{/each}
@@ -171,40 +162,38 @@
 				</div>
 
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						size="sm"
 						onclick={() => handlePageChange(data.currentPage - 1)}
 						disabled={data.currentPage === 1}
-						class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Previous
-					</button>
+					</Button>
 
 					{#each getPageNumbers(data.currentPage, data.totalPages) as pageNum, idx (idx)}
 						{#if pageNum === '...'}
 							<span class="px-2 text-gray-500">...</span>
 						{:else}
-							<button
-								type="button"
+							<Button
+								variant="outline"
+								size="sm"
 								onclick={() => handlePageChange(pageNum)}
-								class="rounded-md px-3 py-2 text-sm font-medium transition-colors {pageNum ===
-								data.currentPage
-									? 'bg-blue-600 text-white'
-									: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}"
+								active={pageNum === data.currentPage}
 							>
 								{pageNum}
-							</button>
+							</Button>
 						{/if}
 					{/each}
 
-					<button
-						type="button"
+					<Button
+						variant="outline"
+						size="sm"
 						onclick={() => handlePageChange(data.currentPage + 1)}
 						disabled={data.currentPage === data.totalPages}
-						class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Next
-					</button>
+					</Button>
 				</div>
 			</nav>
 		{/if}

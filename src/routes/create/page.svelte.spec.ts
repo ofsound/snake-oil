@@ -62,10 +62,10 @@ describe('create page component', () => {
 			const slugInput = page.getByRole('textbox', { name: 'Slug' });
 
 			await titleInput.fill('My Test Quiz');
-			
+
 			// Wait a bit for reactive update
-			await new Promise(resolve => setTimeout(resolve, 100));
-			
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
 			// Check that slug was auto-generated
 			await expect.element(slugInput).toHaveValue('my-test-quiz');
 		});
@@ -77,12 +77,12 @@ describe('create page component', () => {
 			const slugInput = page.getByRole('textbox', { name: 'Slug' });
 
 			await titleInput.fill('First Title');
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 			await expect.element(slugInput).toHaveValue('first-title');
 
 			await titleInput.clear();
 			await titleInput.fill('Second Title');
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 			await expect.element(slugInput).toHaveValue('second-title');
 		});
 
@@ -93,7 +93,7 @@ describe('create page component', () => {
 			const slugInput = page.getByRole('textbox', { name: 'Slug' });
 
 			await titleInput.fill('My Quiz');
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 			await expect.element(slugInput).toHaveValue('my-quiz');
 
 			// Manually edit the slug
@@ -103,7 +103,7 @@ describe('create page component', () => {
 			// Change title again
 			await titleInput.clear();
 			await titleInput.fill('Different Title');
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Slug should stay as manually edited
 			await expect.element(slugInput).toHaveValue('custom-slug');
@@ -113,7 +113,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const submitButton = page.getByRole('button', { name: 'Create quiz' });
-			
+
 			await expect.element(submitButton).toBeEnabled();
 		});
 	});
@@ -123,14 +123,14 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const addButton = page.getByRole('button', { name: 'Add SoundBite' });
-			
+
 			// Initially one soundbite
 			let count = document.querySelectorAll('input[name="soundbiteDescription"]').length;
 			expect(count).toBe(1);
 
 			// Add soundbite
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Now two soundbites
 			count = document.querySelectorAll('input[name="soundbiteDescription"]').length;
@@ -143,11 +143,11 @@ describe('create page component', () => {
 			const addButton = page.getByRole('button', { name: 'Add SoundBite' });
 
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 50));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 50));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Verify we have 4 soundbites (1 initial + 3 added)
 			const count = document.querySelectorAll('input[name="soundbiteDescription"]').length;
@@ -159,14 +159,14 @@ describe('create page component', () => {
 
 			const addButton = page.getByRole('button', { name: 'Add SoundBite' });
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			let count = document.querySelectorAll('input[name="soundbiteDescription"]').length;
 			expect(count).toBe(2);
 
 			const removeButtons = page.getByRole('button', { name: 'Remove' });
 			await removeButtons.first().click();
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Verify one soundbite remains
 			count = document.querySelectorAll('input[name="soundbiteDescription"]').length;
@@ -177,7 +177,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const removeButton = page.getByRole('button', { name: 'Remove' });
-			
+
 			await expect.element(removeButton).toBeDisabled();
 
 			// Add another soundbite
@@ -193,15 +193,15 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const addButton = page.getByRole('button', { name: 'Add SoundBite' });
-			
+
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 50));
+			await new Promise((resolve) => setTimeout(resolve, 50));
 			await addButton.click();
-			await new Promise(resolve => setTimeout(resolve, 100));
+			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			// Verify soundbites exist and have unique IDs
 			const inputs = Array.from(document.querySelectorAll('input[name="soundbiteDescription"]'));
-			const ids = inputs.map(el => el.id);
+			const ids = inputs.map((el) => el.id);
 			const uniqueIds = new Set(ids);
 			expect(uniqueIds.size).toBe(ids.length);
 		});
@@ -213,8 +213,10 @@ describe('create page component', () => {
 
 			const titleInput = page.getByRole('textbox', { name: 'Quiz title' });
 			await expect.element(titleInput).toHaveAttribute('required', '');
-			
-			const textarea = document.querySelector('textarea[name="description"]') as HTMLTextAreaElement;
+
+			const textarea = document.querySelector(
+				'textarea[name="description"]'
+			) as HTMLTextAreaElement;
 			const descriptionRequired = textarea?.hasAttribute('required') || false;
 			expect(descriptionRequired).toBe(true);
 		});
@@ -222,7 +224,9 @@ describe('create page component', () => {
 		it('soundbite fields are required', async () => {
 			render(CreatePage);
 
-			const descInput = document.querySelector('input[name="soundbiteDescription"]') as HTMLInputElement;
+			const descInput = document.querySelector(
+				'input[name="soundbiteDescription"]'
+			) as HTMLInputElement;
 			const fileInput = document.querySelector('input[name="soundbiteFile"]') as HTMLInputElement;
 			const descRequired = descInput?.hasAttribute('required') || false;
 			const fileRequired = fileInput?.hasAttribute('required') || false;
@@ -236,11 +240,11 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const titleInput = page.getByRole('textbox', { name: 'Quiz title' });
-			
-			await titleInput.fill('Test Quiz');
-			await new Promise(resolve => setTimeout(resolve, 100));
 
-			const preview = Array.from(document.querySelectorAll('*')).find(el => 
+			await titleInput.fill('Test Quiz');
+			await new Promise((resolve) => setTimeout(resolve, 100));
+
+			const preview = Array.from(document.querySelectorAll('*')).find((el) =>
 				el.textContent?.includes('This becomes the public URL:')
 			);
 			const text = preview?.textContent || '';
@@ -250,7 +254,7 @@ describe('create page component', () => {
 		it('shows placeholder when slug is empty', async () => {
 			render(CreatePage);
 
-			const preview = Array.from(document.querySelectorAll('*')).find(el => 
+			const preview = Array.from(document.querySelectorAll('*')).find((el) =>
 				el.textContent?.includes('This becomes the public URL:')
 			);
 			const text = preview?.textContent || '';

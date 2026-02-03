@@ -87,11 +87,7 @@ export async function findUniqueSlug(
 			? and(eq(quizzes.slug, candidate), ne(quizzes.id, excludeQuizId))
 			: eq(quizzes.slug, candidate);
 
-		const existing = await db
-			.select({ id: quizzes.id })
-			.from(quizzes)
-			.where(conditions)
-			.limit(1);
+		const existing = await db.select({ id: quizzes.id }).from(quizzes).where(conditions).limit(1);
 
 		// If no existing quiz found with this slug, it's unique
 		if (existing.length === 0) {

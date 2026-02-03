@@ -20,7 +20,10 @@ export const slugify = (value: string): string =>
  * @param defaultUrl - The default URL to return if validation fails (default: '/')
  * @returns A safe redirect URL
  */
-export function validateRedirectUrl(redirectUrl: string | null | undefined, defaultUrl = '/'): string {
+export function validateRedirectUrl(
+	redirectUrl: string | null | undefined,
+	defaultUrl = '/'
+): string {
 	if (!redirectUrl || typeof redirectUrl !== 'string') {
 		return defaultUrl;
 	}

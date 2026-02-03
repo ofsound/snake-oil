@@ -97,9 +97,7 @@ export const soundbites = pgTable(
 		description: text('description').notNull(),
 		position: integer('position').notNull()
 	},
-	(table) => [
-		index('soundbites_quiz_idx').on(table.quizId)
-	]
+	(table) => [index('soundbites_quiz_idx').on(table.quizId)]
 );
 
 export const quizAnswers = pgTable(

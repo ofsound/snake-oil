@@ -182,13 +182,14 @@ describe('[slug] page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData, locals: any, params: any) => ({
-		request: {
-			formData: async () => formData
-		} as Request,
-		locals,
-		params
-	} as any);
+	const createMockRequest = (formData: FormData, locals: any, params: any) =>
+		({
+			request: {
+				formData: async () => formData
+			} as Request,
+			locals,
+			params
+		}) as any;
 
 	it('requires displayName for anonymous users', async () => {
 		const formData = createFormData({

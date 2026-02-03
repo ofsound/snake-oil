@@ -28,12 +28,13 @@ describe('hooks.server - handle function', () => {
 		vi.clearAllMocks();
 	});
 
-	const createMockEvent = (headers: Record<string, string> = {}): RequestEvent => ({
-		request: {
-			headers: new Headers(headers)
-		} as Request,
-		locals: {}
-	} as RequestEvent);
+	const createMockEvent = (headers: Record<string, string> = {}): RequestEvent =>
+		({
+			request: {
+				headers: new Headers(headers)
+			} as Request,
+			locals: {}
+		}) as RequestEvent;
 
 	const createMockResolve = () => vi.fn().mockResolvedValue(new Response('OK'));
 
@@ -136,8 +137,8 @@ describe('hooks.server - handle function', () => {
 		vi.mocked(svelteKitHandler).mockResolvedValue(new Response('OK'));
 
 		const headerValues = {
-			'cookie': 'session=abc123',
-			'authorization': 'Bearer token'
+			cookie: 'session=abc123',
+			authorization: 'Bearer token'
 		};
 		const event = createMockEvent(headerValues);
 		const resolve = createMockResolve();

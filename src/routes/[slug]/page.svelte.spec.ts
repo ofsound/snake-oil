@@ -142,7 +142,9 @@ describe('[slug] page component', () => {
 				}
 			});
 
-			await expect.element(page.getByText('An error occurred while submitting')).toBeInTheDocument();
+			await expect
+				.element(page.getByText('An error occurred while submitting'))
+				.toBeInTheDocument();
 		});
 
 		it('reveals answers after successful submission', async () => {
@@ -171,7 +173,9 @@ describe('[slug] page component', () => {
 		it('includes hidden soundbite ID fields', async () => {
 			render(SlugPage, { props: { data: mockData, form: undefined } });
 
-			const inputs = Array.from(document.querySelectorAll('input[name="soundbiteId"][type="hidden"]'));
+			const inputs = Array.from(
+				document.querySelectorAll('input[name="soundbiteId"][type="hidden"]')
+			);
 			const count = inputs.length;
 			const firstValue = inputs[0]?.getAttribute('value') || null;
 			expect(count).toBe(2);

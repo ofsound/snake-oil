@@ -87,14 +87,15 @@ describe('create page - action validation', () => {
 		return formData;
 	};
 
-	const createMockRequest = (formData: FormData) => ({
-		request: {
-			formData: async () => formData
-		} as Request,
-		locals: {
-			user: { id: 'user-123', name: 'Test User' }
-		}
-	} as any);
+	const createMockRequest = (formData: FormData) =>
+		({
+			request: {
+				formData: async () => formData
+			} as Request,
+			locals: {
+				user: { id: 'user-123', name: 'Test User' }
+			}
+		}) as any;
 
 	it('requires authentication', async () => {
 		const formData = createFormData({ title: 'Test Quiz' });

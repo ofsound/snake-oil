@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/Button.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
@@ -40,9 +41,7 @@
 		{/if}
 	</div>
 
-	<a
-		href="/quizzes"
-		class="mx-auto block w-max rounded-sm bg-slate-400 px-2 py-1 text-center text-sm text-white hover:bg-slate-500"
-		>Browse All Quizzes</a
-	>
+	<div class="flex justify-center">
+		<Button variant="secondary" size="sm" href="/quizzes">Browse All Quizzes</Button>
+	</div>
 </div>
