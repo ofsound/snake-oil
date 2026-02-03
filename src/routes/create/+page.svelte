@@ -6,6 +6,7 @@
 	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from '$lib/components/MultipleChoiceEditor.svelte';
 	import MultipleResponseEditor from '$lib/components/MultipleResponseEditor.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import type { ActionData } from './$types';
 	import type {
 		VariantType,
@@ -170,13 +171,9 @@
 		<section class="space-y-4">
 			<div class="flex items-center justify-between">
 				<h2 class="text-lg font-semibold">SoundBites</h2>
-				<button
-					type="button"
-					class="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-					onclick={addSoundbite}
-				>
+				<Button type="button" variant="outline" size="sm" onclick={addSoundbite}>
 					Add SoundBite
-				</button>
+				</Button>
 			</div>
 
 			<div class="space-y-4">
@@ -307,13 +304,9 @@
 		{/if}
 
 		<div class="flex justify-end">
-			<button
-				type="submit"
-				class="rounded-md bg-emerald-800 px-5 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-				disabled={submitting}
-			>
+			<Button type="submit" variant="primary" size="md" loading={submitting}>
 				{submitting ? 'Creating...' : 'Create quiz'}
-			</button>
+			</Button>
 		</div>
 	</form>
 </div>

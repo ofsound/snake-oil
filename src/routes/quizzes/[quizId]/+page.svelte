@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
+	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import VariantSelector from '$lib/components/VariantSelector.svelte';
 	import SimpleGuessEditor from '$lib/components/SimpleGuessEditor.svelte';
@@ -258,12 +259,7 @@
 					};
 				}}
 			>
-				<button
-					type="submit"
-					class="rounded-md bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
-				>
-					Delete Quiz
-				</button>
+				<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
 			</form>
 		</div>
 	</header>
@@ -430,13 +426,7 @@
 		<section class="space-y-4">
 			<div class="flex items-center justify-between">
 				<h2 class="text-lg font-semibold">Add new SoundBites</h2>
-				<button
-					type="button"
-					class="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
-					onclick={addNewSoundbite}
-				>
-					Add SoundBite
-				</button>
+				<Button variant="outline" size="sm" onclick={addNewSoundbite}>Add SoundBite</Button>
 			</div>
 			{#if newSoundbites.length === 0}
 				<p class="text-sm text-gray-500">No new SoundBites added yet.</p>
@@ -544,13 +534,9 @@
 		{/if}
 
 		<div class="flex justify-end">
-			<button
-				type="submit"
-				class="rounded-md bg-black px-5 py-2 text-sm font-medium text-white"
-				disabled={submitting}
-			>
-				{submitting ? 'Saving...' : 'Save changes'}
-			</button>
+			<Button variant="accent" size="md" type="submit" disabled={submitting} loading={submitting}>
+				Save changes
+			</Button>
 		</div>
 	</form>
 

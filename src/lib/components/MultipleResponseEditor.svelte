@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/Button.svelte';
 	import type { MultipleResponseOption } from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
@@ -34,14 +35,9 @@
 <div class="space-y-3">
 	<div class="flex items-center justify-between">
 		<span class="text-sm font-medium text-gray-700">Answer Options</span>
-		<button
-			type="button"
-			class="rounded-md border border-gray-300 px-2 py-1 text-xs hover:bg-gray-50"
-			onclick={addOption}
-			disabled={options.length >= 10}
-		>
+		<Button variant="outline" size="xs" onclick={addOption} disabled={options.length >= 10}>
 			Add Option
-		</button>
+		</Button>
 	</div>
 
 	<div class="space-y-2">
