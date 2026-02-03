@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { validateRedirectUrl } from '$lib/utils';
 	import AuthForm from '$lib/components/AuthForm.svelte';
-	import FormInput from '$lib/components/FormInput.svelte';
+	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -63,8 +63,13 @@
 	}}
 >
 	{#snippet children()}
-		<FormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
-		<FormInput type="password" placeholder="Password" bind:value={password} disabled={loading} />
+		<AuthFormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
+		<AuthFormInput
+			type="password"
+			placeholder="Password"
+			bind:value={password}
+			disabled={loading}
+		/>
 	{/snippet}
 
 	{#snippet footer()}

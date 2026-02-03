@@ -9,7 +9,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			await expect.element(page.getByRole('textbox', { name: 'Quiz title' })).toBeInTheDocument();
-			await expect.element(page.getByRole('textbox', { name: 'Slug' })).toBeInTheDocument();
+			await expect.element(page.getByRole('textbox', { name: 'URL' })).toBeInTheDocument();
 			const descriptionExists = !!document.querySelector('textarea[name="description"]');
 			expect(descriptionExists).toBe(true);
 			await expect.element(page.getByRole('heading', { name: 'SoundBites' })).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const titleInput = page.getByRole('textbox', { name: 'Quiz title' });
-			const slugInput = page.getByRole('textbox', { name: 'Slug' });
+			const slugInput = page.getByRole('textbox', { name: 'URL' });
 
 			await titleInput.fill('My Test Quiz');
 
@@ -74,7 +74,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const titleInput = page.getByRole('textbox', { name: 'Quiz title' });
-			const slugInput = page.getByRole('textbox', { name: 'Slug' });
+			const slugInput = page.getByRole('textbox', { name: 'URL' });
 
 			await titleInput.fill('First Title');
 			await new Promise((resolve) => setTimeout(resolve, 100));
@@ -90,7 +90,7 @@ describe('create page component', () => {
 			render(CreatePage);
 
 			const titleInput = page.getByRole('textbox', { name: 'Quiz title' });
-			const slugInput = page.getByRole('textbox', { name: 'Slug' });
+			const slugInput = page.getByRole('textbox', { name: 'URL' });
 
 			await titleInput.fill('My Quiz');
 			await new Promise((resolve) => setTimeout(resolve, 100));

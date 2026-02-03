@@ -4,7 +4,7 @@
 	import { page } from '$app/state';
 	import { validateRedirectUrl, slugify } from '$lib/utils';
 	import AuthForm from '$lib/components/AuthForm.svelte';
-	import FormInput from '$lib/components/FormInput.svelte';
+	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -94,10 +94,10 @@
 	}}
 >
 	{#snippet children()}
-		<FormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
+		<AuthFormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
 
 		<div>
-			<FormInput
+			<AuthFormInput
 				type="text"
 				placeholder="Username (for your profile URL)"
 				bind:value={slug}
@@ -111,8 +111,14 @@
 			{/if}
 		</div>
 
-		<FormInput type="email" placeholder="Email" bind:value={email} required disabled={loading} />
-		<FormInput
+		<AuthFormInput
+			type="email"
+			placeholder="Email"
+			bind:value={email}
+			required
+			disabled={loading}
+		/>
+		<AuthFormInput
 			type="password"
 			placeholder="Password"
 			bind:value={password}
