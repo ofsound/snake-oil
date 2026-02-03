@@ -4,10 +4,7 @@
 	import { page } from '$app/state';
 	import { validateRedirectUrl } from '$lib/utils';
 	import AuthForm from '$lib/components/AuthForm.svelte';
-	import FormInput from '$lib/components/AuthFormInput.svelte';
-	import type { PageProps } from './$types';
-
-	let { data }: PageProps = $props();
+	import FormInput from '$lib/components/FormInput.svelte';
 
 	let email = $state('');
 	let password = $state('');
@@ -60,10 +57,6 @@
 	title="Sign In"
 	{loading}
 	{error}
-	isAuthenticated={!!data.session}
-	userName={data.user?.name || data.user?.email}
-	{redirectUrl}
-	redirectLabel={page.url.searchParams.get('redirect') ? 'your destination' : 'home'}
 	onsubmit={(e) => {
 		e.preventDefault();
 		handleSignIn();

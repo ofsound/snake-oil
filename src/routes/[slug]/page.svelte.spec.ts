@@ -49,10 +49,12 @@ describe('[slug] page component', () => {
 			render(SlugPage, { props: { data: mockData, form: undefined } });
 
 			// Date format may vary by timezone, so check for any date format
-			const el = document.querySelector('header p.text-sm.text-gray-500');
+			const el = document.querySelector('header div.text-sm');
 			const text = el?.textContent?.trim() || '';
 			expect(text).toBeTruthy();
 			expect(text.length).toBeGreaterThan(0);
+			// Verify it contains the date and "by" text
+			expect(text).toContain('by');
 		});
 
 		it('renders all soundbites with audio players', async () => {
