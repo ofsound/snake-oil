@@ -41,7 +41,7 @@
 			window.location.href = `/${quiz.slug}`;
 		}
 	}}
-	class="flex cursor-pointer items-center justify-between rounded-md border-none bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100"
+	class="flex cursor-pointer items-center justify-between rounded-md bg-gray-50 px-3 py-2 transition-colors hover:bg-gray-100"
 >
 	<div class="flex flex-col">
 		<h3 class="font-semibold text-gray-800">{quiz.title}</h3>
