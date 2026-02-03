@@ -14,15 +14,18 @@
 	interface Props {
 		quiz: Quiz;
 		showOwner?: boolean;
+		linkToManage?: boolean;
 	}
 
-	let { quiz, showOwner = false }: Props = $props();
+	let { quiz, showOwner = false, linkToManage = false }: Props = $props();
+
+	const rowHref = $derived(linkToManage ? `/quizzes/${quiz.id}` : `/${quiz.slug}`);
 
 	function handleClick(event: MouseEvent): void {
 		// Only navigate if not clicking on the owner link
 		const target = event.target as HTMLElement;
 		if (!target.closest('[data-owner-link]')) {
-			window.location.href = `/${quiz.slug}`;
+			window.location.href = rowHref;
 		}
 	}
 
@@ -38,7 +41,7 @@
 	onkeydown={(e) => {
 		if (e.key === 'Enter' || e.key === ' ') {
 			e.preventDefault();
-			window.location.href = `/${quiz.slug}`;
+			window.location.href = rowHref;
 		}
 	}}
 	class="flex cursor-pointer items-center justify-between rounded-md bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/80"
