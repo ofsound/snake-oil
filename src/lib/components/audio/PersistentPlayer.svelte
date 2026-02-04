@@ -145,7 +145,7 @@
 
 	<!-- Loading State -->
 	{#if engine.isLoading}
-		<div class="flex items-center justify-center space-x-2 p-6">
+		<div class="flex items-center justify-center gap-2 p-6">
 			<div
 				class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-green-800 dark:border-gray-600"
 			></div>
@@ -153,7 +153,7 @@
 		</div>
 	{:else}
 		<!-- Mobile Layout -->
-		<div class="block space-y-4 p-4 md:hidden">
+		<div class="flex flex-col gap-4 p-4 md:hidden">
 			<!-- Title -->
 			<div class="text-center">
 				<h3 class="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -165,7 +165,7 @@
 			<div class="flex items-center justify-between">
 				<button
 					onclick={() => (playlistVisible = !playlistVisible)}
-					class="flex items-center space-x-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 				>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
@@ -241,7 +241,7 @@
 		</div>
 
 		<!-- Desktop Layout -->
-		<div class="hidden space-y-4 p-4 md:block">
+		<div class="hidden flex-col gap-4 p-4 md:flex">
 			<!-- Top Row: Title | Transport | Playlist+Volume -->
 			<div class="flex items-center justify-between">
 				<!-- Title -->
@@ -263,10 +263,10 @@
 				</div>
 
 				<!-- Playlist Button & Volume -->
-				<div class="ml-4 flex flex-1 items-center justify-end space-x-4">
+				<div class="ml-4 flex flex-1 items-center justify-end gap-4">
 					<button
 						onclick={() => (playlistVisible = !playlistVisible)}
-						class="flex items-center space-x-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+						class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
 					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
