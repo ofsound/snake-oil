@@ -53,7 +53,7 @@
 	tabindex="0"
 	onclick={handleClick}
 	onkeydown={handleKeydown}
-	class="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200/80 bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/80"
+	class="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200/80 bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/60"
 >
 	<div class="flex flex-col">
 		<div class="font-semibold tracking-wide">{quiz.title}</div>

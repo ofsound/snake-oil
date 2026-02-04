@@ -24,8 +24,12 @@
 	</Heading>
 	<div class="text-sm">
 		<span class=" text-gray-600">Joined:</span>
-		<span class=" text-gray-800">
-			{new Date(user.createdAt).toLocaleDateString()}
+		<span class=" font-medium">
+			{new Date(user.createdAt).toLocaleDateString('en-US', {
+				year: 'numeric',
+				month: 'long',
+				day: 'numeric'
+			})}
 		</span>
 	</div>
 </Card>

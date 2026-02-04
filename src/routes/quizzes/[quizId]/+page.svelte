@@ -301,7 +301,7 @@
 		</Card>
 
 		<section class="flex flex-col gap-4">
-			<Heading level={2} class="mb-6">Existing Audio Clips</Heading>
+			<Heading level={2} class="mb-6">Audio Clips</Heading>
 			<div class="flex flex-col gap-4">
 				{#each data.soundbites as soundbite, index (soundbite.id)}
 					{@const state = existingSoundbiteState[soundbite.id]}
