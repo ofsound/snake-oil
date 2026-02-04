@@ -41,6 +41,7 @@
 	let newSoundbites = $state<NewSoundbiteState[]>([]);
 
 	let submitting = $state(false);
+	let activeTab = $state<'edit' | 'answers'>('edit');
 	let successMessage = $derived(form?.success ? 'Quiz updated successfully.' : null);
 	let errorMessage = $derived(form?.message ?? null);
 
@@ -186,7 +187,33 @@
 	<div class="text-gray-500">
 		(<a class="text-sm hover:underline" href={`/${slug}`}>view quiz</a>)
 	</div>
+</header>
 
+<nav class="mb-10 flex border-b border-neutral-200">
+	<button
+		type="button"
+		class="cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors"
+		class:border-indigo-600={activeTab === 'edit'}
+		class:text-indigo-600={activeTab === 'edit'}
+		class:border-transparent={activeTab !== 'edit'}
+		class:text-gray-500={activeTab !== 'edit'}
+		class:hover:text-gray-700={activeTab !== 'edit'}
+		onclick={() => (activeTab = 'edit')}
+	>
+		Edit Quiz
+	</button>
+	<button
+		type="button"
+		class="cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors"
+		class:border-indigo-600={activeTab === 'answers'}
+		class:text-indigo-600={activeTab === 'answers'}
+		class:border-transparent={activeTab !== 'answers'}
+		class:text-gray-500={activeTab !== 'answers'}
+		class:hover:text-gray-700={activeTab !== 'answers'}
+		onclick={() => (activeTab = 'answers')}
+	>
+		View Answers
+	</button>
 	<form
 		method="POST"
 		action="?/delete"
@@ -209,205 +236,208 @@
 	>
 		<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
 	</form>
-</header>
+</nav>
 
-<form
-	method="POST"
-	action="?/update"
-	enctype="multipart/form-data"
-	class="flex flex-col gap-6"
-	use:enhance={() => {
-		submitting = true;
-		return async ({ result, update }) => {
-			if (result.type === 'success') {
-				// Store current field values before update
-				const currentTitle = title;
-				const currentSlug = slug;
-				const currentDescription = description;
-				await update({ reset: false });
-				// Restore field values to preserve user input after successful save
-				title = currentTitle;
-				slug = currentSlug;
-				description = currentDescription;
-				// Clear new soundbites since they've been saved
-				newSoundbites = [];
-				nextNewSoundbiteId = 0;
-			} else {
-				await update({ reset: false });
-			}
-			submitting = false;
-		};
-	}}
->
-	<Card variant="flat" padding="md" class="flex flex-col gap-4">
-		<FormField label="Title" id="title">
-			<input
-				id="title"
-				name="title"
-				type="text"
-				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-				bind:value={title}
-				required
-			/>
-		</FormField>
-		<FormField label="URL" id="slug">
-			<input
-				id="slug"
-				name="slug"
-				type="text"
-				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-				bind:value={slug}
-				required
-			/>
-		</FormField>
-		<FormField label="Description" id="description">
-			<textarea
-				id="description"
-				name="description"
-				rows="4"
-				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-				bind:value={description}
-				required
-			></textarea>
-		</FormField>
-	</Card>
+{#if activeTab === 'edit'}
+	<form
+		method="POST"
+		action="?/update"
+		enctype="multipart/form-data"
+		class="flex flex-col gap-6"
+		use:enhance={() => {
+			submitting = true;
+			return async ({ result, update }) => {
+				if (result.type === 'success') {
+					// Store current field values before update
+					const currentTitle = title;
+					const currentSlug = slug;
+					const currentDescription = description;
+					await update({ reset: false });
+					// Restore field values to preserve user input after successful save
+					title = currentTitle;
+					slug = currentSlug;
+					description = currentDescription;
+					// Clear new soundbites since they've been saved
+					newSoundbites = [];
+					nextNewSoundbiteId = 0;
+				} else {
+					await update({ reset: false });
+				}
+				submitting = false;
+			};
+		}}
+	>
+		<Card variant="flat" padding="md" class="flex flex-col gap-4">
+			<FormField label="Title" id="title">
+				<input
+					id="title"
+					name="title"
+					type="text"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					bind:value={title}
+					required
+				/>
+			</FormField>
+			<FormField label="URL" id="slug">
+				<input
+					id="slug"
+					name="slug"
+					type="text"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					bind:value={slug}
+					required
+				/>
+			</FormField>
+			<FormField label="Description" id="description">
+				<textarea
+					id="description"
+					name="description"
+					rows="4"
+					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					bind:value={description}
+					required
+				></textarea>
+			</FormField>
+		</Card>
 
-	<section class="flex flex-col gap-4">
-		<Heading level={2} class="mb-6">Existing Audio Clips</Heading>
-		<div class="flex flex-col gap-4">
-			{#each data.soundbites as soundbite, index (soundbite.id)}
-				{@const state = existingSoundbiteState[soundbite.id]}
-				{#if state}
-					<div class="flex">
-						<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
-						<Card variant="neutral" padding="md" class="relative flex-1">
-							<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
-							<div class="flex items-center justify-between">
-								<p class="text mb-4 font-medium">{soundbite.trackName}</p>
-								<label class="flex items-center gap-2 text-xs font-medium">
-									<input type="checkbox" name="existingSoundbiteRemove" value={soundbite.id} />
-									Remove
-								</label>
-							</div>
-
-							<SoundbiteEditor
-								id={`existing-${soundbite.id}`}
-								variantType={state.variantType}
-								question={state.question}
-								simpleGuessAnswer={state.simpleGuessAnswer}
-								multipleChoiceOptions={state.multipleChoiceOptions}
-								multipleResponseOptions={state.multipleResponseOptions}
-								variantTypeName="existingSoundbiteVariantType"
-								variantConfigName="existingSoundbiteVariantConfig"
-								questionName="existingSoundbiteQuestion"
-								fileInputName="existingSoundbiteFile"
-								fileInputRequired={false}
-								fileInputLabel="Replace MP3 (optional)"
-								fileInputId={`existing-file-${soundbite.id}`}
-								onVariantTypeChange={(value) => updateExistingVariantType(soundbite.id, value)}
-								onQuestionChange={(value) => updateExistingQuestion(soundbite.id, value)}
-								onSimpleGuessAnswerChange={(value) =>
-									updateExistingSimpleGuessAnswer(soundbite.id, value)}
-								onMultipleChoiceOptionsChange={(options) =>
-									updateExistingMultipleChoiceOptions(soundbite.id, options)}
-								onMultipleResponseOptionsChange={(options) =>
-									updateExistingMultipleResponseOptions(soundbite.id, options)}
-							/>
-						</Card>
-					</div>
-				{/if}
-			{/each}
-		</div>
-	</section>
-
-	<SoundbiteFormSection
-		bind:soundbites={newSoundbites}
-		headerTitle="Add New Audio Clips"
-		addButtonText="Add Audio Clip"
-		cardTitle={() => 'New SoundBite'}
-		variantTypeName="newSoundbiteVariantType"
-		variantConfigName="newSoundbiteVariantConfig"
-		questionName="newSoundbiteQuestion"
-		fileInputName="newSoundbiteFile"
-		fileInputRequired={true}
-		onChange={handleNewSoundbitesChange}
-	/>
-
-	{#if successMessage}
-		<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-			{successMessage}
-		</div>
-	{/if}
-
-	{#if errorMessage}
-		<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-			{errorMessage}
-		</div>
-	{/if}
-
-	<div class="flex justify-end">
-		<Button variant="accent" size="md" type="submit" disabled={submitting} loading={submitting}>
-			Save changes
-		</Button>
-	</div>
-</form>
-
-<section class="flex flex-col gap-4 border-t border-gray-200 pt-4">
-	<Heading level={2} class="mb-6">Submitted answers</Heading>
-	{#if data.answers.length === 0}
-		<p class="text-sm text-gray-500">No submissions yet.</p>
-	{:else}
-		<div class="flex flex-col gap-4">
-			{#each data.answers as submission (submission.id)}
-				<Card variant="elevated" padding="sm" class="flex flex-col gap-3">
-					<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-						<span>From: {getSubmitterLabel(submission)}</span>
-						<div class="flex items-center gap-3">
-							<span class="font-semibold text-emerald-700">
-								Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
-							</span>
-							<span>
-								{submission.createdAt ? new Date(submission.createdAt).toLocaleString() : ''}
-							</span>
-						</div>
-					</div>
-					<div class="flex flex-col gap-2">
-						{#each data.soundbites as soundbite (soundbite.id)}
-							{@const answerInfo = getAnswerDisplay(
-								submission.answers as AnswersPayload,
-								soundbite.id,
-								soundbite
-							)}
-							<div
-								class="rounded-md border px-3 py-2 text-sm"
-								class:border-green-200={answerInfo.isCorrect}
-								class:bg-green-50={answerInfo.isCorrect}
-								class:border-red-200={!answerInfo.isCorrect}
-								class:bg-red-50={!answerInfo.isCorrect}
-							>
+		<section class="flex flex-col gap-4">
+			<Heading level={2} class="mb-6">Existing Audio Clips</Heading>
+			<div class="flex flex-col gap-4">
+				{#each data.soundbites as soundbite, index (soundbite.id)}
+					{@const state = existingSoundbiteState[soundbite.id]}
+					{#if state}
+						<div class="flex">
+							<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+							<Card variant="neutral" padding="md" class="relative flex-1">
+								<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
 								<div class="flex items-center justify-between">
-									<span class="font-medium">{soundbite.trackName}:</span>
-									<span
-										class="text-xs font-semibold"
-										class:text-green-700={answerInfo.isCorrect}
-										class:text-red-700={!answerInfo.isCorrect}
-									>
-										{answerInfo.isCorrect ? 'Correct' : 'Incorrect'}
-									</span>
+									<p class="text mb-4 font-medium">{soundbite.trackName}</p>
+									<label class="flex items-center gap-2 text-xs font-medium">
+										<input type="checkbox" name="existingSoundbiteRemove" value={soundbite.id} />
+										Remove
+									</label>
 								</div>
-								<div class="mt-1 text-gray-700">
-									<span>Answer: {answerInfo.guess}</span>
-									{#if !answerInfo.isCorrect}
-										<span class="ml-3 text-green-700">
-											(Correct: {getCorrectAnswerText(soundbite.variantConfig)})
-										</span>
-									{/if}
-								</div>
-							</div>
-						{/each}
-					</div>
-				</Card>
-			{/each}
+
+								<SoundbiteEditor
+									id={`existing-${soundbite.id}`}
+									variantType={state.variantType}
+									question={state.question}
+									simpleGuessAnswer={state.simpleGuessAnswer}
+									multipleChoiceOptions={state.multipleChoiceOptions}
+									multipleResponseOptions={state.multipleResponseOptions}
+									variantTypeName="existingSoundbiteVariantType"
+									variantConfigName="existingSoundbiteVariantConfig"
+									questionName="existingSoundbiteQuestion"
+									fileInputName="existingSoundbiteFile"
+									fileInputRequired={false}
+									fileInputLabel="Replace MP3 (optional)"
+									fileInputId={`existing-file-${soundbite.id}`}
+									onVariantTypeChange={(value) => updateExistingVariantType(soundbite.id, value)}
+									onQuestionChange={(value) => updateExistingQuestion(soundbite.id, value)}
+									onSimpleGuessAnswerChange={(value) =>
+										updateExistingSimpleGuessAnswer(soundbite.id, value)}
+									onMultipleChoiceOptionsChange={(options) =>
+										updateExistingMultipleChoiceOptions(soundbite.id, options)}
+									onMultipleResponseOptionsChange={(options) =>
+										updateExistingMultipleResponseOptions(soundbite.id, options)}
+								/>
+							</Card>
+						</div>
+					{/if}
+				{/each}
+			</div>
+		</section>
+
+		<SoundbiteFormSection
+			bind:soundbites={newSoundbites}
+			headerTitle="Add New Audio Clips"
+			addButtonText="Add Audio Clip"
+			cardTitle={() => 'New SoundBite'}
+			variantTypeName="newSoundbiteVariantType"
+			variantConfigName="newSoundbiteVariantConfig"
+			questionName="newSoundbiteQuestion"
+			fileInputName="newSoundbiteFile"
+			fileInputRequired={true}
+			onChange={handleNewSoundbitesChange}
+		/>
+
+		{#if successMessage}
+			<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+				{successMessage}
+			</div>
+		{/if}
+
+		{#if errorMessage}
+			<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+				{errorMessage}
+			</div>
+		{/if}
+
+		<div class="flex justify-end">
+			<Button variant="accent" size="md" type="submit" disabled={submitting} loading={submitting}>
+				Save changes
+			</Button>
 		</div>
-	{/if}
-</section>
+	</form>
+{/if}
+
+{#if activeTab === 'answers'}
+	<section class="flex flex-col gap-4">
+		{#if data.answers.length === 0}
+			<p class="text-sm text-gray-500">No submissions yet.</p>
+		{:else}
+			<div class="flex flex-col gap-4">
+				{#each data.answers as submission (submission.id)}
+					<Card variant="flat" padding="sm" class="flex flex-col gap-3">
+						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+							<span>From: {getSubmitterLabel(submission)}</span>
+							<div class="flex items-center gap-3">
+								<span class="font-semibold text-emerald-700">
+									Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
+								</span>
+								<span>
+									{submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}
+								</span>
+							</div>
+						</div>
+						<div class="flex flex-col gap-2">
+							{#each data.soundbites as soundbite (soundbite.id)}
+								{@const answerInfo = getAnswerDisplay(
+									submission.answers as AnswersPayload,
+									soundbite.id,
+									soundbite
+								)}
+								<div
+									class="rounded-md border px-3 py-2 text-sm"
+									class:border-green-200={answerInfo.isCorrect}
+									class:bg-green-50={answerInfo.isCorrect}
+									class:border-red-200={!answerInfo.isCorrect}
+									class:bg-red-50={!answerInfo.isCorrect}
+								>
+									<div class="flex items-center justify-between">
+										<span class="font-medium">{soundbite.trackName}:</span>
+										<span
+											class="text-xs font-semibold"
+											class:text-green-700={answerInfo.isCorrect}
+											class:text-red-700={!answerInfo.isCorrect}
+										>
+											{answerInfo.isCorrect ? 'Correct' : 'Incorrect'}
+										</span>
+									</div>
+									<div class="mt-1 text-gray-700">
+										<span>Answer: {answerInfo.guess}</span>
+										{#if !answerInfo.isCorrect}
+											<span class="ml-3 text-green-700">
+												(Correct: {getCorrectAnswerText(soundbite.variantConfig)})
+											</span>
+										{/if}
+									</div>
+								</div>
+							{/each}
+						</div>
+					</Card>
+				{/each}
+			</div>
+		{/if}
+	</section>
+{/if}
