@@ -385,9 +385,7 @@
 							</div>
 
 							<div class="flex items-center gap-3">
-								<span class="font-semibold text-emerald-700">
-									Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
-								</span>
+								Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
 							</div>
 						</div>
 						<div class="flex flex-col gap-2">
