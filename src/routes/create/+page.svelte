@@ -62,15 +62,12 @@
 	}
 </script>
 
-<header class="space-y-2">
-	<h1 class="text-3xl font-semibold">Create Quiz</h1>
-	<p class="text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
-</header>
+<h1 class="mb-6 text-3xl font-bold">Create Quiz</h1>
 
 <form
 	method="POST"
 	enctype="multipart/form-data"
-	class="space-y-6"
+	class="flex flex-col gap-8"
 	use:enhance={() => {
 		submitting = true;
 		return async ({ update }) => {
@@ -118,6 +115,8 @@
 			></textarea>
 		</FormField>
 	</Card>
+
+	<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
 
 	<SoundbiteFormSection
 		bind:soundbites

@@ -66,7 +66,7 @@
 
 <div class="flex flex-col gap-4">
 	{#if fileInputName}
-		<div class="space-y-2">
+		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
 				{fileInputLabel}
 			</label>
@@ -75,7 +75,7 @@
 				name={fileInputName}
 				type="file"
 				accept="audio/mpeg,.mp3"
-				class="w-full text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0 file:bg-gray-100 file:px-3 file:py-1.5"
+				class="w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border file:border-neutral-200 file:bg-white file:px-3 file:py-1.5 file:font-medium"
 				required={fileInputRequired}
 			/>
 		</div>
@@ -91,7 +91,7 @@
 			id={`question-${id}`}
 			name={questionName}
 			rows="2"
-			class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+			class="sm w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm"
 			placeholder="e.g., What guitar is being played?"
 			value={question}
 			oninput={(e) => onQuestionChange(e.currentTarget.value)}
