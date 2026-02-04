@@ -57,7 +57,7 @@
 </script>
 
 <header class="pb-6">
-	<Heading level={1}>{data.quiz.title}</Heading>
+	<Heading level={1} class="mb-1.5">{data.quiz.title}</Heading>
 	<div class="text-sm">
 		{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 		by
@@ -66,7 +66,7 @@
 		</a>
 		{#if isOwner}
 			<span class="text-sm text-gray-500">
-				(<a href="/quizzes/{data.quiz.id}" class="hover:underline">edit quiz</a>)
+				(<a href="/quizzes/{data.quiz.id}" class="hover:underline">manage quiz</a>)
 			</span>
 		{/if}
 	</div>
@@ -81,15 +81,15 @@
 	<div class="flex flex-col gap-6">
 		<Card variant="elevated" padding="md">
 			<div class="text-center">
-				<h2 class="text-2xl font-bold text-emerald-700">
+				<Heading level={2} class="text-emerald-700">
 					Your Score: {results.totalCorrect}/{results.totalQuestions}
-				</h2>
+				</Heading>
 				<p class="mt-1 text-lg text-gray-600">{results.score}% correct</p>
 			</div>
 		</Card>
 
 		<section class="flex flex-col gap-4">
-			<h3 class="text-lg font-semibold">Your Answers</h3>
+			<Heading level={3}>Your Answers</Heading>
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const answerDetail = results.answers[soundbite.id]}
 				{@const correctAnswer = results.correctAnswers[soundbite.id]}

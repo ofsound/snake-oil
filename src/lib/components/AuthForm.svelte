@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+
 	import Card from './Card.svelte';
+	import Heading from './Heading.svelte';
 
 	interface Props {
 		title: string;
@@ -16,7 +18,9 @@
 </script>
 
 <Card class="mx-auto mt-14 w-full max-w-[400px]">
-	<h2 class="mt-0 mb-6 text-center text-lg font-semibold text-gray-900">{title}</h2>
+	<Heading level={3} class="mb-6">
+		{title}
+	</Heading>
 
 	{#if error}
 		<div class="mb-4 rounded bg-red-50 px-3 py-3 text-sm text-red-600">{error}</div>

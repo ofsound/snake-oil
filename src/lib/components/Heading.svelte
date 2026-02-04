@@ -14,7 +14,7 @@
 	const levelStyles = {
 		1: 'text-3xl font-semibold',
 		2: 'text-xl font-bold',
-		3: 'text-xl font-semibold mb-2 mt-6'
+		3: 'text-lg font-semibold '
 	};
 
 	let classes = $derived.by(() => {

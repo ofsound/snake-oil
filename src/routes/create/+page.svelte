@@ -12,6 +12,7 @@
 		MultipleResponseOption
 	} from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
+	import Heading from '$lib/components/Heading.svelte';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
@@ -62,7 +63,7 @@
 	}
 </script>
 
-<h1 class="mb-6 text-3xl font-bold">Create Quiz</h1>
+<Heading level={1} class="mb-6">Create Quiz</Heading>
 
 <form
 	method="POST"

@@ -3,6 +3,7 @@
 	import { page } from '$app/state';
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
+	import Heading from './Heading.svelte';
 
 	interface Quiz {
 		id: string;
@@ -87,7 +88,7 @@
 </script>
 
 <div class="mb-8">
-	<h1 class="text-2xl font-bold text-gray-800">{title}</h1>
+	<Heading level={1}>{title}</Heading>
 	<div class="mt-1 text-sm text-gray-600">{description}</div>
 </div>
 
