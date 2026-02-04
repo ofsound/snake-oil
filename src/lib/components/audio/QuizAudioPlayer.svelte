@@ -21,17 +21,47 @@
 
 	let tooltip = $state<TooltipState>({ visible: false, x: 0, time: 0 });
 	let isEngineReady = $state(false);
+	let silentAudio: HTMLAudioElement | null = null;
+	let iOSAudioUnlocked = $state(false);
 
 	// Track which URL has been loaded (non-reactive to avoid infinite loops)
 	let loadedUrl: string | null = null;
+
+	// iOS silent mode workaround - unlock audio on first interaction
+	async function unlockiOSAudio() {
+		if (iOSAudioUnlocked || !silentAudio) return;
+
+		try {
+			silentAudio.volume = 0.01;
+			await silentAudio.play();
+			silentAudio.pause();
+			iOSAudioUnlocked = true;
+			console.log('iOS audio unlocked');
+		} catch (err) {
+			// Ignore errors, audio might already be unlocked
+			console.log('iOS audio unlock attempt:', err);
+		}
+	}
 
 	onMount(() => {
 		// Initialize the engine
 		const initialized = engine.initialize();
 		isEngineReady = initialized;
 
+		// Create silent audio element for iOS silent mode workaround
+		if (typeof window !== 'undefined') {
+			silentAudio = new Audio();
+			silentAudio.src =
+				'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA//8A';
+			silentAudio.preload = 'auto';
+		}
+
 		return () => {
 			engine.destroy();
+			if (silentAudio) {
+				silentAudio.src = '';
+				silentAudio = null;
+			}
 		};
 	});
 
@@ -138,15 +168,17 @@
 	const filterLinearValue = $derived(logToLinear(engine.filterFrequency));
 </script>
 
-<div class="w-full rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+<div class="w-full min-w-0 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
 	<!-- Error Banner -->
 	{#if engine.error}
-		<div class="mb-3 flex items-center justify-between rounded bg-red-50 px-3 py-2 text-sm">
-			<span class="text-red-700">{engine.error}</span>
+		<div
+			class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded bg-red-50 px-3 py-2 text-sm"
+		>
+			<span class="min-w-0 flex-1 truncate text-red-700">{engine.error}</span>
 			<button
 				type="button"
 				onclick={() => engine.retryLoad()}
-				class="rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+				class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
 			>
 				Retry
 			</button>
@@ -163,11 +195,14 @@
 		</div>
 	{:else}
 		<!-- Transport Controls (Left-aligned) -->
-		<div class="mb-3 flex items-center gap-2">
+		<div class="mb-3 flex min-w-0 items-center gap-2">
 			<!-- Play/Pause Button -->
 			<button
 				type="button"
-				onclick={() => engine.togglePlayPause()}
+				onclick={async () => {
+					await unlockiOSAudio();
+					engine.togglePlayPause();
+				}}
 				disabled={!engine.bufferLoaded}
 				class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label={engine.isPlaying ? 'Pause' : 'Play'}
@@ -198,9 +233,9 @@
 			</button>
 
 			<!-- Time Display -->
-			<div class="ml-auto text-xs text-neutral-600">
+			<div class="ml-auto shrink-0 text-xs text-neutral-600">
 				<span class="font-mono">{formatTime(engine.currentTime)}</span>
-				<span class="mx-1">/</span>
+				<span class="mx-0.5">/</span>
 				<span class="font-mono">{formatTime(engine.duration)}</span>
 			</div>
 		</div>
@@ -238,12 +273,12 @@
 		<!-- Spectrum Visualizer -->
 		<MiniSpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
 
-		<!-- Controls Row -->
-		<div class="flex items-center gap-4">
+		<!-- Controls Row - Stack vertically on small screens -->
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
 			<!-- Volume Control -->
-			<div class="flex flex-1 items-center gap-2">
+			<div class="flex w-full items-center gap-2 sm:flex-1">
 				<svg
-					class="h-4 w-4 text-neutral-500"
+					class="h-4 w-4 shrink-0 text-neutral-500"
 					viewBox="0 0 24 24"
 					fill="none"
 					stroke="currentColor"
@@ -259,15 +294,15 @@
 					step="0.01"
 					value={engine.volume}
 					oninput={handleVolumeChange}
-					class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-blue-600"
+					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-blue-600"
 					aria-label="Volume"
 				/>
 			</div>
 
 			<!-- Filter Control -->
-			<div class="flex flex-1 items-center gap-2">
+			<div class="flex w-full items-center gap-2 sm:flex-1">
 				<svg
-					class="h-4 w-4 text-neutral-500"
+					class="h-4 w-4 shrink-0 text-neutral-500"
 					viewBox="0 0 24 24"
 					fill="none"
 					stroke="currentColor"
@@ -282,10 +317,10 @@
 					step="0.01"
 					value={filterLinearValue}
 					oninput={handleFilterChange}
-					class="h-1 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-purple-600"
+					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-purple-600"
 					aria-label="Low-pass filter frequency"
 				/>
-				<span class="min-w-[3.5rem] text-right font-mono text-xs text-neutral-600">
+				<span class="shrink-0 text-right font-mono text-xs text-neutral-600">
 					{formatFrequency(engine.filterFrequency)}
 				</span>
 			</div>
