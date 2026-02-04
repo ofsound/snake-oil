@@ -68,7 +68,7 @@
 				data-owner-link
 				href="/users/{quiz.owner.slug}"
 				onclick={handleOwnerClick}
-				class="text-sm font-semibold hover:text-emerald-800"
+				class="text-sm font-medium hover:text-indigo-800"
 			>
 				{quiz.owner.name}
 			</a>
