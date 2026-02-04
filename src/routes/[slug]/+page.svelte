@@ -77,7 +77,7 @@
 
 {#if hasResults && results}
 	<!-- Results Display -->
-	<div class="space-y-6">
+	<div class="flex flex-col gap-6">
 		<Card variant="elevated" padding="md">
 			<div class="text-center">
 				<h2 class="text-2xl font-bold text-emerald-700">
@@ -87,7 +87,7 @@
 			</div>
 		</Card>
 
-		<section class="space-y-4">
+		<section class="flex flex-col gap-4">
 			<h3 class="text-lg font-semibold">Your Answers</h3>
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const answerDetail = results.answers[soundbite.id]}

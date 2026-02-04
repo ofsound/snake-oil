@@ -16,7 +16,7 @@
 
 <div class="my-8">
 	{#if quizzes.length > 0}
-		<div class="flex flex-col gap-2">
+		<div class="flex flex-col gap-3">
 			{#each quizzes as quiz (quiz.id)}
 				<QuizRow {quiz} showOwner={true} />
 			{/each}

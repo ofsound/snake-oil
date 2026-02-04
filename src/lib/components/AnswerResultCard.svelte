@@ -69,7 +69,7 @@
 			{answerDetail.isCorrect ? 'Correct' : 'Incorrect'}
 		</span>
 	</div>
-	<div class="mt-2 space-y-1 text-sm">
+	<div class="mt-2 flex flex-col gap-1 text-sm">
 		<p>
 			<span class="text-gray-500">Your answer:</span>
 			<span class="ml-1" class:text-red-700={!answerDetail.isCorrect}

@@ -48,7 +48,7 @@
 
 <div class="flex flex-col gap-2">
 	<AnswerPrompt text="Your answer (select all that apply):" />
-	<div class="space-y-2">
+	<div class="flex flex-col gap-2">
 		{#each shuffledOptions as option (option.id)}
 			{@const isSelected = selectedOptionIds.includes(option.id)}
 			<label

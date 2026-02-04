@@ -23,7 +23,7 @@
 	{/if}
 
 	<form {onsubmit}>
-		<div class="space-y-4">
+		<div class="flex flex-col gap-4">
 			{@render children()}
 		</div>
 

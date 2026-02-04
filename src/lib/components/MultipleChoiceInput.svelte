@@ -35,7 +35,7 @@
 
 <div class="flex flex-col gap-2">
 	<AnswerPrompt />
-	<div class="space-y-2">
+	<div class="flex flex-col gap-2">
 		{#each shuffledOptions as option (option.id)}
 			<label
 				class="flex cursor-pointer items-center gap-3 rounded-sm border border-neutral-200 bg-white p-3 font-medium"

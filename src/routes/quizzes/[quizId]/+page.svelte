@@ -214,7 +214,7 @@
 	method="POST"
 	action="?/update"
 	enctype="multipart/form-data"
-	class="space-y-6"
+	class="flex flex-col gap-6"
 	use:enhance={() => {
 		submitting = true;
 		return async ({ result, update }) => {
@@ -271,9 +271,9 @@
 		</FormField>
 	</Card>
 
-	<section class="space-y-4">
+	<section class="flex flex-col gap-4">
 		<h2 class="mb-6 text-xl font-bold">Existing Audio Clips</h2>
-		<div class="space-y-4">
+		<div class="flex flex-col gap-4">
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const state = existingSoundbiteState[soundbite.id]}
 				{#if state}
@@ -351,14 +351,14 @@
 	</div>
 </form>
 
-<section class="space-y-4 border-t border-gray-200 pt-4">
+<section class="flex flex-col gap-4 border-t border-gray-200 pt-4">
 	<h2 class="text-xl font-semibold">Submitted answers</h2>
 	{#if data.answers.length === 0}
 		<p class="text-sm text-gray-500">No submissions yet.</p>
 	{:else}
-		<div class="space-y-4">
+		<div class="flex flex-col gap-4">
 			{#each data.answers as submission (submission.id)}
-				<Card variant="elevated" padding="sm" class="space-y-3">
+				<Card variant="elevated" padding="sm" class="flex flex-col gap-3">
 					<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
 						<span>From: {getSubmitterLabel(submission)}</span>
 						<div class="flex items-center gap-3">
@@ -370,7 +370,7 @@
 							</span>
 						</div>
 					</div>
-					<div class="space-y-2">
+					<div class="flex flex-col gap-2">
 						{#each data.soundbites as soundbite (soundbite.id)}
 							{@const answerInfo = getAnswerDisplay(
 								submission.answers as AnswersPayload,

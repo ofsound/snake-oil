@@ -32,7 +32,7 @@
 	}
 </script>
 
-<div class="space-y-3">
+<div class="flex flex-col gap-3">
 	<div class="flex items-center justify-between">
 		<span class="text-sm font-medium text-gray-700">Answer Options</span>
 		<Button variant="outline" size="xs" onclick={addOption} disabled={options.length >= 10}>
@@ -40,7 +40,7 @@
 		</Button>
 	</div>
 
-	<div class="space-y-2">
+	<div class="flex flex-col gap-2">
 		{#each options as option, index (option.id)}
 			<div class="flex items-center gap-2">
 				<input

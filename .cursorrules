@@ -26,3 +26,7 @@ This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
 - Always use Tailwind CSS for styling instead of a style tag with vanilla css
 - Neon Postgres Database
 - Neon Auth
+
+## Tailwind Implementaion
+
+- NEVER use the space-y- or space-x- classes, alwasy use flex and gap- in those instances
