@@ -29,5 +29,5 @@
 </div>
 
 <div class="flex justify-center">
-	<Button variant="accent" size="md" href="/quizzes">Browse All Quizzes</Button>
+	<Button variant="accent" size="md" href="/quizzes">Browse All</Button>
 </div>

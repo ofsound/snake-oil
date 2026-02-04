@@ -17,24 +17,25 @@
 		<div class="grid gap-2">
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">Name:</div>
-				<div class="font-medium text-gray-800">{user.name}</div>
+				<div class="text-sm font-medium">{user.name}</div>
 			</div>
 
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">Email:</div>
-				<div class="font-medium text-gray-800">{user.email}</div>
+				<div class="text-sm font-medium">{user.email}</div>
 			</div>
 
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">URL:</div>
-				<a href="/users/{profile.slug}" class="font-medium text-indigo-600 hover:text-indigo-700"
-					>/users/{profile.slug}</a
+				<a
+					href="/users/{profile.slug}"
+					class="text-sm font-medium text-indigo-600 hover:text-indigo-700">/users/{profile.slug}</a
 				>
 			</div>
 
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">Joined:</div>
-				<div class="font-medium text-gray-800">
+				<div class="text-sm font-medium">
 					{new Date(profile.createdAt).toLocaleDateString('en-US', {
 						year: 'numeric',
 						month: 'long',
