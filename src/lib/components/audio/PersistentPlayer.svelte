@@ -252,7 +252,7 @@
 				</div>
 
 				<!-- Transport Controls -->
-				<div class="flex-shrink-0">
+				<div class="shrink-0">
 					<PlayerTransport
 						isPlaying={engine.isPlaying}
 						isBuffering={engine.isBuffering}

@@ -13,7 +13,7 @@
 <div class="flex items-center justify-center gap-3">
 	<button
 		type="button"
-		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-linear-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
 		onclick={onPrevious}
 		aria-label="Previous track"
 	>
@@ -22,7 +22,7 @@
 
 	<button
 		type="button"
-		class="flex min-h-12 min-w-12 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		class="flex min-h-12 min-w-12 items-center justify-center rounded-full bg-linear-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
 		onclick={onPlayPause}
 		aria-label={isPlaying ? 'Pause' : 'Play'}
 	>
@@ -74,7 +74,7 @@
 
 	<button
 		type="button"
-		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-linear-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
 		onclick={onNext}
 		aria-label="Next track"
 	>
