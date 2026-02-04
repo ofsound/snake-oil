@@ -21,48 +21,27 @@
 
 	let tooltip = $state<TooltipState>({ visible: false, x: 0, time: 0 });
 	let isEngineReady = $state(false);
-	let silentAudio: HTMLAudioElement | null = null;
-	let iOSAudioUnlocked = $state(false);
 
 	// Track which URL has been loaded (non-reactive to avoid infinite loops)
 	let loadedUrl: string | null = null;
 
-	// iOS silent mode workaround - unlock audio on first interaction
-	async function unlockiOSAudio() {
-		if (iOSAudioUnlocked || !silentAudio) return;
-
-		try {
-			silentAudio.volume = 0.01;
-			await silentAudio.play();
-			silentAudio.pause();
-			iOSAudioUnlocked = true;
-			console.log('iOS audio unlocked');
-		} catch (err) {
-			// Ignore errors, audio might already be unlocked
-			console.log('iOS audio unlock attempt:', err);
+	// iOS 17+: use playback session so Web Audio is not muted by the silent switch.
+	// No-op on browsers that don't support the API (e.g. Chrome, Firefox on desktop).
+	function setAudioSessionPlayback(): void {
+		const nav = navigator as Navigator & { audioSession?: { type: string } };
+		if (typeof nav.audioSession !== 'undefined' && nav.audioSession.type !== undefined) {
+			try {
+				nav.audioSession.type = 'playback';
+			} catch {
+				// Ignore if setting fails (e.g. already set or not allowed)
+			}
 		}
 	}
 
 	onMount(() => {
-		// Initialize the engine
 		const initialized = engine.initialize();
 		isEngineReady = initialized;
-
-		// Create silent audio element for iOS silent mode workaround
-		if (typeof window !== 'undefined') {
-			silentAudio = new Audio();
-			silentAudio.src =
-				'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA//8A';
-			silentAudio.preload = 'auto';
-		}
-
-		return () => {
-			engine.destroy();
-			if (silentAudio) {
-				silentAudio.src = '';
-				silentAudio = null;
-			}
-		};
+		return () => engine.destroy();
 	});
 
 	$effect(() => {
@@ -200,8 +179,7 @@
 			<button
 				type="button"
 				onclick={() => {
-					// Try to unlock iOS audio synchronously first, then play
-					unlockiOSAudio().catch(() => {});
+					setAudioSessionPlayback();
 					engine.togglePlayPause();
 				}}
 				disabled={!engine.bufferLoaded}
