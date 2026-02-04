@@ -258,6 +258,9 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
+			// For iOS: Re-arm audio before resuming to ensure fresh source
+			this.armAudio();
+
 			// This must be called synchronously for iOS
 			this.audioContext
 				.resume()
@@ -274,29 +277,42 @@ export class SingleTrackAudioEngine {
 
 	// Start playback from beginning
 	private startFromBeginning(): void {
-		if (!this.source || !this.audioContext) return;
+		if (!this.audioContext) return;
 		if (this.audioContext.state === 'closed') return;
 
-		// On iOS, context must be running BEFORE starting the source
+		// iOS fix: Create the source AFTER the context is resumed
+		// Sources created while context is suspended may not play
+		const startPlayback = () => {
+			// Re-arm the audio to create a fresh source
+			this.armAudio();
+
+			if (!this.source) {
+				console.error('Failed to create audio source');
+				return;
+			}
+
+			this.source.start(0);
+			this.sourceHasStarted = true;
+			this.startTime = this.audioContext!.currentTime;
+			this.isPlaying = true;
+			console.log('Playback started successfully');
+		};
+
+		// On iOS, context must be running BEFORE creating/starting the source
 		if (this.audioContext.state === 'suspended') {
+			console.log('Context suspended, resuming first...');
 			this.audioContext
 				.resume()
 				.then(() => {
-					// Now safe to start the source
-					this.source!.start(0);
-					this.sourceHasStarted = true;
-					this.startTime = this.audioContext!.currentTime;
-					this.isPlaying = true;
+					console.log('Context resumed, starting playback...');
+					startPlayback();
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
 				});
 		} else {
-			// Context already running, safe to start immediately
-			this.source.start(0);
-			this.sourceHasStarted = true;
-			this.startTime = this.audioContext.currentTime;
-			this.isPlaying = true;
+			console.log('Context running, starting playback immediately...');
+			startPlayback();
 		}
 	}
 
@@ -330,7 +346,6 @@ export class SingleTrackAudioEngine {
 	seek(time: number): void {
 		if (
 			!this.audioBuffer ||
-			!this.source ||
 			!this.audioContext ||
 			!this.gainNode ||
 			!this.filterNode ||
@@ -349,36 +364,45 @@ export class SingleTrackAudioEngine {
 			}
 		}
 
-		// Create new source
-		this.source = this.audioContext.createBufferSource();
-		this.source.buffer = this.audioBuffer;
-		this.source
-			.connect(this.filterNode)
-			.connect(this.gainNode)
-			.connect(this.analyser)
-			.connect(this.audioContext.destination);
+		// iOS fix: Function to create and start source
+		const createAndStartSource = () => {
+			// Create new source
+			this.source = this.audioContext!.createBufferSource();
+			this.source.buffer = this.audioBuffer;
+			this.source
+				.connect(this.filterNode!)
+				.connect(this.gainNode!)
+				.connect(this.analyser!)
+				.connect(this.audioContext!.destination);
 
-		this.source.onended = () => {
-			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
-				this.resetToStart();
-			}
+			this.source.onended = () => {
+				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+					this.resetToStart();
+				}
+			};
+
+			// Start from new position
+			this.source.start(0, clampedTime);
+			this.sourceHasStarted = true;
+			this.startTime = this.audioContext!.currentTime - clampedTime;
+			this.currentTime = clampedTime;
+			this.isPlaying = true;
+			this.isFirstPlay = false;
 		};
 
-		// Start from new position
-		this.source.start(0, clampedTime);
-		this.sourceHasStarted = true;
-		this.startTime = this.audioContext.currentTime - clampedTime;
-		this.currentTime = clampedTime;
-
-		// Ensure we're playing
+		// iOS fix: Context must be running before creating source
 		if (this.audioContext.state === 'suspended') {
-			this.audioContext.resume().catch((err) => {
-				console.error('Failed to resume audio context:', err);
-			});
+			this.audioContext
+				.resume()
+				.then(() => {
+					createAndStartSource();
+				})
+				.catch((err) => {
+					console.error('Failed to resume audio context:', err);
+				});
+		} else {
+			createAndStartSource();
 		}
-
-		this.isPlaying = true;
-		this.isFirstPlay = false;
 	}
 
 	// Set volume
