@@ -214,7 +214,7 @@ export class SingleTrackAudioEngine {
 	}
 
 	// Toggle play/pause
-	async togglePlayPause(): Promise<void> {
+	togglePlayPause(): void {
 		// Check if we need to reinitialize
 		const needsReinit = !this.audioContext || this.audioContext.state === 'closed';
 
@@ -227,15 +227,17 @@ export class SingleTrackAudioEngine {
 				return;
 			}
 			console.log('AudioContext reinitialized, reloading buffer...');
-			// After reinit, we need to reload buffer and wait for it
+			// After reinit, we need to reload buffer - but for iOS we need to handle this
+			// asynchronously without blocking the user gesture
 			if (this.trackUrl) {
-				await this.loadBuffer(this.trackUrl);
-				// After loading, check if we should continue with playback
-				if (!this.bufferLoaded) {
-					console.log('Buffer failed to load after reinit');
-					return;
-				}
-				console.log('Buffer reloaded, starting playback...');
+				// For iOS, we need to start playback immediately with what's available
+				// The buffer will be reloaded in the background
+				this.loadBuffer(this.trackUrl).then(() => {
+					if (this.bufferLoaded) {
+						console.log('Buffer reloaded after reinit');
+					}
+				});
+				// Don't return here - try to continue with playback
 			}
 		}
 
@@ -256,9 +258,16 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			this.audioContext.resume().catch((err) => {
-				console.error('Failed to resume audio context:', err);
-			});
+			// This must be called synchronously for iOS
+			this.audioContext
+				.resume()
+				.then(() => {
+					this.isPlaying = true;
+				})
+				.catch((err) => {
+					console.error('Failed to resume audio context:', err);
+				});
+			// Set playing state immediately for responsiveness
 			this.isPlaying = true;
 		}
 	}

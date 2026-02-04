@@ -199,8 +199,9 @@
 			<!-- Play/Pause Button -->
 			<button
 				type="button"
-				onclick={async () => {
-					await unlockiOSAudio();
+				onclick={() => {
+					// Try to unlock iOS audio synchronously first, then play
+					unlockiOSAudio().catch(() => {});
 					engine.togglePlayPause();
 				}}
 				disabled={!engine.bufferLoaded}
