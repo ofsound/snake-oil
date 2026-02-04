@@ -13,6 +13,7 @@
 		MultipleChoiceConfig,
 		MultipleResponseConfig
 	} from '$lib/variant-types';
+	import Heading from '$lib/components/Heading.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
@@ -56,7 +57,7 @@
 </script>
 
 <header class="pb-6">
-	<h1 class="mb-1 text-3xl font-semibold">{data.quiz.title}</h1>
+	<Heading level={1}>{data.quiz.title}</Heading>
 	<div class="text-sm">
 		{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 		by

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
+	import Heading from '$lib/components/Heading.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
 
@@ -55,7 +56,7 @@
 </Card>
 
 <div class="mt-10 flex items-center justify-between border-b border-gray-200 pb-2">
-	<h2 class="flex-1 text-xl font-bold text-gray-700">My Quizzes</h2>
+	<Heading level={2} class="flex-1">My Quizzes</Heading>
 	{#if quizzes.length > 0}
 		<Button variant="accent" size="md" href="/create">Create Quiz</Button>
 	{/if}

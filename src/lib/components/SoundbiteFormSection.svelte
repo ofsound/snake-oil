@@ -8,6 +8,7 @@
 		MultipleChoiceOption,
 		MultipleResponseOption
 	} from '$lib/variant-types';
+	import Heading from './Heading.svelte';
 
 	interface SoundbiteState {
 		id: number;
@@ -98,7 +99,7 @@
 
 <section>
 	{#if showHeader}
-		<h2 class="mb-6 text-xl font-bold">{headerTitle}</h2>
+		<Heading level={2} class="mb-6">{headerTitle}</Heading>
 	{/if}
 
 	<div class="flex flex-col gap-6">

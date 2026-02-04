@@ -16,6 +16,7 @@
 		AnswersPayload
 	} from '$lib/variant-types';
 	import { createEmptyOption, getCorrectAnswerText } from '$lib/variant-client-utils';
+	import Heading from '$lib/components/Heading.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
@@ -181,7 +182,7 @@
 </script>
 
 <header class="mb-6 flex items-baseline gap-1">
-	<h1 class="text-3xl font-semibold">Manage Quiz</h1>
+	<Heading level={1}>Manage Quiz</Heading>
 	<div class="text-gray-500">
 		(<a class="text-sm hover:underline" href={`/${slug}`}>view quiz</a>)
 	</div>
@@ -272,7 +273,7 @@
 	</Card>
 
 	<section class="flex flex-col gap-4">
-		<h2 class="mb-6 text-xl font-bold">Existing Audio Clips</h2>
+		<Heading level={2} class="mb-6">Existing Audio Clips</Heading>
 		<div class="flex flex-col gap-4">
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const state = existingSoundbiteState[soundbite.id]}
@@ -352,7 +353,7 @@
 </form>
 
 <section class="flex flex-col gap-4 border-t border-gray-200 pt-4">
-	<h2 class="text-xl font-semibold">Submitted answers</h2>
+	<Heading level={2} class="mb-6">Submitted answers</Heading>
 	{#if data.answers.length === 0}
 		<p class="text-sm text-gray-500">No submissions yet.</p>
 	{:else}

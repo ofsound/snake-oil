@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Heading from '$lib/components/Heading.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
 
@@ -17,9 +18,9 @@
 			/>
 		</div>
 	{/if}
-	<h1 class="mb-2 text-3xl font-bold">
+	<Heading level={1} class="mb-2">
 		{user.name || 'User Profile'}
-	</h1>
+	</Heading>
 	<div class="">
 		<span class=" text-gray-600">Joined:</span>
 		<span class=" text-gray-800">
@@ -29,7 +30,8 @@
 </div>
 
 <div class="mb-8">
-	<h2 class="mb-6 border-b border-gray-200 pb-2 text-2xl text-gray-700">Quizzes</h2>
+	<Heading level={2} class="mb-6">Quizzes</Heading>
+
 	{#if quizzes.length > 0}
 		<div class="flex flex-col gap-3">
 			{#each quizzes as quiz (quiz.id)}
