@@ -25,15 +25,9 @@ export class SingleTrackAudioEngine {
 	private isFirstPlay = true;
 	private trackUrl: string | null = null;
 
-	// iOS Silent Switch Bypass (HTML5 Audio Element)
-	private silentAudio: HTMLAudioElement | null = null;
-	// A tiny 0.1s silent MP3 to force the Audio Session to "Playback"
-	private readonly SILENT_MP3 = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//OEAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAEAAABIWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFh//OEAAAAAAAAAAAAAAAAAAAAAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAExAAAAAAAAAAAAAA//OEMAAAAAAAf4AAABAAAAAAAAAAABFhYWFhYWFhYWFhYWFhYWFhYWFh//OEMAAAAAAAf4AAABAAAAAAAAAAABFhYWFhYWFhYWFhYWFhYWFhYWFh';
-
-	private readonly SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-
 	constructor() {
 		// Defer initialization to when initialize() is called
+		// This prevents SSR errors
 	}
 
 	initialize(): boolean {
@@ -55,29 +49,8 @@ export class SingleTrackAudioEngine {
 				this.cleanup();
 			}
 
-			// 1. Initialize the Web Audio Context
-			// @ts-ignore - Handle specific Safari prefix if needed, though modern Safari supports standard
-			const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-			this.audioContext = new AudioContextClass();
+			this.audioContext = new window.AudioContext();
 			this.audioContext.suspend();
-
-			// 2. iOS SILENT MODE FIX:
-			// Create and play a silent HTML5 audio element.
-			// This forces iOS to switch the Audio Session category from "Ambient" (respects mute switch)
-			// to "Playback" (ignores mute switch).
-			this.silentAudio = new Audio();
-			this.silentAudio.src = this.SILENT_WAV;
-			this.silentAudio.preload = 'auto';
-			// We play it immediately (must be in user gesture), then pause it.
-			// We catch errors in case of strict autoplay policies, but inside a click handler this works.
-			this.silentAudio.play().then(() => {
-				// Keep it "playing" but paused/ended to hold the session, or loop it silently if needed.
-				// Usually just triggering it once is enough to upgrade the session.
-				if (this.silentAudio) {
-					this.silentAudio.pause();
-				}
-			}).catch(e => console.warn('Silent audio unlock failed', e));
-
 
 			// Create analyser for visualizer
 			this.analyser = this.audioContext.createAnalyser();
@@ -254,14 +227,17 @@ export class SingleTrackAudioEngine {
 				return;
 			}
 			console.log('AudioContext reinitialized, reloading buffer...');
-
+			// After reinit, we need to reload buffer - but for iOS we need to handle this
+			// asynchronously without blocking the user gesture
 			if (this.trackUrl) {
 				// For iOS, we need to start playback immediately with what's available
+				// The buffer will be reloaded in the background
 				this.loadBuffer(this.trackUrl).then(() => {
 					if (this.bufferLoaded) {
 						console.log('Buffer reloaded after reinit');
 					}
 				});
+				// Don't return here - try to continue with playback
 			}
 		}
 
@@ -275,10 +251,6 @@ export class SingleTrackAudioEngine {
 
 		if (this.isFirstPlay) {
 			this.isFirstPlay = false;
-			// Ensure silent audio has triggered at least once to secure the session
-			if (this.silentAudio) {
-				this.silentAudio.play().catch(() => { });
-			}
 			this.startFromBeginning();
 		} else if (this.audioContext.state === 'running') {
 			this.audioContext.suspend().catch((err) => {
@@ -492,12 +464,6 @@ export class SingleTrackAudioEngine {
 		this.filterNode = null;
 		this.isInitialized = false;
 		this.loadInProgress = false;
-
-		// Clean up silent audio
-		if (this.silentAudio) {
-			this.silentAudio.pause();
-			this.silentAudio = null;
-		}
 	}
 
 	destroy(): void {
