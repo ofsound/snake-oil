@@ -277,17 +277,27 @@ export class SingleTrackAudioEngine {
 		if (!this.source || !this.audioContext) return;
 		if (this.audioContext.state === 'closed') return;
 
-		this.source.start(0);
-		this.sourceHasStarted = true;
-		this.startTime = this.audioContext.currentTime;
-
+		// On iOS, context must be running BEFORE starting the source
 		if (this.audioContext.state === 'suspended') {
-			this.audioContext.resume().catch((err) => {
-				console.error('Failed to resume audio context:', err);
-			});
+			this.audioContext
+				.resume()
+				.then(() => {
+					// Now safe to start the source
+					this.source!.start(0);
+					this.sourceHasStarted = true;
+					this.startTime = this.audioContext!.currentTime;
+					this.isPlaying = true;
+				})
+				.catch((err) => {
+					console.error('Failed to resume audio context:', err);
+				});
+		} else {
+			// Context already running, safe to start immediately
+			this.source.start(0);
+			this.sourceHasStarted = true;
+			this.startTime = this.audioContext.currentTime;
+			this.isPlaying = true;
 		}
-
-		this.isPlaying = true;
 	}
 
 	// Stop playback and reset to beginning
