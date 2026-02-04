@@ -12,36 +12,40 @@
 	let quizzes = $derived(data.quizzes ?? []);
 </script>
 
-<Card class="flex">
+<Card class="flex" padding="sm" variant="neutral">
 	<div class="mr-10 flex-1 rounded-lg">
 		<div class="grid gap-2">
-			<div class="flex items-center rounded-md">
-				<span class="w-26 text-gray-600">Email:</span>
-				<span class="font-medium text-gray-800">{user.email}</span>
+			<div class="flex items-baseline rounded-md">
+				<div class="w-18 text-sm text-gray-600">Name:</div>
+				<div class="font-medium text-gray-800">{user.name}</div>
 			</div>
 
-			<div class="flex items-center rounded-md">
-				<span class="w-26 text-gray-600">Name:</span>
-				<span class="font-medium text-gray-800">{user.name}</span>
+			<div class="flex items-baseline rounded-md">
+				<div class="w-18 text-sm text-gray-600">Email:</div>
+				<div class="font-medium text-gray-800">{user.email}</div>
 			</div>
 
-			<div class="flex items-center rounded-md">
-				<span class="w-26 text-gray-600">Public URL:</span>
+			<div class="flex items-baseline rounded-md">
+				<div class="w-18 text-sm text-gray-600">URL:</div>
 				<a href="/users/{profile.slug}" class="font-medium text-indigo-600 hover:text-indigo-700"
-					>/{profile.slug}</a
+					>/users/{profile.slug}</a
 				>
 			</div>
 
-			<div class="flex items-center rounded-md">
-				<span class="w-26 text-gray-600">Join Date:</span>
-				<span class="font-medium text-gray-800"
-					>{new Date(profile.createdAt).toLocaleDateString()}</span
-				>
+			<div class="flex items-baseline rounded-md">
+				<div class="w-18 text-sm text-gray-600">Joined:</div>
+				<div class="font-medium text-gray-800">
+					{new Date(profile.createdAt).toLocaleDateString('en-US', {
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric'
+					})}
+				</div>
 			</div>
 		</div>
 	</div>
 
-	<div class="flex flex-col gap-1.5 text-sm">
+	<div class=" hidden flex-col gap-1.5 text-sm">
 		<a href="/" class="underline">Update Profile</a>
 		<a href="/" class="underline">Change Password</a>
 		<a href="/" class="underline">View Activity</a>
@@ -50,7 +54,7 @@
 </Card>
 
 <div class="mt-10 flex items-center justify-between border-b border-gray-200 pb-2">
-	<h2 class="flex-1 text-2xl text-gray-700">My Quizzes</h2>
+	<h2 class="flex-1 text-xl font-bold text-gray-700">My Quizzes</h2>
 	{#if quizzes.length > 0}
 		<Button variant="accent" size="md" href="/create">Create Quiz</Button>
 	{/if}
