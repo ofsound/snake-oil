@@ -17,6 +17,8 @@
 </script>
 
 <script lang="ts">
+	import AnswerPrompt from './AnswerPrompt.svelte';
+
 	type Props = {
 		soundbiteId: string;
 		options: MultipleResponseOption[];
@@ -45,7 +47,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<div class="text-sm text-gray-500">Your answer (select all that apply):</div>
+	<AnswerPrompt text="Your answer (select all that apply):" />
 	<div class="space-y-2">
 		{#each shuffledOptions as option (option.id)}
 			{@const isSelected = selectedOptionIds.includes(option.id)}

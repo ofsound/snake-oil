@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AnswerPrompt from './AnswerPrompt.svelte';
+
 	type Props = {
 		soundbiteId: string;
 		value: string;
@@ -10,7 +12,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<div class="text-sm text-gray-500">Your answer:</div>
+	<AnswerPrompt />
 	<input
 		id={`answer-${soundbiteId}`}
 		name={`answer-${soundbiteId}`}
