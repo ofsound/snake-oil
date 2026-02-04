@@ -14,6 +14,7 @@
 		MultipleResponseConfig
 	} from '$lib/variant-types';
 	import Heading from '$lib/components/Heading.svelte';
+	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
@@ -97,10 +98,7 @@
 					<div class="rounded-sm bg-neutral-50 p-4">
 						<div class="mb-3">
 							<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
-							<audio controls class="w-full">
-								<source src={soundbite.trackUrl} type="audio/mpeg" />
-								Your browser does not support the audio element.
-							</audio>
+							<QuizAudioPlayer url={soundbite.trackUrl} />
 							{#if soundbite.question}
 								<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
 							{/if}
@@ -155,10 +153,7 @@
 							>
 								{index + 1}
 							</div>
-							<audio controls class="w-full">
-								<source src={soundbite.trackUrl} type="audio/mpeg" />
-								Your browser does not support the audio element.
-							</audio>
+							<QuizAudioPlayer url={soundbite.trackUrl} />
 							{#if soundbite.question}
 								<p class="mt-6 font-medium">{soundbite.question}</p>
 							{/if}
