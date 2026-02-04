@@ -32,7 +32,7 @@
 	}: Props = $props();
 
 	const variantClasses: Record<string, string> = {
-		primary: 'bg-emerald-800 text-white hover:bg-emerald-900',
+		primary: 'bg-emerald-800 text-white hover:bg-emerald-700',
 		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700',
 		accent: 'bg-indigo-600 text-white hover:bg-indigo-700',
 		danger: 'bg-red-600 text-white hover:bg-red-700',
