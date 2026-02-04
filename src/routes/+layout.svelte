@@ -28,8 +28,8 @@
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
-<header class="bg-slate-200/80 px-8 py-4">
-	<div class="flex justify-between gap-2">
+<header class="bg-slate-200/80 py-4">
+	<div class="mx-auto flex max-w-5xl justify-between gap-2 px-8">
 		<a href="/" class="text-xl font-bold text-shadow-sm text-shadow-zinc-400/20"
 			>catchy-app-name.io</a
 		>
@@ -49,4 +49,6 @@
 	</div>
 </header>
 
-{@render children()}
+<div class="mx-auto max-w-5xl p-8">
+	{@render children()}
+</div>

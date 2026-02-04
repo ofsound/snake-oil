@@ -13,7 +13,7 @@
 	const variantClasses: Record<string, string> = {
 		elevated: 'bg-white shadow-sm',
 		flat: 'bg-white',
-		neutral: 'bg-neutral-50 border-none',
+		neutral: 'bg-neutral-50 border-neutral-100',
 		ghost: '',
 		interactive: 'bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
 	};

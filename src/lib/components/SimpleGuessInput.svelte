@@ -10,13 +10,12 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<label class="text-sm font-medium text-gray-700" for={`answer-${soundbiteId}`}>Your answer:</label
-	>
+	<div class="text-sm text-gray-500">Your answer:</div>
 	<input
 		id={`answer-${soundbiteId}`}
 		name={`answer-${soundbiteId}`}
 		type="text"
-		class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+		class="w-full rounded-sm border border-neutral-200 bg-white p-3 px-3 py-2 text-sm font-medium"
 		placeholder=""
 		{value}
 		oninput={(e) => oninput(e.currentTarget.value)}

@@ -86,99 +86,97 @@
 	}
 </script>
 
-<div class="mx-auto max-w-6xl p-8">
-	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-800">{title}</h1>
-		<p class="mt-2 text-gray-600">{description}</p>
+<div class="mb-8">
+	<h1 class="text-3xl font-bold text-gray-800">{title}</h1>
+	<p class="mt-2 text-gray-600">{description}</p>
+</div>
+
+<form method="get" action="/results" class="mb-6">
+	<div class="flex gap-3">
+		<input
+			type="search"
+			name="q"
+			value={searchValue}
+			placeholder="Search title, description, or creator"
+			class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+			required
+		/>
+		<Button variant="accent" size="md" type="submit">Search</Button>
+	</div>
+</form>
+
+{#if quizzes.length > 0}
+	<div class="mb-6 flex items-center gap-4 rounded-md bg-gray-50 px-4 py-3">
+		<span class="text-sm font-medium text-gray-600">Sort by:</span>
+		{#each sortOptions as option (option)}
+			<button
+				type="button"
+				onclick={() => handleSort(option)}
+				class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+			>
+				{option.charAt(0).toUpperCase() + option.slice(1)}{getSortIcon(option)}
+			</button>
+		{/each}
 	</div>
 
-	<form method="get" action="/results" class="mb-6">
-		<div class="flex gap-3">
-			<input
-				type="search"
-				name="q"
-				value={searchValue}
-				placeholder="Search title, description, or creator"
-				class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-				required
-			/>
-			<Button variant="accent" size="md" type="submit">Search</Button>
-		</div>
-	</form>
+	<div class="flex flex-col gap-3">
+		{#each quizzes as quiz (quiz.id)}
+			<QuizRow {quiz} showOwner={true} />
+		{/each}
+	</div>
 
-	{#if quizzes.length > 0}
-		<div class="mb-6 flex items-center gap-4 rounded-md bg-gray-50 px-4 py-3">
-			<span class="text-sm font-medium text-gray-600">Sort by:</span>
-			{#each sortOptions as option (option)}
-				<button
-					type="button"
-					onclick={() => handleSort(option)}
-					class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+	{#if totalPages > 1}
+		<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
+			<div class="text-sm text-gray-600">
+				Page {currentPage} of {totalPages}
+			</div>
+
+			<div class="flex items-center gap-2">
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => handlePageChange(currentPage - 1)}
+					disabled={currentPage === 1}
 				>
-					{option.charAt(0).toUpperCase() + option.slice(1)}{getSortIcon(option)}
-				</button>
-			{/each}
-		</div>
+					Previous
+				</Button>
 
-		<div class="flex flex-col gap-3">
-			{#each quizzes as quiz (quiz.id)}
-				<QuizRow {quiz} showOwner={true} />
-			{/each}
-		</div>
+				{#each getPageNumbers(currentPage, totalPages) as pageNum, idx (idx)}
+					{#if pageNum === '...'}
+						<span class="px-2 text-gray-500">...</span>
+					{:else}
+						<Button
+							variant="outline"
+							size="sm"
+							onclick={() => handlePageChange(pageNum)}
+							active={pageNum === currentPage}
+						>
+							{pageNum}
+						</Button>
+					{/if}
+				{/each}
 
-		{#if totalPages > 1}
-			<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
-				<div class="text-sm text-gray-600">
-					Page {currentPage} of {totalPages}
-				</div>
-
-				<div class="flex items-center gap-2">
-					<Button
-						variant="outline"
-						size="sm"
-						onclick={() => handlePageChange(currentPage - 1)}
-						disabled={currentPage === 1}
-					>
-						Previous
-					</Button>
-
-					{#each getPageNumbers(currentPage, totalPages) as pageNum, idx (idx)}
-						{#if pageNum === '...'}
-							<span class="px-2 text-gray-500">...</span>
-						{:else}
-							<Button
-								variant="outline"
-								size="sm"
-								onclick={() => handlePageChange(pageNum)}
-								active={pageNum === currentPage}
-							>
-								{pageNum}
-							</Button>
-						{/if}
-					{/each}
-
-					<Button
-						variant="outline"
-						size="sm"
-						onclick={() => handlePageChange(currentPage + 1)}
-						disabled={currentPage === totalPages}
-					>
-						Next
-					</Button>
-				</div>
-			</nav>
-		{/if}
-	{:else}
-		<div class="rounded-md bg-gray-50 p-8 text-center">
-			<p class="text-gray-600">{emptyState.message}</p>
-			{#if emptyState.link}
-				<a
-					href={emptyState.link.href}
-					class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
+				<Button
+					variant="outline"
+					size="sm"
+					onclick={() => handlePageChange(currentPage + 1)}
+					disabled={currentPage === totalPages}
 				>
-					{emptyState.link.text}
-				</a>
-			{/if}
-		</div>
+					Next
+				</Button>
+			</div>
+		</nav>
 	{/if}
-</div>
+{:else}
+	<div class="rounded-md bg-gray-50 p-8 text-center">
+		<p class="text-gray-600">{emptyState.message}</p>
+		{#if emptyState.link}
+			<a
+				href={emptyState.link.href}
+				class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
+			>
+				{emptyState.link.text}
+			</a>
+		{/if}
+	</div>
+{/if}

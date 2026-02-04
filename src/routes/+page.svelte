@@ -8,28 +8,26 @@
 	let quizzes = $derived(data.quizzes ?? []);
 </script>
 
-<div class="mx-auto max-w-4xl p-8">
-	<a
-		href="/create"
-		class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm hover:bg-emerald-400"
-		>Create a Quiz</a
-	>
+<a
+	href="/create"
+	class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm hover:bg-emerald-400"
+	>Create a Quiz</a
+>
 
-	<div class="my-8">
-		{#if quizzes.length > 0}
-			<div class="flex flex-col gap-2">
-				{#each quizzes as quiz (quiz.id)}
-					<QuizRow {quiz} showOwner={true} />
-				{/each}
-			</div>
-		{:else}
-			<div class="rounded-md bg-gray-50 p-8 text-center">
-				<p class="text-gray-600">No quizzes available yet. Check back soon!</p>
-			</div>
-		{/if}
-	</div>
+<div class="my-8">
+	{#if quizzes.length > 0}
+		<div class="flex flex-col gap-2">
+			{#each quizzes as quiz (quiz.id)}
+				<QuizRow {quiz} showOwner={true} />
+			{/each}
+		</div>
+	{:else}
+		<div class="rounded-md bg-gray-50 p-8 text-center">
+			<p class="text-gray-600">No quizzes available yet. Check back soon!</p>
+		</div>
+	{/if}
+</div>
 
-	<div class="flex justify-center">
-		<Button variant="accent" size="md" href="/quizzes">Browse All Quizzes</Button>
-	</div>
+<div class="flex justify-center">
+	<Button variant="accent" size="md" href="/quizzes">Browse All Quizzes</Button>
 </div>

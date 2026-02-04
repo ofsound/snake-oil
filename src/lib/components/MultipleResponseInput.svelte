@@ -45,12 +45,12 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<span class="text-sm font-medium text-gray-700">Your answer (select all that apply):</span>
+	<div class="text-sm text-gray-500">Your answer (select all that apply):</div>
 	<div class="space-y-2">
 		{#each shuffledOptions as option (option.id)}
 			{@const isSelected = selectedOptionIds.includes(option.id)}
 			<label
-				class="flex cursor-pointer items-center gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50"
+				class="flex cursor-pointer items-center gap-3 rounded-sm border border-neutral-200 bg-white p-3 font-medium"
 				class:bg-emerald-50={isSelected}
 				class:border-emerald-300={isSelected}
 			>

@@ -22,9 +22,11 @@
 	const rowHref = $derived(linkToManage ? `/quizzes/${quiz.id}` : `/${quiz.slug}`);
 
 	function handleClick(event: MouseEvent): void {
-		// Only navigate if not clicking on the owner link
 		const target = event.target as HTMLElement;
-		if (!target.closest('[data-owner-link]')) {
+		if (target.closest('[data-owner-link]')) return;
+		if (event.metaKey || event.ctrlKey) {
+			window.open(rowHref, '_blank');
+		} else {
 			window.location.href = rowHref;
 		}
 	}
@@ -32,18 +34,25 @@
 	function handleOwnerClick(event: MouseEvent): void {
 		event.stopPropagation();
 	}
+
+	function handleKeydown(event: KeyboardEvent): void {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		const target = event.target as HTMLElement;
+		if (target.closest('[data-owner-link]')) return;
+		if (event.metaKey || event.ctrlKey) {
+			window.open(rowHref, '_blank');
+		} else {
+			window.location.href = rowHref;
+		}
+	}
 </script>
 
 <div
 	role="button"
 	tabindex="0"
 	onclick={handleClick}
-	onkeydown={(e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			window.location.href = rowHref;
-		}
-	}}
+	onkeydown={handleKeydown}
 	class="flex cursor-pointer items-center justify-between rounded-md bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/80"
 >
 	<div class="flex flex-col">
