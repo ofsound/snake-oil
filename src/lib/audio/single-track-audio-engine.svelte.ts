@@ -25,6 +25,8 @@ export class SingleTrackAudioEngine {
 	private isFirstPlay = true;
 	private trackUrl: string | null = null;
 
+	private static readonly FADE_DURATION_S = 0.02; // 20ms
+
 	constructor() {
 		// Defer initialization to when initialize() is called
 		// This prevents SSR errors
@@ -178,39 +180,72 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Arm audio (prepare source but don't start)
-	private armAudio(): void {
+	// Arm audio (prepare source but don't start). Calls afterReady when the new source is ready (sync or after fade-out).
+	private armAudio(afterReady?: () => void): void {
 		if (!this.audioContext || !this.gainNode || !this.analyser || !this.filterNode) return;
 		if (!this.audioBuffer) return;
 
-		// Stop any existing source
-		if (this.source && this.sourceHasStarted) {
-			try {
-				this.source.stop();
-			} catch {
-				// Source might already be stopped
-			}
-		}
+		const createNewSource = (): void => {
+			this.source = this.audioContext!.createBufferSource();
+			this.source!.buffer = this.audioBuffer;
 
-		this.source = this.audioContext.createBufferSource();
-		this.source.buffer = this.audioBuffer;
+			// Chain: source -> filter -> gain -> analyser -> destination
+			this.source!
+				.connect(this.filterNode!)
+				.connect(this.gainNode!)
+				.connect(this.analyser!)
+				.connect(this.audioContext!.destination);
 
-		// Chain: source -> filter -> gain -> analyser -> destination
-		this.source
-			.connect(this.filterNode)
-			.connect(this.gainNode)
-			.connect(this.analyser)
-			.connect(this.audioContext.destination);
+			// Handle track ending
+			this.source!.onended = () => {
+				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+					this.resetToStart();
+				}
+			};
 
-		// Handle track ending
-		this.source.onended = () => {
-			// Only handle natural ending (not when we manually stop)
-			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
-				this.resetToStart();
-			}
+			this.sourceHasStarted = false;
+			this.gainNode!.gain.setValueAtTime(0, this.audioContext!.currentTime);
+			afterReady?.();
 		};
 
-		this.sourceHasStarted = false;
+		if (this.source && this.sourceHasStarted) {
+			this.fadeOut(() => {
+				try {
+					this.source?.stop();
+				} catch {
+					// Source might already be stopped
+				}
+				this.source = null;
+				this.sourceHasStarted = false;
+				createNewSource();
+			});
+		} else {
+			createNewSource();
+		}
+	}
+
+	// Fade in audio over 20ms to prevent clicks
+	private fadeIn(): void {
+		if (!this.audioContext || !this.gainNode) return;
+		const now = this.audioContext.currentTime;
+		this.gainNode.gain.setValueAtTime(0, now);
+		this.gainNode.gain.linearRampToValueAtTime(
+			this.volume,
+			now + SingleTrackAudioEngine.FADE_DURATION_S
+		);
+	}
+
+	// Fade out audio over 20ms, then run onComplete (e.g. before source.stop())
+	private fadeOut(onComplete?: () => void): void {
+		if (!this.audioContext || !this.gainNode) return;
+		const now = this.audioContext.currentTime;
+		this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+		this.gainNode.gain.linearRampToValueAtTime(
+			0,
+			now + SingleTrackAudioEngine.FADE_DURATION_S
+		);
+		const ms = SingleTrackAudioEngine.FADE_DURATION_S * 1000;
+		setTimeout(() => onComplete?.(), ms);
 	}
 
 	// Toggle play/pause
@@ -258,17 +293,19 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			// Resume the context - the existing source continues from where it was paused
-			// Note: Do NOT call armAudio() here - that would create a new unstarted source
+			// Resume with fade-in: set gain to 0, then ramp up after context resumes
+			if (this.gainNode) {
+				this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+			}
 			this.audioContext
 				.resume()
 				.then(() => {
 					this.isPlaying = true;
+					this.fadeIn();
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
 				});
-			// Set playing state immediately for responsiveness
 			this.isPlaying = true;
 		}
 	}
@@ -281,19 +318,18 @@ export class SingleTrackAudioEngine {
 		// iOS fix: Create the source AFTER the context is resumed
 		// Sources created while context is suspended may not play
 		const startPlayback = () => {
-			// Re-arm the audio to create a fresh source
-			this.armAudio();
-
-			if (!this.source) {
-				console.error('Failed to create audio source');
-				return;
-			}
-
-			this.source.start(0);
-			this.sourceHasStarted = true;
-			this.startTime = this.audioContext!.currentTime;
-			this.isPlaying = true;
-			console.log('Playback started successfully');
+			this.armAudio(() => {
+				if (!this.source) {
+					console.error('Failed to create audio source');
+					return;
+				}
+				this.source.start(0);
+				this.sourceHasStarted = true;
+				this.startTime = this.audioContext!.currentTime;
+				this.isPlaying = true;
+				this.fadeIn();
+				console.log('Playback started successfully');
+			});
 		};
 
 		// On iOS, context must be running BEFORE creating/starting the source
@@ -318,14 +354,14 @@ export class SingleTrackAudioEngine {
 	stopAndReset(): void {
 		if (!this.audioContext) return;
 
-		// Suspend first
-		if (this.audioContext.state === 'running') {
-			this.audioContext.suspend().catch((err) => {
-				console.error('Failed to suspend audio context:', err);
-			});
-		}
-
-		this.resetToStart();
+		this.fadeOut(() => {
+			if (this.audioContext?.state === 'running') {
+				this.audioContext.suspend().catch((err) => {
+					console.error('Failed to suspend audio context:', err);
+				});
+			}
+			this.resetToStart();
+		});
 	}
 
 	// Reset to beginning (called when track ends naturally or via stop)
@@ -353,53 +389,57 @@ export class SingleTrackAudioEngine {
 
 		const clampedTime = Math.max(0, Math.min(time, this.duration));
 
-		// Stop current source if playing
-		if (this.source && this.sourceHasStarted) {
-			try {
-				this.source.stop();
-			} catch {
-				// Source might already be stopped
-			}
-		}
-
-		// iOS fix: Function to create and start source
-		const createAndStartSource = () => {
-			// Create new source
+		const createAndStartSource = (): void => {
 			this.source = this.audioContext!.createBufferSource();
-			this.source.buffer = this.audioBuffer;
-			this.source
+			this.source!.buffer = this.audioBuffer;
+			this.source!
 				.connect(this.filterNode!)
 				.connect(this.gainNode!)
 				.connect(this.analyser!)
 				.connect(this.audioContext!.destination);
 
-			this.source.onended = () => {
+			this.source!.onended = () => {
 				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
 					this.resetToStart();
 				}
 			};
 
-			// Start from new position
 			this.source.start(0, clampedTime);
 			this.sourceHasStarted = true;
 			this.startTime = this.audioContext!.currentTime - clampedTime;
 			this.currentTime = clampedTime;
 			this.isPlaying = true;
 			this.isFirstPlay = false;
+			this.gainNode!.gain.setValueAtTime(0, this.audioContext!.currentTime);
+			this.fadeIn();
 		};
 
-		// iOS fix: Context must be running before creating source
-		if (this.audioContext.state === 'suspended') {
-			this.audioContext
-				.resume()
-				.then(() => {
-					createAndStartSource();
-				})
-				.catch((err) => {
-					console.error('Failed to resume audio context:', err);
-				});
+		const doSeek = (): void => {
+			if (this.audioContext!.state === 'suspended') {
+				this.audioContext!
+					.resume()
+					.then(() => createAndStartSource())
+					.catch((err) => {
+						console.error('Failed to resume audio context:', err);
+					});
+			} else {
+				createAndStartSource();
+			}
+		};
+
+		if (this.source && this.sourceHasStarted) {
+			this.fadeOut(() => {
+				try {
+					this.source?.stop();
+				} catch {
+					// Source might already be stopped
+				}
+				this.source = null;
+				this.sourceHasStarted = false;
+				doSeek();
+			});
 		} else {
-			createAndStartSource();
+			doSeek();
 		}
 	}
 
