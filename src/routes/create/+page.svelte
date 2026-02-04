@@ -84,7 +84,7 @@
 				name="title"
 				type="text"
 				placeholder="e.g. Mystery Intros"
-				class="w-full rounded-md border border-neutral-300 px-2 py-2 text-sm"
+				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 				bind:value={title}
 				required
 			/>
@@ -96,7 +96,7 @@
 				name="slug"
 				type="text"
 				placeholder="mystery-intros"
-				class="w-full rounded-md border border-neutral-300 px-2 py-2 text-sm"
+				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 				bind:value={manualSlug}
 				oninput={() => {
 					slugEdited = true;
@@ -109,7 +109,7 @@
 				id="description"
 				name="description"
 				rows="4"
-				class="w-full rounded-md border border-neutral-300 px-2 py-2 text-sm"
+				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 				placeholder=""
 				bind:value={description}
 				required

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 	import type { PageProps } from './$types';
@@ -8,7 +9,7 @@
 	let quizzes = $derived(data.quizzes ?? []);
 </script>
 
-<div class="mb-8 flex flex-col">
+<Card padding="sm" variant="neutral">
 	{#if user.image}
 		<div class="mb-4 h-32 w-32">
 			<img
@@ -18,20 +19,20 @@
 			/>
 		</div>
 	{/if}
-	<Heading level={1} class="mb-2">
+	<Heading level={1} class="mb-1.5">
 		{user.name || 'User Profile'}
 	</Heading>
-	<div class="">
+	<div class="text-sm">
 		<span class=" text-gray-600">Joined:</span>
 		<span class=" text-gray-800">
 			{new Date(user.createdAt).toLocaleDateString()}
 		</span>
 	</div>
-</div>
+</Card>
 
-<div class="mb-8">
-	<Heading level={2} class="mb-6">Quizzes</Heading>
+<Heading level={2} class="mt-10 border-b border-gray-200 pb-2">Quizzes</Heading>
 
+<div class="mt-4">
 	{#if quizzes.length > 0}
 		<div class="flex flex-col gap-3">
 			{#each quizzes as quiz (quiz.id)}
