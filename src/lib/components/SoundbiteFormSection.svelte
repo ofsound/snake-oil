@@ -104,8 +104,8 @@
 	<div class="flex flex-col gap-6">
 		{#each soundbites as soundbite, index (soundbite.id)}
 			<div class="flex">
-				<div class="mt- w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
-				<Card variant="neutral" padding="sm" class="relative flex-1">
+				<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+				<Card variant="neutral" padding="md" class="relative flex-1">
 					<button
 						type="button"
 						class="absolute top-4 right-4 cursor-pointer text-xs font-medium hover:underline"

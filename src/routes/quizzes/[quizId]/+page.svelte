@@ -272,45 +272,48 @@
 	</Card>
 
 	<section class="space-y-4">
-		<h2 class="text-lg font-semibold">Existing SoundBites</h2>
+		<h2 class="mb-6 text-xl font-bold">Existing Audio Clips</h2>
 		<div class="space-y-4">
-			{#each data.soundbites as soundbite (soundbite.id)}
+			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const state = existingSoundbiteState[soundbite.id]}
 				{#if state}
-					<Card variant="flat" padding="sm" class="space-y-3">
-						<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
-						<div class="flex items-center justify-between">
-							<p class="text-sm font-medium text-gray-700">{soundbite.trackName}</p>
-							<label class="flex items-center gap-2 text-xs text-gray-500">
-								<input type="checkbox" name="existingSoundbiteRemove" value={soundbite.id} />
-								Remove
-							</label>
-						</div>
+					<div class="flex">
+						<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+						<Card variant="neutral" padding="md" class="relative flex-1">
+							<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
+							<div class="flex items-center justify-between">
+								<p class="text mb-4 font-medium">{soundbite.trackName}</p>
+								<label class="flex items-center gap-2 text-xs font-medium">
+									<input type="checkbox" name="existingSoundbiteRemove" value={soundbite.id} />
+									Remove
+								</label>
+							</div>
 
-						<SoundbiteEditor
-							id={`existing-${soundbite.id}`}
-							variantType={state.variantType}
-							question={state.question}
-							simpleGuessAnswer={state.simpleGuessAnswer}
-							multipleChoiceOptions={state.multipleChoiceOptions}
-							multipleResponseOptions={state.multipleResponseOptions}
-							variantTypeName="existingSoundbiteVariantType"
-							variantConfigName="existingSoundbiteVariantConfig"
-							questionName="existingSoundbiteQuestion"
-							fileInputName="existingSoundbiteFile"
-							fileInputRequired={false}
-							fileInputLabel="Replace MP3 (optional)"
-							fileInputId={`existing-file-${soundbite.id}`}
-							onVariantTypeChange={(value) => updateExistingVariantType(soundbite.id, value)}
-							onQuestionChange={(value) => updateExistingQuestion(soundbite.id, value)}
-							onSimpleGuessAnswerChange={(value) =>
-								updateExistingSimpleGuessAnswer(soundbite.id, value)}
-							onMultipleChoiceOptionsChange={(options) =>
-								updateExistingMultipleChoiceOptions(soundbite.id, options)}
-							onMultipleResponseOptionsChange={(options) =>
-								updateExistingMultipleResponseOptions(soundbite.id, options)}
-						/>
-					</Card>
+							<SoundbiteEditor
+								id={`existing-${soundbite.id}`}
+								variantType={state.variantType}
+								question={state.question}
+								simpleGuessAnswer={state.simpleGuessAnswer}
+								multipleChoiceOptions={state.multipleChoiceOptions}
+								multipleResponseOptions={state.multipleResponseOptions}
+								variantTypeName="existingSoundbiteVariantType"
+								variantConfigName="existingSoundbiteVariantConfig"
+								questionName="existingSoundbiteQuestion"
+								fileInputName="existingSoundbiteFile"
+								fileInputRequired={false}
+								fileInputLabel="Replace MP3 (optional)"
+								fileInputId={`existing-file-${soundbite.id}`}
+								onVariantTypeChange={(value) => updateExistingVariantType(soundbite.id, value)}
+								onQuestionChange={(value) => updateExistingQuestion(soundbite.id, value)}
+								onSimpleGuessAnswerChange={(value) =>
+									updateExistingSimpleGuessAnswer(soundbite.id, value)}
+								onMultipleChoiceOptionsChange={(options) =>
+									updateExistingMultipleChoiceOptions(soundbite.id, options)}
+								onMultipleResponseOptionsChange={(options) =>
+									updateExistingMultipleResponseOptions(soundbite.id, options)}
+							/>
+						</Card>
+					</div>
 				{/if}
 			{/each}
 		</div>
@@ -318,8 +321,8 @@
 
 	<SoundbiteFormSection
 		bind:soundbites={newSoundbites}
-		headerTitle="Add new SoundBites"
-		addButtonText="Add SoundBite"
+		headerTitle="Add New Audio Clips"
+		addButtonText="Add Audio Clip"
 		cardTitle={() => 'New SoundBite'}
 		variantTypeName="newSoundbiteVariantType"
 		variantConfigName="newSoundbiteVariantConfig"

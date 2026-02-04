@@ -85,7 +85,7 @@
 
 	<div class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-gray-700" for={`question-${id}`}>
-			Question (optional)
+			Prompt (optional)
 		</label>
 		<textarea
 			id={`question-${id}`}

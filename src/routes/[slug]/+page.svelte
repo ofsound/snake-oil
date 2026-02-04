@@ -147,47 +147,50 @@
 	>
 		<section class="flex flex-col gap-6 pt-6">
 			{#each data.soundbites as soundbite, index (soundbite.id)}
-				<Card variant="neutral" padding="sm" class="flex flex-col gap-6 bg-neutral-50">
-					<input type="hidden" name="soundbiteId" value={soundbite.id} />
-					<div class="flex flex-col gap-2">
-						<div
-							class="mb-2 hidden w-max rounded-sm bg-neutral-600 px-2 py-1 text-sm font-medium text-white"
-						>
-							{index + 1}
+				<div class="flex">
+					<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+					<Card variant="neutral" padding="sm" class="flex flex-1 flex-col gap-6 ">
+						<input type="hidden" name="soundbiteId" value={soundbite.id} />
+						<div class="flex flex-col gap-2">
+							<div
+								class="mb-2 hidden w-max rounded-sm bg-neutral-600 px-2 py-1 text-sm font-medium text-white"
+							>
+								{index + 1}
+							</div>
+							<audio controls class="w-full">
+								<source src={soundbite.trackUrl} type="audio/mpeg" />
+								Your browser does not support the audio element.
+							</audio>
+							{#if soundbite.question}
+								<p class="mt-6 font-semibold">{soundbite.question}</p>
+							{/if}
 						</div>
-						<audio controls class="w-full">
-							<source src={soundbite.trackUrl} type="audio/mpeg" />
-							Your browser does not support the audio element.
-						</audio>
-						{#if soundbite.question}
-							<p class="mt-6 font-semibold">{soundbite.question}</p>
-						{/if}
-					</div>
 
-					{#if soundbite.variantType === 'simple_guess'}
-						<SimpleGuessInput
-							soundbiteId={soundbite.id}
-							value={userAnswers[soundbite.id] ?? ''}
-							oninput={(value) => updateAnswer(soundbite.id, value)}
-						/>
-					{:else if soundbite.variantType === 'multiple_choice'}
-						{@const config = soundbite.variantConfig as MultipleChoiceConfig}
-						<MultipleChoiceInput
-							soundbiteId={soundbite.id}
-							options={config.options}
-							selectedOptionId={userAnswers[soundbite.id] ?? ''}
-							onselect={(optionId) => updateAnswer(soundbite.id, optionId)}
-						/>
-					{:else if soundbite.variantType === 'multiple_response'}
-						{@const config = soundbite.variantConfig as MultipleResponseConfig}
-						<MultipleResponseInput
-							soundbiteId={soundbite.id}
-							options={config.options}
-							selectedOptionIds={multipleResponseSelections[soundbite.id] ?? []}
-							onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
-						/>
-					{/if}
-				</Card>
+						{#if soundbite.variantType === 'simple_guess'}
+							<SimpleGuessInput
+								soundbiteId={soundbite.id}
+								value={userAnswers[soundbite.id] ?? ''}
+								oninput={(value) => updateAnswer(soundbite.id, value)}
+							/>
+						{:else if soundbite.variantType === 'multiple_choice'}
+							{@const config = soundbite.variantConfig as MultipleChoiceConfig}
+							<MultipleChoiceInput
+								soundbiteId={soundbite.id}
+								options={config.options}
+								selectedOptionId={userAnswers[soundbite.id] ?? ''}
+								onselect={(optionId) => updateAnswer(soundbite.id, optionId)}
+							/>
+						{:else if soundbite.variantType === 'multiple_response'}
+							{@const config = soundbite.variantConfig as MultipleResponseConfig}
+							<MultipleResponseInput
+								soundbiteId={soundbite.id}
+								options={config.options}
+								selectedOptionIds={multipleResponseSelections[soundbite.id] ?? []}
+								onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
+							/>
+						{/if}
+					</Card>
+				</div>
 			{/each}
 		</section>
 
