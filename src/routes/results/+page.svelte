@@ -22,7 +22,12 @@
 		: 's'} for &quot;{data.query}&quot;"
 	basePath="/results"
 	searchValue={data.query}
-	sortOptions={['relevance', 'title', 'username', 'date']}
+	sortOptions={[
+		{ value: 'relevance', label: 'Relevance' },
+		{ value: 'title', label: 'Title' },
+		{ value: 'username', label: 'Creator' },
+		{ value: 'date', label: 'Date' }
+	]}
 	onSortDefaultOrder={getDefaultOrder}
 	emptyState={{
 		message: 'No quizzes found matching your search.',

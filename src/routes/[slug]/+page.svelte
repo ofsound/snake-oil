@@ -193,17 +193,15 @@
 
 		{#if !data.user}
 			<Card variant="neutral" padding="sm" class="mt-6">
-				<FormField label="Enter name (optional)" id="displayName">
-					<input
-						id="displayName"
-						name="displayName"
-						type="text"
-						class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-						placeholder="Anonymous"
-						bind:value={displayName}
-						required
-					/>
-				</FormField>
+				<input
+					id="displayName"
+					name="displayName"
+					type="text"
+					class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+					placeholder="Include your name (optional)"
+					bind:value={displayName}
+					required
+				/>
 			</Card>
 		{/if}
 

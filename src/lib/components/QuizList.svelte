@@ -24,7 +24,7 @@
 		description: string;
 		basePath: string;
 		searchValue?: string;
-		sortOptions: string[];
+		sortOptions: Array<{ value: string; label: string }>;
 		onSortDefaultOrder?: (column: string) => 'asc' | 'desc';
 		emptyState: { message: string; link?: { text: string; href: string } };
 	}
@@ -87,8 +87,8 @@
 </script>
 
 <div class="mb-8">
-	<h1 class="text-3xl font-bold text-gray-800">{title}</h1>
-	<p class="mt-2 text-gray-600">{description}</p>
+	<h1 class="text-2xl font-bold text-gray-800">{title}</h1>
+	<div class="mt-1 text-sm text-gray-600">{description}</div>
 </div>
 
 <form method="get" action="/results" class="mb-6">
@@ -106,15 +106,17 @@
 </form>
 
 {#if quizzes.length > 0}
-	<div class="mb-6 flex items-center gap-4 rounded-md bg-gray-50 px-4 py-3">
-		<span class="text-sm font-medium text-gray-600">Sort by:</span>
-		{#each sortOptions as option (option)}
+	<div
+		class="mb-4 ml-auto flex w-max justify-end gap-4 rounded-md border border-neutral-100 px-4 py-2"
+	>
+		<div class="text-sm">Sort by:</div>
+		{#each sortOptions as option (option.value)}
 			<button
 				type="button"
-				onclick={() => handleSort(option)}
-				class="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+				onclick={() => handleSort(option.value)}
+				class="cursor-pointer text-sm font-medium"
 			>
-				{option.charAt(0).toUpperCase() + option.slice(1)}{getSortIcon(option)}
+				{option.label}{getSortIcon(option.value)}
 			</button>
 		{/each}
 	</div>

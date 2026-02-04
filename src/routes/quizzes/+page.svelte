@@ -19,7 +19,11 @@
 	title="All Quizzes"
 	description="{data.totalCount} quiz{data.totalCount === 1 ? '' : 'zes'} available"
 	basePath="/quizzes"
-	sortOptions={['title', 'username', 'date']}
+	sortOptions={[
+		{ value: 'title', label: 'Title' },
+		{ value: 'username', label: 'Creator' },
+		{ value: 'date', label: 'Date' }
+	]}
 	onSortDefaultOrder={getDefaultOrder}
 	emptyState={{ message: 'No quizzes available yet. Check back soon!' }}
 />
