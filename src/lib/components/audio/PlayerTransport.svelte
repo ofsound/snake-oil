@@ -1,0 +1,83 @@
+<script lang="ts">
+	interface Props {
+		isPlaying: boolean;
+		isBuffering?: boolean;
+		onPrevious: () => void;
+		onPlayPause: () => void;
+		onNext: () => void;
+	}
+
+	let { isPlaying, isBuffering = false, onPrevious, onPlayPause, onNext }: Props = $props();
+</script>
+
+<div class="flex items-center justify-center gap-3">
+	<button
+		type="button"
+		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		onclick={onPrevious}
+		aria-label="Previous track"
+	>
+		<span class="text-lg">&#9664;</span>
+	</button>
+
+	<button
+		type="button"
+		class="flex min-h-12 min-w-12 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		onclick={onPlayPause}
+		aria-label={isPlaying ? 'Pause' : 'Play'}
+	>
+		{#if isBuffering}
+			<svg
+				class="h-6 w-6 animate-spin"
+				viewBox="0 0 24 24"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+				aria-hidden="true"
+			>
+				<circle
+					cx="12"
+					cy="12"
+					r="10"
+					stroke="currentColor"
+					stroke-width="4"
+					stroke-linecap="round"
+					stroke-dasharray="60"
+					stroke-dashoffset="20"
+				/>
+			</svg>
+		{:else if isPlaying}
+			<svg
+				class="h-6 w-6"
+				viewBox="0 0 512 512"
+				fill="currentColor"
+				xmlns="http://www.w3.org/2000/svg"
+				aria-hidden="true"
+			>
+				<path
+					d="M208 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16zM352 432h-48a16 16 0 01-16-16V96a16 16 0 0116-16h48a16 16 0 0116 16v320a16 16 0 01-16 16z"
+				/>
+			</svg>
+		{:else}
+			<svg
+				class="h-6 w-6"
+				viewBox="0 0 512 512"
+				fill="currentColor"
+				xmlns="http://www.w3.org/2000/svg"
+				aria-hidden="true"
+			>
+				<path
+					d="M133 440a35.37 35.37 0 01-17.5-4.67c-12-6.8-19.46-20-19.46-34.33V111c0-14.37 7.46-27.53 19.46-34.33a35.13 35.13 0 0135.77.45l247.85 148.36a36 36 0 010 61l-247.89 148.4A35.5 35.5 0 01133 440z"
+				/>
+			</svg>
+		{/if}
+	</button>
+
+	<button
+		type="button"
+		class="flex min-h-10 min-w-10 items-center justify-center rounded-full bg-gradient-to-t from-sky-600 to-indigo-300 text-white shadow-md transition-all hover:bg-gray-400 active:scale-95 md:min-h-14 md:min-w-14"
+		onclick={onNext}
+		aria-label="Next track"
+	>
+		<span class="text-lg">&#9654;</span>
+	</button>
+</div>

@@ -1,0 +1,160 @@
+<script lang="ts">
+	import { onMount } from 'svelte';
+	import gsap from 'gsap';
+	import { PhysicsPropsPlugin, Physics2DPlugin } from 'gsap/all';
+
+	// Register GSAP plugins
+	gsap.registerPlugin(PhysicsPropsPlugin, Physics2DPlugin);
+
+	// Props
+	interface Props {
+		analyser: AnalyserNode | null;
+	}
+
+	let { analyser }: Props = $props();
+
+	// Canvas refs
+	let canvas: HTMLCanvasElement | undefined = $state(undefined);
+	let ctx: CanvasRenderingContext2D | null = null;
+	let animationId: number | null = null;
+	let isDrawing = false;
+
+	// Frequency bin definitions - configuration only (not reactive current values)
+	interface BinConfig {
+		name: string;
+		low: number;
+		high: number;
+		threshold: number;
+	}
+
+	const binConfigs: BinConfig[] = [
+		{ name: 'Bass', low: 0, high: 10, threshold: 2000 },
+		{ name: 'Low-Mid', low: 10, high: 50, threshold: 1500 },
+		{ name: 'Mid', low: 50, high: 200, threshold: 1200 },
+		{ name: 'High', low: 200, high: 500, threshold: 1000 }
+	];
+
+	// Reactive state for displaying current values in the UI
+	let binCurrents = $state<number[]>(binConfigs.map(() => 0));
+
+	// Animation refs - use $state for reactivity when binding with bind:this
+	let binElements = $state<HTMLDivElement[]>([]);
+
+	onMount(() => {
+		if (canvas) {
+			ctx = canvas.getContext('2d');
+		}
+		return () => {
+			stopDrawing();
+		};
+	});
+
+	function stopDrawing() {
+		isDrawing = false;
+		if (animationId) {
+			cancelAnimationFrame(animationId);
+			animationId = null;
+		}
+	}
+
+	function startDrawing(currentAnalyser: AnalyserNode) {
+		if (!ctx || !canvas || isDrawing) return;
+
+		isDrawing = true;
+		const bufferLength = currentAnalyser.frequencyBinCount;
+		const dataArray = new Uint8Array(bufferLength);
+		const barWidth = canvas.width / bufferLength;
+
+		// Local array for bin totals (not reactive)
+		const binTotals = new Array(binConfigs.length).fill(0);
+
+		const draw = () => {
+			if (!isDrawing || !ctx || !canvas) return;
+
+			animationId = requestAnimationFrame(draw);
+			currentAnalyser.getByteFrequencyData(dataArray);
+
+			// Clear canvas
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+			// Reset bin totals
+			binTotals.fill(0);
+
+			// Draw bars and calculate bin totals
+			for (let i = 0; i < bufferLength; i++) {
+				const barHeight = dataArray[i];
+				const x = i * barWidth;
+
+				// Update bin totals
+				for (let b = 0; b < binConfigs.length; b++) {
+					const bin = binConfigs[b];
+					if (i >= bin.low && i < bin.high) {
+						binTotals[b] += barHeight;
+					}
+				}
+
+				// Draw bar with gradient
+				const r = barHeight + 100;
+				ctx.fillStyle = `rgb(${r}, 50, 50)`;
+				ctx.fillRect(x, canvas.height - barHeight / 2, barWidth - 1, barHeight / 2);
+			}
+
+			// Update reactive state once per frame (not inside the loop)
+			binCurrents = [...binTotals];
+
+			// Check thresholds and trigger animations
+			binConfigs.forEach((bin, index) => {
+				if (binTotals[index] > bin.threshold && binElements[index]) {
+					gsap.to(binElements[index], {
+						x: '+=5',
+						duration: 0.1,
+						yoyo: true,
+						repeat: 1,
+						ease: 'power2.out'
+					});
+				}
+			});
+		};
+
+		draw();
+	}
+
+	// Watch for analyser changes
+	$effect(() => {
+		if (analyser && ctx && canvas) {
+			stopDrawing();
+			startDrawing(analyser);
+		} else {
+			stopDrawing();
+		}
+	});
+</script>
+
+<div class="w-full max-w-2xl">
+	<canvas bind:this={canvas} width={600} height={150} class="block h-[150px] w-full bg-black"
+	></canvas>
+
+	<div class="bg-white p-10">
+		<div class="grid grid-cols-2 gap-4">
+			{#each binConfigs as bin, i (bin.name)}
+				<div bind:this={binElements[i]} class="rounded border border-gray-200 p-4 transition-all">
+					<div class="font-bold text-gray-800">{bin.name}</div>
+					<div class="text-sm text-gray-600">
+						Range: {bin.low} - {bin.high}
+					</div>
+					<div class="text-sm text-gray-600">
+						Threshold: {bin.threshold}
+					</div>
+					<div
+						class="text-lg font-bold"
+						class:text-red-500={binCurrents[i] > bin.threshold}
+						class:text-gray-800={binCurrents[i] <= bin.threshold}
+					>
+						Total: {Math.round(binCurrents[i])}
+					</div>
+				</div>
+			{/each}
+		</div>
+	</div>
+</div>
