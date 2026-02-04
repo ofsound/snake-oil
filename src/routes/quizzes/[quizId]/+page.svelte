@@ -387,16 +387,19 @@
 			<p class="text-sm text-gray-500">No submissions yet.</p>
 		{:else}
 			<div class="flex flex-col gap-4">
-				{#each data.answers as submission (submission.id)}
+				{#each data.answers as submission, index (submission.id)}
 					<Card variant="flat" padding="sm" class="flex flex-col gap-3">
 						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-							<span>From: {getSubmitterLabel(submission)}</span>
+							<div class="flex gap-1">
+								<span class="font-medium">{getSubmitterLabel(submission)}</span> on
+								<span>
+									{submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}
+								</span>
+							</div>
+
 							<div class="flex items-center gap-3">
 								<span class="font-semibold text-emerald-700">
 									Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
-								</span>
-								<span>
-									{submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}
 								</span>
 							</div>
 						</div>
@@ -408,27 +411,25 @@
 									soundbite
 								)}
 								<div
-									class="rounded-md border px-3 py-2 text-sm"
+									class="rounded-sm border px-3 py-2 text-sm"
 									class:border-green-200={answerInfo.isCorrect}
 									class:bg-green-50={answerInfo.isCorrect}
-									class:border-red-200={!answerInfo.isCorrect}
+									class:border-red-100={!answerInfo.isCorrect}
 									class:bg-red-50={!answerInfo.isCorrect}
 								>
 									<div class="flex items-center justify-between">
-										<span class="font-medium">{soundbite.trackName}:</span>
-										<span
-											class="text-xs font-semibold"
-											class:text-green-700={answerInfo.isCorrect}
-											class:text-red-700={!answerInfo.isCorrect}
-										>
+										<span class="font-medium">{index + 1}. {soundbite.trackName}:</span>
+										<span class="hidden text-xs font-medium">
 											{answerInfo.isCorrect ? 'Correct' : 'Incorrect'}
 										</span>
 									</div>
-									<div class="mt-1 text-gray-700">
-										<span>Answer: {answerInfo.guess}</span>
+									<div class="mt-1">
+										<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
 										{#if !answerInfo.isCorrect}
-											<span class="ml-3 text-green-700">
-												(Correct: {getCorrectAnswerText(soundbite.variantConfig)})
+											<span class="ml-3">
+												(Correct: <span class="font-medium"
+													>{getCorrectAnswerText(soundbite.variantConfig)}</span
+												>)
 											</span>
 										{/if}
 									</div>
