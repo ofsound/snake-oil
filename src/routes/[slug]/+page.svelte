@@ -142,11 +142,11 @@
 			};
 		}}
 	>
-		<section class="flex flex-col gap-6 pt-6">
+		<section class="mt-6 flex flex-col gap-8">
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				<div class="flex">
 					<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
-					<Card variant="neutral" padding="sm" class="flex flex-1 flex-col gap-6 ">
+					<Card variant="neutral" padding="md" class="flex flex-1 flex-col gap-6 ">
 						<input type="hidden" name="soundbiteId" value={soundbite.id} />
 						<div class="flex flex-col gap-2">
 							<div
@@ -159,7 +159,7 @@
 								Your browser does not support the audio element.
 							</audio>
 							{#if soundbite.question}
-								<p class="mt-6 font-semibold">{soundbite.question}</p>
+								<p class="mt-6 font-medium">{soundbite.question}</p>
 							{/if}
 						</div>
 
@@ -192,17 +192,15 @@
 		</section>
 
 		{#if !data.user}
-			<Card variant="neutral" padding="sm" class="mt-6">
-				<input
-					id="displayName"
-					name="displayName"
-					type="text"
-					class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-					placeholder="Include your name (optional)"
-					bind:value={displayName}
-					required
-				/>
-			</Card>
+			<input
+				id="displayName"
+				name="displayName"
+				type="text"
+				class="mt-6 ml-auto block w-full max-w-60 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+				placeholder="Include your name (optional)"
+				bind:value={displayName}
+				required
+			/>
 		{/if}
 
 		{#if errorMessage}
