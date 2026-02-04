@@ -258,10 +258,8 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			// For iOS: Re-arm audio before resuming to ensure fresh source
-			this.armAudio();
-
-			// This must be called synchronously for iOS
+			// Resume the context - the existing source continues from where it was paused
+			// Note: Do NOT call armAudio() here - that would create a new unstarted source
 			this.audioContext
 				.resume()
 				.then(() => {
