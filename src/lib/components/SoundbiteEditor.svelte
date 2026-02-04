@@ -64,7 +64,7 @@
 	}
 </script>
 
-<div class="space-y-4">
+<div class="flex flex-col gap-4">
 	{#if fileInputName}
 		<div class="space-y-2">
 			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
@@ -83,11 +83,10 @@
 
 	<VariantSelector id={`variant-type-${id}`} value={variantType} onchange={onVariantTypeChange} />
 
-	<FormField
-		label="Question (optional)"
-		id={`question-${id}`}
-		helper="Appears below the audio player to guide quiz takers."
-	>
+	<div class="flex flex-col gap-2">
+		<label class="text-sm font-medium text-gray-700" for={`question-${id}`}>
+			Question (optional)
+		</label>
 		<textarea
 			id={`question-${id}`}
 			name={questionName}
@@ -97,7 +96,8 @@
 			value={question}
 			oninput={(e) => onQuestionChange(e.currentTarget.value)}
 		></textarea>
-	</FormField>
+		<p class="hidden text-xs text-gray-500">Appears below the audio player to guide quiz takers.</p>
+	</div>
 
 	<input type="hidden" name={variantTypeName} value={variantType} />
 

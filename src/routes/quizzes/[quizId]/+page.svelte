@@ -238,7 +238,7 @@
 		};
 	}}
 >
-	<Card variant="flat" padding="md" class="space-y-4">
+	<Card variant="flat" padding="md" class="flex flex-col gap-4">
 		<FormField label="Title" id="title">
 			<input
 				id="title"
@@ -249,7 +249,7 @@
 				required
 			/>
 		</FormField>
-		<FormField label="Slug" id="slug">
+		<FormField label="URL" id="slug">
 			<input
 				id="slug"
 				name="slug"

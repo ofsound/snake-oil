@@ -79,8 +79,8 @@
 		};
 	}}
 >
-	<Card variant="flat" padding="md">
-		<FormField label="Quiz title" id="title">
+	<Card variant="flat" padding="md" class="flex flex-col gap-4">
+		<FormField label="Title" id="title">
 			<input
 				id="title"
 				name="title"
