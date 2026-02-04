@@ -180,34 +180,34 @@
 	}
 </script>
 
-<header class="relative space-y-2">
-	<div class="flex items-start justify-between">
-		<div class="space-y-2">
-			<h1 class="text-3xl font-semibold">Manage Quiz</h1>
-			<a class="text-sm underline" href={`/${slug}`}>View Public Quiz</a>
-		</div>
-		<form
-			method="POST"
-			action="?/delete"
-			use:enhance={({ cancel }) => {
-				if (!confirm('Are you sure you want to delete this quiz?')) {
-					cancel();
+<header class="mb-6 flex items-baseline gap-1">
+	<h1 class="text-3xl font-semibold">Manage Quiz</h1>
+	<div class="text-gray-500">
+		(<a class="text-sm hover:underline" href={`/${slug}`}>view quiz</a>)
+	</div>
+
+	<form
+		method="POST"
+		action="?/delete"
+		class="flex-1 text-right"
+		use:enhance={({ cancel }) => {
+			if (!confirm('Are you sure you want to delete this quiz?')) {
+				cancel();
+				return;
+			}
+			return async ({ result, update }) => {
+				// If redirect, navigate to the location
+				if (result.type === 'redirect') {
+					await goto(result.location);
 					return;
 				}
-				return async ({ result, update }) => {
-					// If redirect, navigate to the location
-					if (result.type === 'redirect') {
-						await goto(result.location);
-						return;
-					}
-					// For other result types (success, failure), update the page
-					await update();
-				};
-			}}
-		>
-			<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
-		</form>
-	</div>
+				// For other result types (success, failure), update the page
+				await update();
+			};
+		}}
+	>
+		<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
+	</form>
 </header>
 
 <form

@@ -60,20 +60,17 @@
 	<div class="text-sm">
 		{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 		by
-		<a
-			href="/users/{data.quiz.owner.slug}"
-			class="font-semibold text-green-600 hover:text-green-800 hover:underline"
-		>
+		<a href="/users/{data.quiz.owner.slug}" class="font-semibold text-indigo-700 hover:underline">
 			{data.quiz.owner.name || data.quiz.owner.slug}
 		</a>
 		{#if isOwner}
 			<span class="text-sm text-gray-500">
-				(<a href="/quizzes/{data.quiz.id}" class="hover:underline">Manage Quiz</a>)
+				(<a href="/quizzes/{data.quiz.id}" class="hover:underline">edit quiz</a>)
 			</span>
 		{/if}
 	</div>
 
-	<div class="mt-6">
+	<div class="mt-10">
 		{data.quiz.description}
 	</div>
 </header>
