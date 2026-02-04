@@ -33,13 +33,7 @@
 </script>
 
 <div class="flex flex-col gap-3">
-	<div class="flex items-center justify-between">
-		<span class="text-sm font-medium text-gray-700">Answer Options</span>
-		<Button variant="outline" size="xs" onclick={addOption} disabled={options.length >= 10}>
-			Add Option
-		</Button>
-	</div>
-
+	<div class="text-sm font-medium text-gray-700">Answer Options</div>
 	<div class="flex flex-col gap-2">
 		{#each options as option, index (option.id)}
 			<div class="flex items-center gap-2">
@@ -53,7 +47,7 @@
 				<input
 					type="text"
 					id={`${idPrefix}-${option.id}`}
-					class="sm flex-1 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm"
+					class="sm flex-1 rounded-md border border-neutral-200 bg-white px-2 py-2 text-sm"
 					placeholder={`Option ${index + 1}`}
 					value={option.text}
 					oninput={(e) => updateOptionText(option.id, e.currentTarget.value)}
@@ -61,7 +55,7 @@
 				/>
 				<button
 					type="button"
-					class="text-xs text-gray-400 hover:text-gray-600"
+					class="cursor-pointer text-sm text-gray-800 hover:text-gray-600"
 					onclick={() => removeOption(option.id)}
 					disabled={options.length <= 2}
 					title="Remove option"
@@ -70,8 +64,19 @@
 				</button>
 			</div>
 		{/each}
+		<div class="mt-1 ml-auto w-max">
+			<Button
+				variant="outline"
+				size="xs"
+				type="button"
+				onclick={addOption}
+				disabled={options.length >= 10}
+			>
+				Add Option
+			</Button>
+		</div>
 	</div>
-	<p class="text-xs text-gray-500">
+	<p class="m-1 text-xs leading-normal">
 		Check the checkbox next to each correct answer. Quiz takers must select ALL correct answers (and
 		no incorrect ones) to be marked correct.
 	</p>

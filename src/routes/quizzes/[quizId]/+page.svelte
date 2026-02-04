@@ -273,7 +273,7 @@
 					id="title"
 					name="title"
 					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 					bind:value={title}
 					required
 				/>
@@ -283,7 +283,7 @@
 					id="slug"
 					name="slug"
 					type="text"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 					bind:value={slug}
 					required
 				/>
@@ -293,7 +293,7 @@
 					id="description"
 					name="description"
 					rows="4"
-					class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 					bind:value={description}
 					required
 				></textarea>
@@ -373,8 +373,8 @@
 			</div>
 		{/if}
 
-		<div class="flex justify-end">
-			<Button variant="accent" size="md" type="submit" disabled={submitting} loading={submitting}>
+		<div class="mt-6 flex justify-end border-t border-neutral-200 pt-6">
+			<Button variant="primary" size="md" type="submit" disabled={submitting} loading={submitting}>
 				Save changes
 			</Button>
 		</div>

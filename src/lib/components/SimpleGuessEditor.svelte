@@ -15,7 +15,7 @@
 	<input
 		{id}
 		type="text"
-		class="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm"
+		class="w-full rounded-md border border-neutral-200 bg-white px-2 py-2 text-sm"
 		placeholder="Enter the correct answer"
 		{value}
 		oninput={(e) => oninput(e.currentTarget.value)}

@@ -36,7 +36,7 @@
 		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700',
 		accent: 'bg-indigo-600 text-white hover:bg-indigo-700',
 		danger: 'bg-red-600 text-white hover:bg-red-700',
-		outline: 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50',
+		outline: 'bg-white border border-neutral-200 text-gray-700 hover:bg-gray-50',
 		ghost: 'bg-transparent text-gray-500 hover:text-gray-700'
 	};
 
