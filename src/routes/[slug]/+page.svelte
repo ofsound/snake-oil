@@ -5,6 +5,7 @@
 	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
 	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
 	import AnswerResultCard from '$lib/components/AnswerResultCard.svelte';
+	import FormField from '$lib/components/FormField.svelte';
 	import type { ActionData, PageData } from './$types';
 	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
 	import type {
@@ -191,19 +192,18 @@
 		</section>
 
 		{#if !data.user}
-			<Card variant="neutral" padding="sm" class="mt-6 flex flex-col gap-2">
-				<label class="text-sm font-medium text-gray-700" for="displayName"
-					>Enter name (optional)</label
-				>
-				<input
-					id="displayName"
-					name="displayName"
-					type="text"
-					class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
-					placeholder="Anonymous"
-					bind:value={displayName}
-					required
-				/>
+			<Card variant="neutral" padding="sm" class="mt-6">
+				<FormField label="Enter name (optional)" id="displayName">
+					<input
+						id="displayName"
+						name="displayName"
+						type="text"
+						class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+						placeholder="Anonymous"
+						bind:value={displayName}
+						required
+					/>
+				</FormField>
 			</Card>
 		{/if}
 

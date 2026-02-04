@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { VariantType } from '$lib/variant-types';
 	import { VARIANT_LABELS } from '$lib/variant-types';
+	import FormField from './FormField.svelte';
 
 	type Props = {
 		value: VariantType;
@@ -13,8 +14,7 @@
 	const variantOptions: VariantType[] = ['simple_guess', 'multiple_choice', 'multiple_response'];
 </script>
 
-<div class="space-y-2">
-	<label class="text-sm font-medium text-gray-700" for={id}>Question Type</label>
+<FormField label="Question Type" {id}>
 	<select
 		{id}
 		class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
@@ -25,4 +25,4 @@
 			<option value={variant}>{VARIANT_LABELS[variant]}</option>
 		{/each}
 	</select>
-</div>
+</FormField>

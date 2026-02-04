@@ -3,6 +3,7 @@
 	import SimpleGuessEditor from './SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './MultipleChoiceEditor.svelte';
 	import MultipleResponseEditor from './MultipleResponseEditor.svelte';
+	import FormField from './FormField.svelte';
 	import type {
 		VariantType,
 		MultipleChoiceOption,
@@ -82,10 +83,11 @@
 
 	<VariantSelector id={`variant-type-${id}`} value={variantType} onchange={onVariantTypeChange} />
 
-	<div class="space-y-2">
-		<label class="text-sm font-medium text-gray-700" for={`question-${id}`}>
-			Question (optional)
-		</label>
+	<FormField
+		label="Question (optional)"
+		id={`question-${id}`}
+		helper="Appears below the audio player to guide quiz takers."
+	>
 		<textarea
 			id={`question-${id}`}
 			name={questionName}
@@ -95,8 +97,7 @@
 			value={question}
 			oninput={(e) => onQuestionChange(e.currentTarget.value)}
 		></textarea>
-		<p class="text-xs text-gray-500">Appears below the audio player to guide quiz takers.</p>
-	</div>
+	</FormField>
 
 	<input type="hidden" name={variantTypeName} value={variantType} />
 

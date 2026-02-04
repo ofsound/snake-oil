@@ -4,6 +4,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import FormField from '$lib/components/FormField.svelte';
 	import type { ActionData } from './$types';
 	import type {
 		VariantType,
@@ -79,49 +80,43 @@
 	}}
 >
 	<Card variant="flat" padding="md">
-		<div class="space-y-2">
-			<label class="mb-1 text-sm font-medium text-gray-700" for="title">Quiz title</label>
+		<FormField label="Quiz title" id="title">
 			<input
 				id="title"
 				name="title"
 				type="text"
 				placeholder="e.g. Mystery Intros"
-				class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
 				bind:value={title}
 				required
 			/>
-		</div>
+		</FormField>
 
-		<div class="space-y-2">
-			<label class="mb-1 text-sm font-medium text-gray-700" for="slug">URL</label>
+		<FormField label="URL" id="slug">
 			<input
 				id="slug"
 				name="slug"
 				type="text"
 				placeholder="mystery-intros"
-				class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
 				bind:value={manualSlug}
 				oninput={() => {
 					slugEdited = true;
 				}}
 			/>
-			<p class="hidden text-xs text-gray-500">
-				This becomes the public URL: /{slug || 'your-quiz'}.
-			</p>
-		</div>
+		</FormField>
 
-		<div class="space-y-2">
-			<label class="mb-1 text-sm font-medium text-gray-700" for="description">Description</label>
+		<FormField label="Description" id="description">
 			<textarea
 				id="description"
 				name="description"
 				rows="4"
-				class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+				class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
 				placeholder=""
 				bind:value={description}
 				required
 			></textarea>
-		</div>
+		</FormField>
 	</Card>
 
 	<SoundbiteFormSection

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import FormField from './FormField.svelte';
+
 	type Props = {
 		value: string;
 		oninput: (value: string) => void;
@@ -9,8 +11,7 @@
 	let { value, oninput, id = 'correct-answer', required = true }: Props = $props();
 </script>
 
-<div class="space-y-2">
-	<label class="text-sm font-medium text-gray-700" for={id}>Correct Answer</label>
+<FormField label="Correct Answer" {id}>
 	<input
 		{id}
 		type="text"
@@ -20,4 +21,4 @@
 		oninput={(e) => oninput(e.currentTarget.value)}
 		{required}
 	/>
-</div>
+</FormField>
