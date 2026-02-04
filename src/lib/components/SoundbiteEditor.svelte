@@ -91,7 +91,7 @@
 			id={`question-${id}`}
 			name={questionName}
 			rows="2"
-			class="sm w-full rounded-md border border-neutral-200 bg-white px-2 py-2 text-sm"
+			class="sm w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 			placeholder="e.g., What guitar is being played?"
 			value={question}
 			oninput={(e) => onQuestionChange(e.currentTarget.value)}

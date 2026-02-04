@@ -7,6 +7,8 @@
 	import SoundbiteEditor from '$lib/components/SoundbiteEditor.svelte';
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import FormField from '$lib/components/FormField.svelte';
+	import FormInput from '$lib/components/FormInput.svelte';
+	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import type { ActionData, PageData } from './$types';
 	import type {
 		VariantType,
@@ -269,34 +271,19 @@
 	>
 		<Card variant="flat" padding="md" class="flex flex-col gap-4">
 			<FormField label="Title" id="title">
-				<input
-					id="title"
-					name="title"
-					type="text"
-					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
-					bind:value={title}
-					required
-				/>
+				<FormInput id="title" name="title" type="text" bind:value={title} required />
 			</FormField>
 			<FormField label="URL" id="slug">
-				<input
-					id="slug"
-					name="slug"
-					type="text"
-					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
-					bind:value={slug}
-					required
-				/>
+				<FormInput id="slug" name="slug" type="text" bind:value={slug} required />
 			</FormField>
 			<FormField label="Description" id="description">
-				<textarea
+				<FormTextarea
 					id="description"
 					name="description"
-					rows="4"
-					class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
+					rows={4}
 					bind:value={description}
 					required
-				></textarea>
+				/>
 			</FormField>
 		</Card>
 

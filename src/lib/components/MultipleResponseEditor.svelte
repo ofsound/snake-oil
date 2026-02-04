@@ -47,7 +47,7 @@
 				<input
 					type="text"
 					id={`${idPrefix}-${option.id}`}
-					class="sm flex-1 rounded-md border border-neutral-200 bg-white px-2 py-2 text-sm"
+					class="sm flex-1 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 					placeholder={`Option ${index + 1}`}
 					value={option.text}
 					oninput={(e) => updateOptionText(option.id, e.currentTarget.value)}

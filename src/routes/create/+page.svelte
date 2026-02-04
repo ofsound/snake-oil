@@ -5,6 +5,8 @@
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import FormField from '$lib/components/FormField.svelte';
+	import FormInput from '$lib/components/FormInput.svelte';
+	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import type { ActionData } from './$types';
 	import type {
 		VariantType,
@@ -79,24 +81,22 @@
 >
 	<Card variant="flat" padding="md" class="flex flex-col gap-4">
 		<FormField label="Title" id="title">
-			<input
+			<FormInput
 				id="title"
 				name="title"
 				type="text"
 				placeholder="e.g. Mystery Intros"
-				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 				bind:value={title}
 				required
 			/>
 		</FormField>
 
 		<FormField label="URL" id="slug">
-			<input
+			<FormInput
 				id="slug"
 				name="slug"
 				type="text"
 				placeholder="mystery-intros"
-				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
 				bind:value={manualSlug}
 				oninput={() => {
 					slugEdited = true;
@@ -105,15 +105,13 @@
 		</FormField>
 
 		<FormField label="Description" id="description">
-			<textarea
+			<FormTextarea
 				id="description"
 				name="description"
-				rows="4"
-				class="w-full rounded-md border border-neutral-200 px-2 py-2 text-sm"
-				placeholder=""
+				rows={4}
 				bind:value={description}
 				required
-			></textarea>
+			/>
 		</FormField>
 	</Card>
 

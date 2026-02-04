@@ -17,7 +17,7 @@
 <FormField label="Question Type" {id}>
 	<select
 		{id}
-		class="sm w-full rounded-md border border-neutral-200 bg-white px-2 py-2 text-sm"
+		class="sm w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 		{value}
 		onchange={(e) => onchange(e.currentTarget.value as VariantType)}
 	>
