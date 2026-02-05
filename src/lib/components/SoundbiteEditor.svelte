@@ -128,6 +128,8 @@
 </script>
 
 <div class="flex flex-col gap-4">
+	<VariantSelector id={`variant-type-${id}`} value={variantType} onchange={onVariantTypeChange} />
+
 	{#if fileInputName && variantType !== 'sequence' && variantType !== 'rank'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
@@ -143,8 +145,6 @@
 			/>
 		</div>
 	{/if}
-
-	<VariantSelector id={`variant-type-${id}`} value={variantType} onchange={onVariantTypeChange} />
 
 	<div class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-gray-700" for={`question-${id}`}>
