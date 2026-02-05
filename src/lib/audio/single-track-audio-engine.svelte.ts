@@ -204,7 +204,9 @@ export class SingleTrackAudioEngine {
 			};
 
 			this.sourceHasStarted = false;
-			this.gainNode!.gain.setValueAtTime(0, this.audioContext!.currentTime);
+			const t = this.audioContext!.currentTime;
+			this.gainNode!.gain.cancelScheduledValues(t);
+			this.gainNode!.gain.setValueAtTime(0, t);
 			afterReady?.();
 		};
 
@@ -355,6 +357,11 @@ export class SingleTrackAudioEngine {
 		if (!this.audioContext) return;
 
 		this.fadeOut(() => {
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
 			if (this.audioContext?.state === 'running') {
 				this.audioContext.suspend().catch((err) => {
 					console.error('Failed to suspend audio context:', err);
