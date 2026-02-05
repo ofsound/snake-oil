@@ -411,11 +411,8 @@ export class SingleTrackAudioEngine {
 				this.gainNode.gain.cancelScheduledValues(t);
 				this.gainNode.gain.setValueAtTime(0, t);
 			}
-			if (this.audioContext?.state === 'running') {
-				this.audioContext.suspend().catch((err) => {
-					console.error('Failed to suspend audio context:', err);
-				});
-			}
+			// Do not suspend the context on stop. Keeping it running avoids the
+			// suspend→resume transition on play, which on iOS often causes an audible click.
 			if (this.source) {
 				try {
 					this.source.disconnect();
