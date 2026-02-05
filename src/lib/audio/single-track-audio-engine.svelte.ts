@@ -308,15 +308,22 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			// Resume with fade-in: set gain to 0, then ramp up after context resumes
-			if (this.gainNode) {
-				this.gainNode.gain.setValueAtTime(0, this.audioContext.currentTime);
+			// Resume from pause: set gain to 0, resume, then after a short settle delay fade in (avoids iOS resume click)
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
 			}
 			this.audioContext
 				.resume()
 				.then(() => {
 					this.isPlaying = true;
-					this.fadeIn();
+					if (this.audioContext && this.gainNode) {
+						const t = this.audioContext.currentTime;
+						this.gainNode.gain.cancelScheduledValues(t);
+						this.gainNode.gain.setValueAtTime(0, t);
+					}
+					setTimeout(() => this.fadeIn(), 10);
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
@@ -396,8 +403,13 @@ export class SingleTrackAudioEngine {
 					console.error('Failed to resume audio context:', err);
 				});
 		} else {
-			console.log('Context running, starting playback immediately...');
-			startPlayback();
+			// Play after stop: context already running. Brief delay before startPlayback so analyser doesn't show connection spike.
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
+			setTimeout(() => startPlayback(), 10);
 		}
 	}
 
