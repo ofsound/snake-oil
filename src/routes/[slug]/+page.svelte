@@ -165,7 +165,9 @@
 							>
 								{index + 1}
 							</div>
-							<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
+							{#if soundbite.variantType !== 'sequence'}
+								<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
+							{/if}
 							{#if soundbite.question}
 								<p class="mt-5 font-medium">{soundbite.question}</p>
 							{/if}
@@ -204,6 +206,7 @@
 								<p class="text-center font-medium text-gray-700">{config.prompt}</p>
 								<SequenceInput
 									soundbiteId={soundbite.id}
+									answer={userAnswers[soundbite.id] ?? ''}
 									onBuzzer={() => {}}
 									disabled={sequenceBuzzed[soundbite.id] ?? false}
 								/>

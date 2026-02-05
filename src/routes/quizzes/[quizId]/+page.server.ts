@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
+import type { SequenceConfig } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
@@ -141,6 +142,14 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
+
+		// Debug: Log form data entries
+		console.log('[Edit Quiz Server] Form data entries:');
+		for (const [key, value] of formData.entries()) {
+			console.log(
+				`  ${key}: ${value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value}`
+			);
+		}
 		const title = String(formData.get('title') ?? '').trim();
 		const rawSlug = String(formData.get('slug') ?? '').trim();
 		const description = String(formData.get('description') ?? '').trim();
@@ -162,13 +171,28 @@ export const actions: Actions = {
 			files: newFiles
 		} = getNewSoundbites(formData);
 
+		// Count non-sequence variants (these need files)
+		const nonSequenceVariantCount = variantTypes.filter(
+			(_, i) => !removed.has(ids[i]) && variantTypes[i] !== 'sequence'
+		).length;
+		const nonSequenceNewCount = newVariantTypes.filter((type) => type !== 'sequence').length;
+
+		// Calculate if files are required
 		const remainingSoundbites = ids.length - removed.size;
-		const addingNewSoundbites = newFiles.length > 0;
-		// Files are only required if all existing soundbites are removed and no new ones are added
+		const addingNewSoundbites = newVariantTypes.length > 0;
 		const filesRequired = remainingSoundbites === 0 && !addingNewSoundbites;
 
+		// Only validate files for non-sequence variants
+		const nonSequenceFiles = files.filter(
+			(_, i) => variantTypes[i] !== 'sequence' && !removed.has(ids[i])
+		);
+		const nonSequenceNewFiles = newFiles.filter((_, i) => newVariantTypes[i] !== 'sequence');
+
 		const fileError = validateFiles(
-			[...files.filter((file) => file.size > 0), ...newFiles.filter((file) => file.size > 0)],
+			[
+				...nonSequenceFiles.filter((file) => file.size > 0),
+				...nonSequenceNewFiles.filter((file) => file.size > 0)
+			],
 			filesRequired
 		);
 		if (fileError) {
@@ -179,24 +203,28 @@ export const actions: Actions = {
 			return fail(400, { message: 'SoundBite variant configuration is missing.' });
 		}
 
-		if (
-			newVariantTypes.length !== newFiles.length ||
-			newVariantConfigs.length !== newFiles.length
-		) {
+		// Check that new soundbites have proper configuration (files only required for non-sequence)
+		if (newVariantConfigs.length !== newVariantTypes.length) {
 			return fail(400, { message: 'Each new SoundBite needs variant configuration.' });
 		}
 
-		// Validate all variant configs
+		// Validate non-sequence variant configs (sequence configs will be validated after file upload)
 		for (let i = 0; i < variantConfigs.length; i++) {
 			const config = variantConfigs[i];
-			if (!removed.has(ids[i]) && (!config || !validateVariantConfig(config))) {
+			if (
+				!removed.has(ids[i]) &&
+				config &&
+				config.type !== 'sequence' &&
+				!validateVariantConfig(config)
+			) {
 				return fail(400, { message: `Invalid configuration for SoundBite ${i + 1}.` });
 			}
 		}
 
 		for (let i = 0; i < newVariantConfigs.length; i++) {
 			const config = newVariantConfigs[i];
-			if (!config || !validateVariantConfig(config)) {
+			// Skip sequence validation for now - will validate after file upload
+			if (!config || (config.type !== 'sequence' && !validateVariantConfig(config))) {
 				return fail(400, { message: `Invalid configuration for new SoundBite ${i + 1}.` });
 			}
 		}
@@ -256,27 +284,92 @@ export const actions: Actions = {
 			}
 
 			const currentMaxPosition = ids.length;
+			let newFileIndex = 0;
 
-			for (let index = 0; index < newFiles.length; index += 1) {
-				const file = newFiles[index];
+			for (let index = 0; index < newVariantTypes.length; index += 1) {
 				const question = newQuestions[index];
 				const variantType = newVariantTypes[index];
-				const variantConfig = newVariantConfigs[index]!;
+				let variantConfig = newVariantConfigs[index]!;
+				let trackId: string;
 
-				const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
+				if (variantType === 'sequence') {
+					// For sequence variants, upload the sequence files
+					const config = variantConfig as SequenceConfig;
+					const uploadedTracks = [];
 
-				const [track] = await db
-					.insert(tracks)
-					.values({
-						name: file.name,
-						url: blob.url,
-						pathname: blob.pathname
-					})
-					.returning({ id: tracks.id });
+					// Get sequence files from form data
+					// Note: Client sends files with index starting from 0 for new soundbites
+					const sequenceFiles = formData.getAll(`sequenceFiles-${index}`) as File[];
+					console.log(
+						`[Edit Quiz Server] New soundbite ${index}: Found ${sequenceFiles.length} sequence files`
+					);
+
+					for (let trackIndex = 0; trackIndex < config.tracks.length; trackIndex++) {
+						const track = config.tracks[trackIndex];
+						const file = sequenceFiles[trackIndex];
+
+						if (file && file.size > 0) {
+							// Upload to Vercel Blob
+							const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
+							uploadedTracks.push({
+								id: track.id,
+								name: track.name,
+								url: blob.url
+							});
+						} else {
+							// If no file provided, keep the original URL
+							uploadedTracks.push(track);
+						}
+					}
+
+					// Update config with permanent URLs
+					variantConfig = {
+						...config,
+						tracks: uploadedTracks
+					};
+
+					// Validate the updated sequence config
+					if (!validateVariantConfig(variantConfig)) {
+						return fail(400, {
+							message: `Invalid configuration for new SoundBite ${index + 1}. Please ensure all sequence files were uploaded successfully.`
+						});
+					}
+
+					// Create a placeholder track for the soundbite
+					const [track] = await db
+						.insert(tracks)
+						.values({
+							name: `Sequence ${currentMaxPosition + index + 1}`,
+							url: '',
+							pathname: null
+						})
+						.returning({ id: tracks.id });
+					trackId = track.id;
+				} else {
+					// For other variants, upload the file
+					const file = newFiles[newFileIndex];
+					newFileIndex += 1;
+
+					if (!file || file.size === 0) {
+						return fail(400, { message: `New SoundBite ${index + 1} is missing an MP3 file.` });
+					}
+
+					const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
+
+					const [track] = await db
+						.insert(tracks)
+						.values({
+							name: file.name,
+							url: blob.url,
+							pathname: blob.pathname
+						})
+						.returning({ id: tracks.id });
+					trackId = track.id;
+				}
 
 				await db.insert(soundbites).values({
 					quizId: params.quizId,
-					trackId: track.id,
+					trackId,
 					position: currentMaxPosition + index,
 					question,
 					variantType,

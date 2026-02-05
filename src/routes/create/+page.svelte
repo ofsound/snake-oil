@@ -36,6 +36,7 @@
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
+		sequenceFiles: File[];
 		question: string;
 	};
 
@@ -50,6 +51,7 @@
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
+			sequenceFiles: [],
 			question: ''
 		}
 	]);
@@ -78,8 +80,33 @@
 	method="POST"
 	enctype="multipart/form-data"
 	class="flex flex-col gap-8"
-	use:enhance={() => {
+	use:enhance={({ formData }) => {
 		submitting = true;
+
+		// Debug: Log what's in the form data before modifications
+		console.log('[Create Quiz] Form data before modifications:');
+		for (const [key, value] of formData.entries()) {
+			console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`);
+		}
+
+		// Add sequence files to form data
+		soundbites.forEach((sb, index) => {
+			if (sb.variantType === 'sequence') {
+				console.log(
+					`[Create Quiz] Adding ${sb.sequenceFiles.length} sequence files for soundbite ${index}`
+				);
+				sb.sequenceFiles.forEach((file) => {
+					formData.append(`sequenceFiles-${index}`, file);
+				});
+			}
+		});
+
+		// Debug: Log what's in the form data after modifications
+		console.log('[Create Quiz] Form data after modifications:');
+		for (const [key, value] of formData.entries()) {
+			console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`);
+		}
+
 		return async ({ update }) => {
 			submitting = false;
 			await update();

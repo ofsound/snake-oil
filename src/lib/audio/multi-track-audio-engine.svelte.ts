@@ -79,6 +79,13 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	private playedIndices: number[] = [];
 
 	/**
+	 * LOOP STATE
+	 */
+
+	/** Whether loop mode is enabled (playlist repeats indefinitely) */
+	isLoopEnabled = $state(false);
+
+	/**
 	 * Load multiple audio tracks from an array of track metadata.
 	 * Automatically skips tracks that fail to load.
 	 * Extracts tracks from params and delegates to loadBuffers.
@@ -552,14 +559,19 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			// Check if we've reached end of playlist
 			if (nextIndex === 0 && this.playedIndices.length >= this.buffers.length) {
-				// Playlist finished, stop
-				this.isPlaying = false;
-				this.isFirstPlay = true;
-				this.playedIndices = [];
-				if (this.analyser) {
-					this.analyser.smoothingTimeConstant = 0;
+				if (this.isLoopEnabled) {
+					// Loop mode: reset played indices and continue
+					this.playedIndices = [];
+				} else {
+					// Playlist finished, stop
+					this.isPlaying = false;
+					this.isFirstPlay = true;
+					this.playedIndices = [];
+					if (this.analyser) {
+						this.analyser.smoothingTimeConstant = 0;
+					}
+					return;
 				}
-				return;
 			}
 
 			// Arm and start next track

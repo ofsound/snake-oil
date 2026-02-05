@@ -20,6 +20,7 @@
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
+		sequenceFiles: File[]; // Actual files to upload
 		question: string;
 	}
 
@@ -65,6 +66,7 @@
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
+			sequenceFiles: [],
 			question: ''
 		};
 		soundbites = [...soundbites, newSoundbite];
@@ -113,6 +115,10 @@
 
 	function updateSequencePrompt(id: number, prompt: string) {
 		updateSoundbite(id, { sequencePrompt: prompt });
+	}
+
+	function updateSequenceFiles(id: number, files: File[]) {
+		updateSoundbite(id, { sequenceFiles: files });
 	}
 </script>
 
@@ -163,6 +169,7 @@
 						onSequenceCorrectTrackIndexChange={(index) =>
 							updateSequenceCorrectTrackIndex(soundbite.id, index)}
 						onSequencePromptChange={(prompt) => updateSequencePrompt(soundbite.id, prompt)}
+						onSequenceFilesChange={(files) => updateSequenceFiles(soundbite.id, files)}
 					/>
 				</Card>
 			</div>

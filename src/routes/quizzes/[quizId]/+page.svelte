@@ -32,6 +32,7 @@
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
+		sequenceFiles: File[];
 		question: string;
 	};
 
@@ -43,6 +44,7 @@
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
+		sequenceFiles: File[];
 		question: string;
 	};
 
@@ -76,6 +78,7 @@
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
+			sequenceFiles: [],
 			question: question ?? ''
 		};
 
@@ -281,8 +284,36 @@
 		action="?/update"
 		enctype="multipart/form-data"
 		class="flex flex-col gap-6"
-		use:enhance={() => {
+		use:enhance={({ formData }) => {
 			submitting = true;
+
+			// Debug: Log new soundbites state
+			console.log('[Edit Quiz] New soundbites:', newSoundbites.length);
+			newSoundbites.forEach((sb, i) => {
+				console.log(
+					`[Edit Quiz] New soundbite ${i}: type=${sb.variantType}, files=${sb.sequenceFiles?.length || 0}`
+				);
+			});
+
+			// Add sequence files from new soundbites to form data
+			// The index should be relative to new soundbites only, starting from 0
+			newSoundbites.forEach((sb, index) => {
+				if (sb.variantType === 'sequence') {
+					console.log(
+						`[Edit Quiz] Adding ${sb.sequenceFiles.length} files for new soundbite ${index}`
+					);
+					sb.sequenceFiles.forEach((file) => {
+						formData.append(`sequenceFiles-${index}`, file);
+					});
+				}
+			});
+
+			// Debug: Log form data
+			console.log('[Edit Quiz] Form data entries:');
+			for (const [key, value] of formData.entries()) {
+				console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`);
+			}
+
 			return async ({ result, update }) => {
 				if (result.type === 'success') {
 					// Store current field values before update

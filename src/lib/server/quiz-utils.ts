@@ -108,6 +108,24 @@ export async function uploadToBlob(
 }
 
 /**
+ * Upload a file buffer to Vercel Blob storage
+ * Used for sequence tracks uploaded as base64
+ */
+export async function uploadBufferToBlob(
+	name: string,
+	buffer: Buffer,
+	token: string
+): Promise<{ url: string; pathname: string }> {
+	const blob = await put(name, buffer, {
+		access: 'public',
+		addRandomSuffix: true,
+		token
+	});
+
+	return { url: blob.url, pathname: blob.pathname };
+}
+
+/**
  * Delete a file from Vercel Blob storage
  */
 export async function deleteFromBlob(pathname: string, token: string): Promise<void> {

@@ -3,7 +3,8 @@
 		VariantConfig,
 		AnswerDetail,
 		MultipleChoiceConfig,
-		MultipleResponseConfig
+		MultipleResponseConfig,
+		SequenceConfig
 	} from '$lib/variant-types';
 
 	type Props = {
@@ -23,6 +24,9 @@
 		} else if (variantConfig.type === 'multiple_response') {
 			const correctOptions = variantConfig.options.filter((opt) => opt.isCorrect);
 			return correctOptions.map((opt) => opt.text).join(', ');
+		} else if (variantConfig.type === 'sequence') {
+			const correctTrack = variantConfig.tracks[variantConfig.correctTrackIndex];
+			return correctTrack?.name ?? '';
 		}
 		return '';
 	}
@@ -44,6 +48,13 @@
 				.map((id) => config.options.find((opt) => opt.id === id)?.text)
 				.filter(Boolean);
 			return selectedTexts.join(', ') || answerDetail.guess;
+		} else if (
+			answerDetail.variantType === 'sequence' &&
+			answerDetail.selectedTrackIndex !== undefined
+		) {
+			const config = variantConfig as SequenceConfig;
+			const selectedTrack = config.tracks[answerDetail.selectedTrackIndex];
+			return selectedTrack?.name ?? `Track ${answerDetail.selectedTrackIndex + 1}`;
 		}
 		return answerDetail.guess;
 	}

@@ -37,6 +37,7 @@
 		onSequenceTracksChange: (tracks: SequenceTrack[]) => void;
 		onSequenceCorrectTrackIndexChange: (index: number) => void;
 		onSequencePromptChange: (prompt: string) => void;
+		onSequenceFilesChange?: (files: File[]) => void;
 	}
 
 	let {
@@ -63,7 +64,8 @@
 		onMultipleResponseOptionsChange,
 		onSequenceTracksChange,
 		onSequenceCorrectTrackIndexChange,
-		onSequencePromptChange
+		onSequencePromptChange,
+		onSequenceFilesChange
 	}: Props = $props();
 
 	function getVariantConfigJson(): string {
@@ -86,7 +88,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	{#if fileInputName}
+	{#if fileInputName && variantType !== 'sequence'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
 				{fileInputLabel}
@@ -149,6 +151,7 @@
 			onTracksChange={onSequenceTracksChange}
 			onCorrectTrackIndexChange={onSequenceCorrectTrackIndexChange}
 			onPromptChange={onSequencePromptChange}
+			onFilesChange={onSequenceFilesChange}
 		/>
 	{/if}
 

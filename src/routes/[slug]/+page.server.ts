@@ -146,8 +146,8 @@ export const actions: Actions = {
 			} else if (soundbite.variantType === 'sequence') {
 				// For sequence, the answer is the track index
 				const trackIndexStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
-				selectedTrackIndex = parseInt(trackIndexStr, 10);
-				guess = trackIndexStr;
+				selectedTrackIndex = trackIndexStr ? parseInt(trackIndexStr, 10) : -1;
+				guess = trackIndexStr || '-1';
 			} else {
 				guess = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
 				// For multiple choice, the guess is the option ID

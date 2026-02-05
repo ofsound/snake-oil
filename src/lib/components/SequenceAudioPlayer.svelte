@@ -15,6 +15,10 @@
 	const engine = new MultiTrackAudioEngine();
 	let isInitialized = $state(false);
 	let hasBuzzed = $state(false);
+	let isBuffersLoaded = $state(false);
+	let loadError = $state<string | null>(null);
+	let previousTrackIndex = $state(-1);
+	let isTransitioning = $state(false);
 
 	// Calculate total duration and segment widths
 	const totalDuration = $derived(engine.getTotalDuration());
@@ -22,7 +26,7 @@
 	const segmentWidths = $derived(
 		tracks.map((_, index) => {
 			const duration = engine.getTrackDuration(index);
-			return totalDuration > 0 ? (duration / totalDuration) * 100 : 0;
+			return totalDuration > 0 ? (duration / totalDuration) * 100 : 100 / tracks.length;
 		})
 	);
 
@@ -30,6 +34,18 @@
 	const currentTrackIndex = $derived(engine.currentTrackIndex);
 	const currentTrackTime = $derived(engine.currentTime);
 	const isPlaying = $derived(engine.isPlaying);
+
+	// Detect track transitions
+	$effect(() => {
+		if (currentTrackIndex !== previousTrackIndex) {
+			isTransitioning = true;
+			previousTrackIndex = currentTrackIndex;
+			// Clear transitioning state after a short delay
+			setTimeout(() => {
+				isTransitioning = false;
+			}, 50);
+		}
+	});
 
 	// Calculate elapsed time in the entire sequence
 	const elapsedTime = $derived(() => {
@@ -43,7 +59,22 @@
 
 	onMount(() => {
 		engine.initialize();
-		engine.loadBuffers(tracks);
+		engine.isLoopEnabled = true; // Enable infinite loop for sequence
+		engine
+			.loadBuffers(tracks)
+			.then(() => {
+				isBuffersLoaded = true;
+				// Check if any tracks actually loaded
+				const loadedCount = tracks.filter((_, i) => engine.getTrackDuration(i) > 0).length;
+				if (loadedCount === 0) {
+					loadError = 'Failed to load audio tracks. Please check your connection and try again.';
+				}
+			})
+			.catch((err) => {
+				isBuffersLoaded = true;
+				loadError = 'Failed to load audio tracks';
+				console.error('[SequenceAudioPlayer] Error loading tracks:', err);
+			});
 		isInitialized = true;
 
 		return () => {
@@ -74,6 +105,8 @@
 			// Current track - calculate progress
 			const trackDuration = engine.getTrackDuration(trackIndex);
 			if (trackDuration <= 0) return 0;
+			// During transition, show 0% until time updates for the new track
+			if (isTransitioning && currentTrackTime > trackDuration * 0.5) return 0;
 			return (currentTrackTime / trackDuration) * 100;
 		} else {
 			// Future track
@@ -88,34 +121,48 @@
 		Track {currentTrackIndex + 1} of {tracks.length}
 	</div>
 
-	<!-- Segmented Progress Bar -->
-	<div class="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
-		<div class="flex h-full w-full">
-			{#each tracks as _, index (index)}
-				{@const width = segmentWidths[index]}
-				{@const fillPercent = getSegmentFillPercent(index)}
-				<div
-					class="relative h-full {index < tracks.length - 1 ? 'border-r border-white' : ''}"
-					style="width: {width}%"
-				>
-					<!-- Background -->
-					<div class="absolute inset-0 bg-neutral-200"></div>
-					<!-- Fill -->
-					<div
-						class="absolute inset-y-0 left-0 transition-all duration-100 {index < currentTrackIndex
-							? 'bg-emerald-400'
-							: 'bg-emerald-600'}"
-						style="width: {fillPercent}%"
-					></div>
-				</div>
-			{/each}
+	<!-- Loading State -->
+	{#if !isBuffersLoaded}
+		<div class="flex items-center justify-center gap-2 py-2">
+			<div
+				class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-emerald-600"
+			></div>
+			<span class="text-sm text-neutral-600">Loading audio...</span>
 		</div>
-	</div>
+	{:else if loadError}
+		<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+			{loadError}
+		</div>
+	{:else}
+		<!-- Segmented Progress Bar -->
+		<div class="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
+			<div class="flex h-full w-full">
+				{#each tracks as _, index (index)}
+					{@const width = segmentWidths[index]}
+					{@const fillPercent = getSegmentFillPercent(index)}
+					<div
+						class="relative h-full {index < tracks.length - 1 ? 'border-r border-white' : ''}"
+						style="width: {width}%"
+					>
+						<!-- Background -->
+						<div class="absolute inset-0 bg-neutral-200"></div>
+						<!-- Fill -->
+						<div
+							class="absolute inset-y-0 left-0 {index < currentTrackIndex
+								? 'bg-emerald-400'
+								: 'bg-emerald-600'}"
+							style="width: {fillPercent}%"
+						></div>
+					</div>
+				{/each}
+			</div>
+		</div>
 
-	<!-- Time Display -->
-	<div class="text-center text-xs text-gray-600">
-		{formatTime(elapsedTime())} / {formatTime(totalDuration)}
-	</div>
+		<!-- Time Display -->
+		<div class="text-center text-xs text-gray-600">
+			{formatTime(elapsedTime())} / {formatTime(totalDuration)}
+		</div>
+	{/if}
 
 	<!-- Controls -->
 	<div class="flex items-center justify-center gap-4">
@@ -123,7 +170,7 @@
 		<button
 			type="button"
 			onclick={handleTogglePlay}
-			disabled={!isInitialized || hasBuzzed}
+			disabled={!isInitialized || !isBuffersLoaded || hasBuzzed}
 			class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
 			aria-label={isPlaying ? 'Pause' : 'Play'}
 		>

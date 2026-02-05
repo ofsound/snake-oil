@@ -9,7 +9,9 @@
 		onTracksChange: (tracks: SequenceTrack[]) => void;
 		onCorrectTrackIndexChange: (index: number) => void;
 		onPromptChange: (prompt: string) => void;
+		onFilesChange?: (files: File[]) => void;
 		id?: string;
+		soundbiteIndex?: number; // Index of this soundbite in the form
 	}
 
 	let {
@@ -19,11 +21,22 @@
 		onTracksChange,
 		onCorrectTrackIndexChange,
 		onPromptChange,
-		id = 'sequence-editor'
+		onFilesChange,
+		id = 'sequence-editor',
+		soundbiteIndex = 0
 	}: Props = $props();
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isUploading = $state(false);
+	// Store actual File objects for form submission
+	let trackFiles = $state<Map<string, File>>(new Map());
+
+	// Update parent with files when they change
+	function updateParentFiles() {
+		if (onFilesChange) {
+			onFilesChange(Array.from(trackFiles.values()));
+		}
+	}
 
 	function extractNameFromFilename(filename: string): string {
 		return filename
@@ -46,20 +59,24 @@
 				continue;
 			}
 
-			// Create a temporary URL for the file
-			// In production, this would upload to Vercel Blob
-			const tempUrl = URL.createObjectURL(file);
+			const trackId = crypto.randomUUID();
+
+			// Store the file for form submission
+			trackFiles.set(trackId, file);
 
 			newTracks.push({
-				id: crypto.randomUUID(),
+				id: trackId,
 				name: extractNameFromFilename(file.name),
-				url: tempUrl
+				url: '' // Will be filled in by server after upload
 			});
 		}
 
 		// Merge with existing tracks
 		const updatedTracks = [...tracks, ...newTracks].slice(0, 10); // Max 10 tracks
 		onTracksChange(updatedTracks);
+
+		// Notify parent of file changes
+		updateParentFiles();
 
 		// Reset file input
 		if (fileInput) {
@@ -70,8 +87,16 @@
 	}
 
 	function removeTrack(index: number) {
+		const trackToRemove = tracks[index];
+		if (trackToRemove) {
+			trackFiles.delete(trackToRemove.id);
+		}
+
 		const updatedTracks = tracks.filter((_, i) => i !== index);
 		onTracksChange(updatedTracks);
+
+		// Notify parent of file changes
+		updateParentFiles();
 
 		// Adjust correctTrackIndex if needed
 		if (correctTrackIndex >= updatedTracks.length) {
