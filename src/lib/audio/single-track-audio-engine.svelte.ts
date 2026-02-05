@@ -325,6 +325,23 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
+	// Replace the gain node with a fresh one (no automation history). Use when starting after stop to avoid iOS click from stale gain state.
+	private replaceGainNodeWithFresh(): void {
+		if (!this.audioContext || !this.filterNode || !this.analyser) return;
+		const oldGain = this.gainNode;
+		if (!oldGain) return;
+
+		const newGain = this.audioContext.createGain();
+		const t = this.audioContext.currentTime;
+		newGain.gain.setValueAtTime(0, t);
+
+		this.filterNode.disconnect();
+		oldGain.disconnect();
+		this.filterNode.connect(newGain);
+		newGain.connect(this.analyser);
+		this.gainNode = newGain;
+	}
+
 	// Start playback from beginning
 	private startFromBeginning(): void {
 		if (!this.audioContext) return;
@@ -333,6 +350,7 @@ export class SingleTrackAudioEngine {
 		// iOS fix: Create the source AFTER the context is resumed
 		// Sources created while context is suspended may not play
 		const startPlayback = () => {
+			this.replaceGainNodeWithFresh();
 			this.armAudio(() => {
 				if (!this.source) {
 					console.error('Failed to create audio source');
