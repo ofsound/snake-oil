@@ -71,10 +71,15 @@ export class SingleTrackAudioEngine {
 			// Chain: source -> filter -> gain -> analyser -> destination
 			// (Will be connected when source is created)
 
-			// Listen for state changes
+			// Listen for state changes: only reflect "playing" when context is running and we have an active source
+			// (so resuming the context after stop doesn't flip the button to pause icon)
 			this.audioContext.addEventListener('statechange', () => {
 				if (this.audioContext) {
-					this.isPlaying = this.audioContext.state === 'running';
+					if (this.audioContext.state === 'running' && this.source && this.sourceHasStarted) {
+						this.isPlaying = true;
+					} else if (this.audioContext.state !== 'running') {
+						this.isPlaying = false;
+					}
 				}
 			});
 
@@ -308,7 +313,7 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			// Resume from pause: set gain to 0, resume, then fade in immediately (smooth ramp, no delay)
+			// Resume from pause: set gain to 0, resume, then use a fresh gain node and fade in (avoids iOS resume click)
 			if (this.audioContext && this.gainNode) {
 				const t = this.audioContext.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
@@ -318,11 +323,7 @@ export class SingleTrackAudioEngine {
 				.resume()
 				.then(() => {
 					this.isPlaying = true;
-					if (this.audioContext && this.gainNode) {
-						const t = this.audioContext.currentTime;
-						this.gainNode.gain.cancelScheduledValues(t);
-						this.gainNode.gain.setValueAtTime(0, t);
-					}
+					this.replaceGainNodeWithFresh();
 					this.fadeIn();
 				})
 				.catch((err) => {
@@ -444,6 +445,12 @@ export class SingleTrackAudioEngine {
 			this.isFirstPlay = true;
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
+			}
+			// If context was suspended (e.g. user paused then stop), resume so that play never has to resume (avoids iOS click).
+			if (this.audioContext?.state === 'suspended') {
+				this.audioContext.resume().catch((err) => {
+					console.error('Failed to resume audio context after stop:', err);
+				});
 			}
 		});
 	}
