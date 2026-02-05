@@ -1,10 +1,17 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import type { Component } from 'svelte';
 	import { AudioEngine } from '$lib/audio/audio-engine.svelte';
 	import { formatTime } from '$lib/audio/format-time';
 	import PlayerTransport from './PlayerTransport.svelte';
 	import SinglePlaylist from './SinglePlaylist.svelte';
-	import SpectrumVisualizer from './SpectrumVisualizer.svelte';
+
+	interface VisualizerProps {
+		analyser: AnalyserNode | null;
+		isPlaying?: boolean;
+	}
+
+	let VisualizerComponent = $state<Component<VisualizerProps> | null>(null);
 
 	interface Props {
 		tracks: Array<{
@@ -33,7 +40,9 @@
 
 	onMount(() => {
 		engine.initialize();
-
+		import('./SpectrumVisualizer.svelte').then((mod) => {
+			VisualizerComponent = mod.default;
+		});
 		return () => {
 			engine.destroy();
 		};
@@ -236,8 +245,10 @@
 				<span>{formatTime(engine.duration)}</span>
 			</div>
 
-			<!-- Spectrum Visualizer -->
-			<SpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
+			<!-- Spectrum Visualizer (client-only to avoid SSR/GSAP issues) -->
+			{#if VisualizerComponent}
+				<VisualizerComponent analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
+			{/if}
 		</div>
 
 		<!-- Desktop Layout -->
@@ -327,8 +338,10 @@
 				<span>{formatTime(engine.duration)}</span>
 			</div>
 
-			<!-- Spectrum Visualizer -->
-			<SpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
+			<!-- Spectrum Visualizer (client-only to avoid SSR/GSAP issues) -->
+			{#if VisualizerComponent}
+				<VisualizerComponent analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
+			{/if}
 		</div>
 	{/if}
 
