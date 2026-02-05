@@ -237,7 +237,7 @@
 			</div>
 
 			<!-- Spectrum Visualizer -->
-			<SpectrumVisualizer analyser={engine.getAnalyser()} />
+			<SpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
 		</div>
 
 		<!-- Desktop Layout -->
@@ -328,7 +328,7 @@
 			</div>
 
 			<!-- Spectrum Visualizer -->
-			<SpectrumVisualizer analyser={engine.getAnalyser()} />
+			<SpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
 		</div>
 	{/if}
 

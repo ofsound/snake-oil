@@ -9,9 +9,10 @@
 	// Props
 	interface Props {
 		analyser: AnalyserNode | null;
+		isPlaying?: boolean;
 	}
 
-	let { analyser }: Props = $props();
+	let { analyser, isPlaying = true }: Props = $props();
 
 	// Canvas refs
 	let canvas: HTMLCanvasElement | undefined = $state(undefined);
@@ -49,11 +50,16 @@
 		};
 	});
 
-	function stopDrawing() {
+	function stopDrawing(clearDisplay = false) {
 		isDrawing = false;
 		if (animationId) {
 			cancelAnimationFrame(animationId);
 			animationId = null;
+		}
+		if (clearDisplay && ctx && canvas) {
+			ctx.fillStyle = 'rgb(0, 0, 0)';
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			binCurrents = binConfigs.map(() => 0);
 		}
 	}
 
@@ -120,13 +126,13 @@
 		draw();
 	}
 
-	// Watch for analyser changes
+	// Watch for analyser and isPlaying changes
 	$effect(() => {
-		if (analyser && ctx && canvas) {
-			stopDrawing();
+		if (analyser && ctx && canvas && isPlaying) {
+			stopDrawing(false);
 			startDrawing(analyser);
 		} else {
-			stopDrawing();
+			stopDrawing(true);
 		}
 	});
 </script>

@@ -186,6 +186,11 @@ export class SingleTrackAudioEngine {
 		if (!this.audioBuffer) return;
 
 		const createNewSource = (): void => {
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
 			if (this.source) {
 				try {
 					this.source.disconnect();
@@ -338,6 +343,9 @@ export class SingleTrackAudioEngine {
 					this.gainNode.gain.cancelScheduledValues(t);
 					this.gainNode.gain.setValueAtTime(0, t);
 				}
+				if (this.analyser) {
+					this.analyser.smoothingTimeConstant = 0.8;
+				}
 				this.source.start(0);
 				this.sourceHasStarted = true;
 				this.startTime = this.audioContext!.currentTime;
@@ -390,7 +398,21 @@ export class SingleTrackAudioEngine {
 					console.error('Failed to suspend audio context:', err);
 				});
 			}
-			this.resetToStart();
+			if (this.source) {
+				try {
+					this.source.disconnect();
+				} catch {
+					// Already disconnected or invalid
+				}
+				this.source = null;
+				this.sourceHasStarted = false;
+			}
+			this.isPlaying = false;
+			this.currentTime = 0;
+			this.isFirstPlay = true;
+			if (this.analyser) {
+				this.analyser.smoothingTimeConstant = 0;
+			}
 		});
 	}
 
