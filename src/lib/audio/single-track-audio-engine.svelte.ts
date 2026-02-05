@@ -307,16 +307,14 @@ export class SingleTrackAudioEngine {
 		if (this.isFirstPlay) {
 			this.isFirstPlay = false;
 			this.startFromBeginning();
-		} else if (this.audioContext.state === 'running') {
-			// Pause: fade out then suspend so any suspend glitch on iOS happens at gain 0
+		} else if (this.isPlaying && this.audioContext.state === 'running') {
+			// Pause: fade out only, do not suspend. Keeping context running avoids suspend→resume
+			// and the iOS click on "pause then stop then play".
 			this.fadeOut(() => {
-				this.audioContext?.suspend().catch((err) => {
-					console.error('Failed to suspend audio context:', err);
-				});
 				this.isPlaying = false;
 			});
 		} else if (this.audioContext.state === 'suspended') {
-			// Resume from pause: set gain to 0, resume, then use a fresh gain node and fade in (avoids iOS resume click)
+			// Context suspended (e.g. page load or browser). Must resume to play.
 			if (this.audioContext && this.gainNode) {
 				const t = this.audioContext.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
@@ -327,13 +325,20 @@ export class SingleTrackAudioEngine {
 				.then(() => {
 					this.isPlaying = true;
 					this.replaceGainNodeWithFresh();
-					// Short delay before fade-in so iOS resume glitch happens while gain is 0
 					setTimeout(() => this.fadeIn(), 10);
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
 				});
 			this.isPlaying = true;
+		} else if (this.source && this.sourceHasStarted) {
+			// Resume from pause: context already running, source still connected. No suspend/resume.
+			this.replaceGainNodeWithFresh();
+			this.fadeIn();
+			this.isPlaying = true;
+		} else {
+			// Stopped: no source, context running. Start from beginning (no resume needed).
+			this.startFromBeginning();
 		}
 	}
 
