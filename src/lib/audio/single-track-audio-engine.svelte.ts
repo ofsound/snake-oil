@@ -325,6 +325,11 @@ export class SingleTrackAudioEngine {
 					console.error('Failed to create audio source');
 					return;
 				}
+				if (this.audioContext && this.gainNode) {
+					const t = this.audioContext.currentTime;
+					this.gainNode.gain.cancelScheduledValues(t);
+					this.gainNode.gain.setValueAtTime(0, t);
+				}
 				this.source.start(0);
 				this.sourceHasStarted = true;
 				this.startTime = this.audioContext!.currentTime;
@@ -337,11 +342,21 @@ export class SingleTrackAudioEngine {
 		// On iOS, context must be running BEFORE creating/starting the source
 		if (this.audioContext.state === 'suspended') {
 			console.log('Context suspended, resuming first...');
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
 			this.audioContext
 				.resume()
 				.then(() => {
 					console.log('Context resumed, starting playback...');
-					startPlayback();
+					if (this.audioContext && this.gainNode) {
+						const t = this.audioContext.currentTime;
+						this.gainNode.gain.cancelScheduledValues(t);
+						this.gainNode.gain.setValueAtTime(0, t);
+					}
+					setTimeout(() => startPlayback(), 10);
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
