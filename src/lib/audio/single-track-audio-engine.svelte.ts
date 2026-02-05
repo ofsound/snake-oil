@@ -450,8 +450,16 @@ export class SingleTrackAudioEngine {
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
 			}
-			// Do not resume the context here when suspended (e.g. after pause then stop).
-			// Resuming on stop caused an audible artifact on iOS when stopping from pause.
+			// If context was suspended (pause then stop), resume after a delay so that when the user
+			// presses play the context is already running (avoids iOS click on play). Immediate resume
+			// caused an artifact at the moment of stop; delayed resume happens while idle/silent.
+			if (this.audioContext?.state === 'suspended') {
+				setTimeout(() => {
+					this.audioContext?.resume().catch((err) => {
+						console.error('Failed to resume audio context after stop:', err);
+					});
+				}, 200);
+			}
 		});
 	}
 
