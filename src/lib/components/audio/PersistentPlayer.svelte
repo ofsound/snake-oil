@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Component } from 'svelte';
-	import { AudioEngine } from '$lib/audio/audio-engine.svelte';
+	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
 	import { formatTime } from '$lib/audio/format-time';
 	import PlayerTransport from './PlayerTransport.svelte';
 	import SinglePlaylist from './SinglePlaylist.svelte';
@@ -26,7 +26,7 @@
 
 	let { tracks, error: initialError = null }: Props = $props();
 
-	const engine = new AudioEngine();
+	const engine = new MultiTrackAudioEngine();
 	let playlistVisible = $state(false);
 	let progressRef = $state<HTMLDivElement | null>(null);
 
@@ -161,8 +161,7 @@
 			<span class="text-sm text-gray-600 dark:text-gray-400">Loading audio...</span>
 		</div>
 	{:else}
-		<!-- Mobile Layout -->
-		<div class="flex flex-col gap-4 p-4 md:hidden">
+		<div class="flex flex-col gap-4 p-4">
 			<!-- Title -->
 			<div class="text-center">
 				<h3 class="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -172,20 +171,39 @@
 
 			<!-- Playlist Button & Volume -->
 			<div class="flex items-center justify-between">
-				<button
-					onclick={() => (playlistVisible = !playlistVisible)}
-					class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 6h16M4 12h16M4 18h16"
-						/>
-					</svg>
-					<span class="text-sm">Playlist</span>
-				</button>
+				<div class="flex items-center gap-2">
+					<button
+						onclick={() => (playlistVisible = !playlistVisible)}
+						class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					>
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 6h16M4 12h16M4 18h16"
+							/>
+						</svg>
+						<span class="text-sm">Playlist</span>
+					</button>
+
+					<button
+						onclick={() => engine.toggleShuffle()}
+						class="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors {engine.isShuffleEnabled
+							? 'bg-green-800 text-white'
+							: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						aria-label="Toggle shuffle"
+					>
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"
+							/>
+						</svg>
+					</button>
+				</div>
 
 				<input
 					type="range"
@@ -224,100 +242,7 @@
 				tabindex="0"
 			>
 				<div
-					class="absolute inset-y-0 left-0 rounded-full bg-green-800 transition-all duration-100"
-					style="width: {progressPercentage}%"
-				></div>
-
-				<!-- Tooltip -->
-				{#if tooltip.visible}
-					<div
-						class="pointer-events-none absolute -top-8 -translate-x-1/2 transform rounded bg-gray-900 px-2 py-1 text-xs text-white"
-						style="left: {tooltip.x}px"
-					>
-						{formatTime(tooltip.time)}
-					</div>
-				{/if}
-			</div>
-
-			<!-- Time Display -->
-			<div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-				<span>{formatTime(engine.currentTime)}</span>
-				<span>{formatTime(engine.duration)}</span>
-			</div>
-
-			<!-- Spectrum Visualizer (client-only to avoid SSR/GSAP issues) -->
-			{#if VisualizerComponent}
-				<VisualizerComponent analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
-			{/if}
-		</div>
-
-		<!-- Desktop Layout -->
-		<div class="hidden flex-col gap-4 p-4 md:flex">
-			<!-- Top Row: Title | Transport | Playlist+Volume -->
-			<div class="flex items-center justify-between">
-				<!-- Title -->
-				<div class="mr-4 min-w-0 flex-1">
-					<h3 class="truncate text-lg font-semibold text-gray-900 dark:text-white">
-						{engine.getCurrentTrack()?.name || 'No track selected'}
-					</h3>
-				</div>
-
-				<!-- Transport Controls -->
-				<div class="shrink-0">
-					<PlayerTransport
-						isPlaying={engine.isPlaying}
-						isBuffering={engine.isBuffering}
-						onPlayPause={() => engine.togglePlayPause()}
-						onPrevious={() => engine.previousTrack()}
-						onNext={() => engine.nextTrack()}
-					/>
-				</div>
-
-				<!-- Playlist Button & Volume -->
-				<div class="ml-4 flex flex-1 items-center justify-end gap-4">
-					<button
-						onclick={() => (playlistVisible = !playlistVisible)}
-						class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 6h16M4 12h16M4 18h16"
-							/>
-						</svg>
-						<span class="text-sm">Playlist</span>
-					</button>
-
-					<input
-						type="range"
-						min="0"
-						max="1"
-						step="0.01"
-						value={engine.volume}
-						oninput={(e) => engine.setVolume(parseFloat(e.currentTarget.value))}
-						class="w-24 accent-green-800"
-					/>
-				</div>
-			</div>
-
-			<!-- Progress Bar -->
-			<div
-				bind:this={progressRef}
-				class="group relative h-3 cursor-pointer rounded-full bg-gray-200 dark:bg-gray-700"
-				onclick={handleProgressClick}
-				onkeydown={handleProgressKeyDown}
-				onmousemove={handleProgressMouseMove}
-				onmouseleave={handleProgressMouseLeave}
-				role="slider"
-				aria-valuenow={engine.currentTime}
-				aria-valuemax={engine.duration}
-				aria-label="Progress"
-				tabindex="0"
-			>
-				<div
-					class="absolute inset-y-0 left-0 rounded-full bg-green-800 transition-all duration-100"
+					class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-green-800"
 					style="width: {progressPercentage}%"
 				></div>
 

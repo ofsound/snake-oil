@@ -40,15 +40,57 @@
 
 	// Animation refs - use $state for reactivity when binding with bind:this
 	let binElements = $state<HTMLDivElement[]>([]);
+	let resizeObserver: ResizeObserver | null = null;
+
+	// Logical size (CSS pixels) - used for calculations
+	let canvasWidth = $state(600);
+	let canvasHeight = $state(150);
 
 	onMount(() => {
 		if (canvas) {
 			ctx = canvas.getContext('2d');
+			setupCanvasSizing();
 		}
 		return () => {
 			stopDrawing();
+			resizeObserver?.disconnect();
 		};
 	});
+
+	function setupCanvasSizing() {
+		if (!canvas) return;
+
+		// Initial sizing
+		updateCanvasSize();
+
+		// Setup resize observer for responsive sizing
+		resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const { width, height } = entry.contentRect;
+				canvasWidth = width;
+				canvasHeight = height;
+				updateCanvasSize();
+			}
+		});
+
+		resizeObserver.observe(canvas);
+	}
+
+	function updateCanvasSize() {
+		if (!canvas) return;
+
+		// Get device pixel ratio for crisp rendering
+		const dpr = window.devicePixelRatio || 1;
+
+		// Set the actual canvas size in physical pixels
+		canvas.width = Math.floor(canvasWidth * dpr);
+		canvas.height = Math.floor(canvasHeight * dpr);
+
+		// Scale the context so drawing operations use CSS pixels
+		if (ctx) {
+			ctx.scale(dpr, dpr);
+		}
+	}
 
 	function stopDrawing(clearDisplay = false) {
 		isDrawing = false;
@@ -58,7 +100,7 @@
 		}
 		if (clearDisplay && ctx && canvas) {
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 			binCurrents = binConfigs.map(() => 0);
 		}
 	}
@@ -69,7 +111,7 @@
 		isDrawing = true;
 		const bufferLength = currentAnalyser.frequencyBinCount;
 		const dataArray = new Uint8Array(bufferLength);
-		const barWidth = canvas.width / bufferLength;
+		const barWidth = canvasWidth / bufferLength;
 
 		// Local array for bin totals (not reactive)
 		const binTotals = new Array(binConfigs.length).fill(0);
@@ -82,7 +124,7 @@
 
 			// Clear canvas
 			ctx.fillStyle = 'rgb(0, 0, 0)';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
 			// Reset bin totals
 			binTotals.fill(0);
@@ -103,7 +145,7 @@
 				// Draw bar with gradient
 				const r = barHeight + 100;
 				ctx.fillStyle = `rgb(${r}, 50, 50)`;
-				ctx.fillRect(x, canvas.height - barHeight / 2, barWidth - 1, barHeight / 2);
+				ctx.fillRect(x, canvasHeight - barHeight / 2, barWidth - 1, barHeight / 2);
 			}
 
 			// Update reactive state once per frame (not inside the loop)
@@ -138,8 +180,7 @@
 </script>
 
 <div class="w-full max-w-2xl">
-	<canvas bind:this={canvas} width={600} height={150} class="block h-[150px] w-full bg-black"
-	></canvas>
+	<canvas bind:this={canvas} class="block h-[150px] w-full bg-black"></canvas>
 
 	<div class="bg-white p-10">
 		<div class="grid grid-cols-2 gap-4">

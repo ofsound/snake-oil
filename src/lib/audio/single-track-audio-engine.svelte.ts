@@ -1,18 +1,21 @@
 /**
- * SingleTrackAudioEngine - State Machine Implementation
- * 
- * This engine manages single-track audio playback with iOS-specific optimizations
- * to prevent audio clicks and artifacts. The implementation uses an explicit state
- * machine to manage playback states and transitions.
- * 
- * iOS Audio Strategy:
- * - Never suspend AudioContext on pause/stop (avoids suspend→resume click)
- * - Use 20ms fade in/out ramps on all state changes
- * - Replace gain nodes when starting from stop/pause (clears automation history)
- * - Analyser smoothing reset on stop, restored 50ms after play starts
- * - 10ms delays before source creation to prevent connection spikes
+ * SingleTrackAudioEngine - Audio engine for single-track playback
+ *
+ * Extends BaseAudioEngine with logic for playing a single audio file.
+ * Features:
+ * - Load and play a single audio URL
+ * - Seek, pause, resume with iOS click prevention
+ * - Track naturally ending resets to start
+ *
+ * Usage:
+ *   const engine = new SingleTrackAudioEngine();
+ *   await engine.loadBuffer('/audio/song.mp3');
+ *   engine.togglePlayPause();
  */
 
+import { BaseAudioEngine } from './base-audio-engine.svelte';
+
+// Playback states for the state machine
 enum PlaybackState {
 	IDLE = 'idle',
 	LOADING = 'loading',
@@ -24,6 +27,7 @@ enum PlaybackState {
 	ERROR = 'error'
 }
 
+// Internal state representation
 interface AudioState {
 	playback: PlaybackState;
 	contextState: AudioContextState | null;
@@ -32,125 +36,60 @@ interface AudioState {
 	isFirstPlay: boolean;
 }
 
-export class SingleTrackAudioEngine {
-	// Reactive state using Svelte 5 runes
-	isPlaying = $state(false);
-	isLoading = $state(false);
-	isBuffering = $state(false);
-	error = $state<string | null>(null);
-	currentTime = $state(0);
-	duration = $state(0);
-	volume = $state(1);
-	filterFrequency = $state(20000);
-	progress = $derived(this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0);
-	bufferLoaded = $state(false);
-	isInitialized = $state(false);
+export class SingleTrackAudioEngine extends BaseAudioEngine {
+	/**
+	 * SINGLE-TRACK SPECIFIC STATE
+	 */
 
-	// Web Audio API internals
-	private audioContext: AudioContext | null = null;
-	private analyser: AnalyserNode | null = null;
-	private gainNode: GainNode | null = null;
-	private filterNode: BiquadFilterNode | null = null;
-	private source: AudioBufferSourceNode | null = null;
+	/** Whether audio buffer has been loaded */
+	bufferLoaded = $state(false);
+
+	/** The decoded audio buffer for the current track */
 	private audioBuffer: AudioBuffer | null = null;
-	private startTime = 0;
-	private sourceHasStarted = false;
-	private animationFrameId: number | null = null;
-	private isFirstPlay = true;
+
+	/** URL of the currently loaded track */
 	private trackUrl: string | null = null;
+
+	/** Whether a load operation is in progress (prevents concurrent loads) */
 	private loadInProgress = false;
 
-	private static readonly FADE_DURATION_S = 0.02;
+	/** Whether this is the first play (affects initialization flow) */
+	private isFirstPlay = true;
 
-	constructor() {
-		// Defer initialization to when initialize() is called
-		// This prevents SSR errors
+	/**
+	 * Abstract method implementation: load audio.
+	 * For single-track, delegates to loadBuffer with the URL.
+	 */
+	async loadAudio(url: string): Promise<void> {
+		return this.loadBuffer(url);
 	}
 
-	initialize(): boolean {
-		if (typeof window === 'undefined') {
-			return false;
-		}
-
-		const needsReinit =
-			!this.isInitialized || !this.audioContext || this.audioContext.state === 'closed';
-
-		if (!needsReinit) {
-			return true;
-		}
-
-		try {
-			if (this.audioContext?.state === 'closed') {
-				this.cleanup();
-			}
-
-			this.audioContext = new window.AudioContext();
-			this.audioContext.suspend();
-
-			this.analyser = this.audioContext.createAnalyser();
-			this.analyser.fftSize = 256;
-
-			this.gainNode = this.audioContext.createGain();
-			this.gainNode.gain.value = this.volume;
-
-			this.filterNode = this.audioContext.createBiquadFilter();
-			this.filterNode.type = 'lowpass';
-			this.filterNode.frequency.value = this.filterFrequency;
-			this.filterNode.Q.value = 0.707;
-
-			this.audioContext.addEventListener('statechange', () => {
-				if (this.audioContext) {
-					if (this.audioContext.state === 'running' && this.source && this.sourceHasStarted) {
-						this.isPlaying = true;
-					} else if (this.audioContext.state !== 'running') {
-						this.isPlaying = false;
-					}
-				}
-			});
-
-			this.updateTimeLoop();
-			this.isInitialized = true;
-			return true;
-		} catch (err) {
-			this.error = 'Failed to initialize audio engine';
-			console.error('SingleTrackAudioEngine initialization failed:', err);
-			this.isInitialized = false;
-			return false;
-		}
-	}
-
-	private ensureInitialized(): boolean {
-		if (typeof window === 'undefined') {
-			return false;
-		}
-
-		const needsInit =
-			!this.isInitialized || !this.audioContext || this.audioContext.state === 'closed';
-
-		if (needsInit) {
-			const success = this.initialize();
-			return success && this.audioContext !== null;
-		}
-		return this.audioContext !== null;
-	}
-
+	/**
+	 * Load a single audio file from URL.
+	 *
+	 * @param url - URL of the audio file to load
+	 */
 	async loadBuffer(url: string): Promise<void> {
+		// Prevent concurrent load operations
 		if (this.loadInProgress) {
-			console.log('Load already in progress, skipping');
+			console.log('[SingleTrackAudioEngine] Load already in progress, skipping');
 			return;
 		}
 
+		// Skip if already loaded this URL
 		if (this.bufferLoaded && this.trackUrl === url && this.audioBuffer) {
-			console.log('Buffer already loaded for this URL, skipping');
+			console.log('[SingleTrackAudioEngine] Buffer already loaded for this URL, skipping');
 			return;
 		}
 
+		// Initialize audio context if needed
 		if (!this.ensureInitialized()) {
 			this.error = 'Audio engine not initialized';
 			return;
 		}
 
-		if (!this.audioContext) {
+		const ctx = this.audioContext;
+		if (!ctx) {
 			this.error = 'Audio context not available';
 			return;
 		}
@@ -161,28 +100,32 @@ export class SingleTrackAudioEngine {
 		this.error = null;
 
 		try {
+			// Fetch audio data
 			const response = await fetch(url);
 			if (!response.ok) {
 				throw new Error('Failed to fetch audio: ' + response.statusText);
 			}
 			const arrayBuffer = await response.arrayBuffer();
 
+			// Context might have been destroyed during async fetch
 			if (!this.audioContext) {
 				throw new Error('Audio context was destroyed during load');
 			}
 
+			// Decode audio data
 			this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 
 			if (!this.audioBuffer) {
 				throw new Error('Failed to decode audio data');
 			}
 
+			// Update state and prepare for playback
 			this.bufferLoaded = true;
 			this.duration = this.audioBuffer.duration;
 			this.armAudio();
 		} catch (err) {
 			this.error = err instanceof Error ? err.message : 'Failed to load audio';
-			console.error('Error loading buffer:', err);
+			console.error('[SingleTrackAudioEngine] Error loading buffer:', err);
 			this.bufferLoaded = false;
 		} finally {
 			this.isLoading = false;
@@ -190,6 +133,9 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
+	/**
+	 * Retry loading the current track.
+	 */
 	async retryLoad(): Promise<void> {
 		if (this.trackUrl) {
 			await this.loadBuffer(this.trackUrl);
@@ -197,7 +143,8 @@ export class SingleTrackAudioEngine {
 	}
 
 	/**
-	 * State Machine: Determines current playback state based on all internal flags
+	 * Determine current playback state based on internal flags.
+	 * Used by the state machine to decide which transition to execute.
 	 */
 	private getCurrentState(): AudioState {
 		return {
@@ -209,58 +156,62 @@ export class SingleTrackAudioEngine {
 		};
 	}
 
+	/**
+	 * Map internal flags to a PlaybackState enum value.
+	 */
 	private determinePlaybackState(): PlaybackState {
 		if (this.error) return PlaybackState.ERROR;
 		if (this.isLoading) return PlaybackState.LOADING;
 		if (!this.bufferLoaded) return PlaybackState.IDLE;
 		if (this.isBuffering) return PlaybackState.SEEKING;
-		
+
 		if (this.isPlaying && this.sourceHasStarted) {
 			return PlaybackState.PLAYING;
 		}
-		
+
 		if (!this.isPlaying && this.source && this.sourceHasStarted) {
 			return PlaybackState.PAUSED;
 		}
-		
+
 		if (!this.isPlaying && !this.source && !this.isFirstPlay) {
 			return PlaybackState.STOPPED;
 		}
-		
+
 		if (!this.isPlaying && this.isFirstPlay) {
 			return PlaybackState.READY;
 		}
-		
+
 		return PlaybackState.IDLE;
 	}
 
 	/**
-	 * State Machine: Main toggle handler
-	 * Routes to appropriate transition based on current state
+	 * Toggle play/pause based on current state.
+	 * This is the main entry point for play/pause control.
 	 */
 	togglePlayPause(): void {
+		// Reinitialize if context was closed
 		const needsReinit = !this.audioContext || this.audioContext.state === 'closed';
 
 		if (needsReinit) {
-			console.log('AudioContext needs reinitialization...');
+			console.log('[SingleTrackAudioEngine] AudioContext needs reinitialization...');
 			const reinitSuccess = this.initialize();
 			if (!reinitSuccess || !this.audioContext) {
-				console.error('Failed to reinitialize audio context');
+				console.error('[SingleTrackAudioEngine] Failed to reinitialize audio context');
 				this.error = 'Failed to initialize audio';
 				return;
 			}
-			console.log('AudioContext reinitialized, reloading buffer...');
+			console.log('[SingleTrackAudioEngine] AudioContext reinitialized, reloading buffer...');
 			if (this.trackUrl) {
 				this.loadBuffer(this.trackUrl).then(() => {
 					if (this.bufferLoaded) {
-						console.log('Buffer reloaded after reinit');
+						console.log('[SingleTrackAudioEngine] Buffer reloaded after reinit');
 					}
 				});
 			}
 		}
 
 		if (!this.audioContext || !this.bufferLoaded) {
-			console.log('Cannot play: context or buffer not ready', {
+			console.log('[SingleTrackAudioEngine] Cannot play: context or buffer not ready', {
 				hasContext: !!this.audioContext,
 				bufferLoaded: this.bufferLoaded
 			});
@@ -268,8 +219,9 @@ export class SingleTrackAudioEngine {
 		}
 
 		const state = this.getCurrentState();
-		console.log('State transition:', state);
+		console.log('[SingleTrackAudioEngine] State transition:', state);
 
+		// Route to appropriate state transition
 		if (state.isFirstPlay) {
 			this.isFirstPlay = false;
 			this.transitionToPlayingFromStart();
@@ -285,8 +237,10 @@ export class SingleTrackAudioEngine {
 	}
 
 	/**
-	 * State Transition: PLAYING → PAUSED
-	 * iOS: Fade out only, do NOT suspend context
+	 * STATE TRANSITION: PLAYING → PAUSED
+	 *
+	 * iOS Strategy: Fade out only, do NOT suspend context.
+	 * Keeping context running avoids the suspend→resume click.
 	 */
 	private transitionToPaused(): void {
 		this.fadeOut(() => {
@@ -295,17 +249,21 @@ export class SingleTrackAudioEngine {
 	}
 
 	/**
-	 * State Transition: SUSPENDED → PLAYING
-	 * iOS: Must resume context, replace gain node, fade in
+	 * STATE TRANSITION: SUSPENDED → PLAYING
+	 *
+	 * iOS Strategy: Must resume context, replace gain node, fade in.
+	 * This is for initial play after page load.
 	 */
 	private transitionToPlayingFromSuspended(): void {
-		if (!this.audioContext || !this.gainNode) return;
+		const ctx = this.audioContext;
+		const gain = this.gainNode;
+		if (!ctx || !gain) return;
 
-		const t = this.audioContext.currentTime;
-		this.gainNode.gain.cancelScheduledValues(t);
-		this.gainNode.gain.setValueAtTime(0, t);
+		const t = ctx.currentTime;
+		gain.gain.cancelScheduledValues(t);
+		gain.gain.setValueAtTime(0, t);
 
-		this.audioContext
+		ctx
 			.resume()
 			.then(() => {
 				this.isPlaying = true;
@@ -313,14 +271,16 @@ export class SingleTrackAudioEngine {
 				setTimeout(() => this.fadeIn(), 10);
 			})
 			.catch((err) => {
-				console.error('Failed to resume audio context:', err);
+				console.error('[SingleTrackAudioEngine] Failed to resume audio context:', err);
 			});
 		this.isPlaying = true;
 	}
 
 	/**
-	 * State Transition: PAUSED → PLAYING
-	 * iOS: Context already running, replace gain node, fade in
+	 * STATE TRANSITION: PAUSED → PLAYING
+	 *
+	 * iOS Strategy: Context already running, replace gain node, fade in.
+	 * No context.resume() needed since we never suspended.
 	 */
 	private transitionToPlayingFromPaused(): void {
 		this.replaceGainNodeWithFresh();
@@ -329,66 +289,81 @@ export class SingleTrackAudioEngine {
 	}
 
 	/**
-	 * State Transition: STOPPED/READY → PLAYING
-	 * iOS: Handles both suspended and running context states
+	 * STATE TRANSITION: STOPPED/READY → PLAYING
+	 *
+	 * iOS Strategy: Handle both suspended and running context states.
+	 * Replace gain node, arm audio, fade in.
 	 */
 	private transitionToPlayingFromStart(): void {
-		if (!this.audioContext) return;
-		if (this.audioContext.state === 'closed') return;
+		const ctx = this.audioContext;
+		if (!ctx) return;
+		if (ctx.state === 'closed') return;
 
 		const startPlayback = () => {
 			this.replaceGainNodeWithFresh();
 			this.armAudio(() => {
 				if (!this.source) {
-					console.error('Failed to create audio source');
+					console.error('[SingleTrackAudioEngine] Failed to create audio source');
 					return;
 				}
-				if (this.audioContext && this.gainNode) {
-					const t = this.audioContext.currentTime;
+
+				const audioCtx = this.audioContext;
+				if (!audioCtx) {
+					console.error('[SingleTrackAudioEngine] Audio context lost during playback start');
+					return;
+				}
+
+				if (this.gainNode) {
+					const t = audioCtx.currentTime;
 					this.gainNode.gain.cancelScheduledValues(t);
 					this.gainNode.gain.setValueAtTime(0, t);
 				}
+
 				if (this.analyser) {
 					this.analyser.smoothingTimeConstant = 0;
 				}
+
 				this.source.start(0);
 				this.sourceHasStarted = true;
-				this.startTime = this.audioContext!.currentTime;
+				this.startTime = audioCtx.currentTime;
 				this.isPlaying = true;
 				this.fadeIn();
+
 				if (this.analyser) {
 					setTimeout(() => {
 						if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
 					}, 50);
 				}
-				console.log('Playback started successfully');
+
+				console.log('[SingleTrackAudioEngine] Playback started successfully');
 			});
 		};
 
-		if (this.audioContext.state === 'suspended') {
-			console.log('Context suspended, resuming first...');
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
+		if (ctx.state === 'suspended') {
+			console.log('[SingleTrackAudioEngine] Context suspended, resuming first...');
+			if (this.gainNode) {
+				const t = ctx.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
 				this.gainNode.gain.setValueAtTime(0, t);
 			}
-			this.audioContext
+			ctx
 				.resume()
 				.then(() => {
-					console.log('Context resumed, starting playback...');
-					if (this.audioContext && this.gainNode) {
-						const t = this.audioContext.currentTime;
+					console.log('[SingleTrackAudioEngine] Context resumed, starting playback...');
+					const audioCtx = this.audioContext;
+					if (audioCtx && this.gainNode) {
+						const t = audioCtx.currentTime;
 						this.gainNode.gain.cancelScheduledValues(t);
 						this.gainNode.gain.setValueAtTime(0, t);
 					}
 					setTimeout(() => startPlayback(), 10);
 				})
 				.catch((err) => {
-					console.error('Failed to resume audio context:', err);
+					console.error('[SingleTrackAudioEngine] Failed to resume audio context:', err);
 				});
 		} else {
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
+			if (this.gainNode) {
+				const t = ctx.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
 				this.gainNode.gain.setValueAtTime(0, t);
 			}
@@ -397,8 +372,9 @@ export class SingleTrackAudioEngine {
 	}
 
 	/**
-	 * State Transition: PLAYING/PAUSED → STOPPED
-	 * iOS: Fade out, disconnect source, DO NOT suspend context
+	 * STATE TRANSITION: PLAYING/PAUSED → STOPPED
+	 *
+	 * iOS Strategy: Fade out, disconnect source, DO NOT suspend context.
 	 */
 	stopAndReset(): void {
 		if (!this.audioContext) return;
@@ -413,67 +389,84 @@ export class SingleTrackAudioEngine {
 			if (this.source) {
 				try {
 					this.source.disconnect();
-				} catch {
-					console.debug('Source already disconnected');
+				} catch (err) {
+					console.error('[SingleTrackAudioEngine] Failed to disconnect source during stop:', err);
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
 			}
+
 			this.isPlaying = false;
 			this.currentTime = 0;
 			this.isFirstPlay = true;
+
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
 			}
 		});
 	}
 
+	/**
+	 * Prepare audio source for playback.
+	 * Creates buffer source, connects nodes, sets up onended callback.
+	 *
+	 * @param afterReady - Callback when source is ready (after fade-out if switching)
+	 */
 	private armAudio(afterReady?: () => void): void {
-		if (!this.audioContext || !this.gainNode || !this.analyser || !this.filterNode) return;
-		if (!this.audioBuffer) return;
+		const ctx = this.audioContext;
+		const gain = this.gainNode;
+		const analyser = this.analyser;
+		const filter = this.filterNode;
+		const buffer = this.audioBuffer;
+
+		if (!ctx || !gain || !analyser || !filter || !buffer) return;
 
 		const createNewSource = (): void => {
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
+			// Reset gain before creating new source
+			const t = ctx.currentTime;
+			gain.gain.cancelScheduledValues(t);
+			gain.gain.setValueAtTime(0, t);
+
+			// Disconnect old source if exists
 			if (this.source) {
 				try {
 					this.source.disconnect();
-				} catch {
-					console.debug('Source already disconnected');
+				} catch (err) {
+					console.error('[SingleTrackAudioEngine] Failed to disconnect source in armAudio:', err);
 				}
 				this.source = null;
 			}
-			this.source = this.audioContext!.createBufferSource();
-			this.source!.buffer = this.audioBuffer;
 
-			this.source!
-				.connect(this.filterNode!)
-				.connect(this.gainNode!)
-				.connect(this.analyser!)
-				.connect(this.audioContext!.destination);
+			// Create new buffer source
+			const newSource = ctx.createBufferSource();
+			newSource.buffer = buffer;
+			newSource.connect(filter).connect(gain).connect(analyser).connect(ctx.destination);
 
-			this.source!.onended = () => {
+			// Handle track naturally ending
+			newSource.onended = () => {
 				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
-					this.resetToStart();
+					this.onTrackEnded();
 				}
 			};
 
+			this.source = newSource;
 			this.sourceHasStarted = false;
-			const t = this.audioContext!.currentTime;
-			this.gainNode!.gain.cancelScheduledValues(t);
-			this.gainNode!.gain.setValueAtTime(0, t);
+
+			// Reset gain for fresh start
+			const now = ctx.currentTime;
+			gain.gain.cancelScheduledValues(now);
+			gain.gain.setValueAtTime(0, now);
+
 			afterReady?.();
 		};
 
+		// If currently playing, fade out first then create new source
 		if (this.source && this.sourceHasStarted) {
 			this.fadeOut(() => {
 				try {
 					this.source?.stop();
-				} catch {
-					console.debug('Source already stopped');
+				} catch (err) {
+					console.error('[SingleTrackAudioEngine] Failed to stop source during armAudio:', err);
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
@@ -484,44 +477,17 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	private replaceGainNodeWithFresh(): void {
-		if (!this.audioContext || !this.filterNode || !this.analyser) return;
-		const oldGain = this.gainNode;
-		if (!oldGain) return;
-
-		const newGain = this.audioContext.createGain();
-		const t = this.audioContext.currentTime;
-		newGain.gain.setValueAtTime(0, t);
-
-		this.filterNode.disconnect();
-		oldGain.disconnect();
-		this.filterNode.connect(newGain);
-		newGain.connect(this.analyser);
-		this.gainNode = newGain;
+	/**
+	 * Handle track naturally reaching the end.
+	 * For single-track: reset to start and stop.
+	 */
+	protected onTrackEnded(): void {
+		this.resetToStart();
 	}
 
-	private fadeIn(): void {
-		if (!this.audioContext || !this.gainNode) return;
-		const now = this.audioContext.currentTime;
-		this.gainNode.gain.setValueAtTime(0, now);
-		this.gainNode.gain.linearRampToValueAtTime(
-			this.volume,
-			now + SingleTrackAudioEngine.FADE_DURATION_S
-		);
-	}
-
-	private fadeOut(onComplete?: () => void): void {
-		if (!this.audioContext || !this.gainNode) return;
-		const now = this.audioContext.currentTime;
-		this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
-		this.gainNode.gain.linearRampToValueAtTime(
-			0,
-			now + SingleTrackAudioEngine.FADE_DURATION_S
-		);
-		const ms = SingleTrackAudioEngine.FADE_DURATION_S * 1000;
-		setTimeout(() => onComplete?.(), ms);
-	}
-
+	/**
+	 * Reset playback to the beginning of the track.
+	 */
 	private resetToStart(): void {
 		this.isPlaying = false;
 		this.currentTime = 0;
@@ -532,62 +498,65 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
+	/**
+	 * Seek to a specific time position.
+	 *
+	 * @param time - Time in seconds to seek to
+	 */
 	seek(time: number): void {
-		if (
-			!this.audioBuffer ||
-			!this.audioContext ||
-			!this.gainNode ||
-			!this.filterNode ||
-			!this.analyser
-		)
-			return;
+		const ctx = this.audioContext;
+		const gain = this.gainNode;
+		const filter = this.filterNode;
+		const analyser = this.analyser;
+		const buffer = this.audioBuffer;
+
+		if (!buffer || !ctx || !gain || !filter || !analyser) return;
 
 		const clampedTime = Math.max(0, Math.min(time, this.duration));
 
 		const createAndStartSource = (): void => {
-			this.source = this.audioContext!.createBufferSource();
-			this.source!.buffer = this.audioBuffer;
-			this.source!
-				.connect(this.filterNode!)
-				.connect(this.gainNode!)
-				.connect(this.analyser!)
-				.connect(this.audioContext!.destination);
+			const newSource = ctx.createBufferSource();
+			newSource.buffer = buffer;
+			newSource.connect(filter).connect(gain).connect(analyser).connect(ctx.destination);
 
-			this.source!.onended = () => {
+			newSource.onended = () => {
 				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
 					this.resetToStart();
 				}
 			};
 
-			this.source.start(0, clampedTime);
+			newSource.start(0, clampedTime);
+
+			this.source = newSource;
 			this.sourceHasStarted = true;
-			this.startTime = this.audioContext!.currentTime - clampedTime;
+			this.startTime = ctx.currentTime - clampedTime;
 			this.currentTime = clampedTime;
 			this.isPlaying = true;
 			this.isFirstPlay = false;
-			this.gainNode!.gain.setValueAtTime(0, this.audioContext!.currentTime);
+			gain.gain.setValueAtTime(0, ctx.currentTime);
 			this.fadeIn();
 		};
 
 		const doSeek = (): void => {
-			if (this.audioContext!.state === 'suspended') {
-				this.audioContext!
+			if (ctx.state === 'suspended') {
+				ctx
 					.resume()
 					.then(() => createAndStartSource())
 					.catch((err) => {
-						console.error('Failed to resume audio context:', err);
+						console.error('[SingleTrackAudioEngine] Failed to resume for seek:', err);
 					});
 			} else {
 				createAndStartSource();
 			}
 		};
 
+		// If currently playing, fade out before seeking
 		if (this.source && this.sourceHasStarted) {
 			this.fadeOut(() => {
 				try {
 					this.source?.stop();
-				} catch {
-					console.debug('Source already stopped');
+				} catch (err) {
+					console.error('[SingleTrackAudioEngine] Failed to stop source during seek:', err);
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
@@ -597,75 +566,4 @@ export class SingleTrackAudioEngine {
 			doSeek();
 		}
 	}
-
-	setVolume(value: number): void {
-		this.volume = Math.max(0, Math.min(1, value));
-		if (this.gainNode) {
-			this.gainNode.gain.value = this.volume;
-		}
-	}
-
-	setFilterFrequency(value: number): void {
-		this.filterFrequency = Math.max(20, Math.min(20000, value));
-		if (this.filterNode) {
-			this.filterNode.frequency.value = this.filterFrequency;
-		}
-	}
-
-	getAnalyser(): AnalyserNode | null {
-		return this.analyser;
-	}
-
-	private getCurrentTime(): number {
-		if (!this.audioContext) return 0;
-		return this.audioContext.currentTime;
-	}
-
-	private updateTimeLoop(): void {
-		const update = () => {
-			if (this.isPlaying && this.sourceHasStarted) {
-				this.currentTime = this.getCurrentTime() - this.startTime;
-				if (this.currentTime > this.duration) {
-					this.currentTime = this.duration;
-				}
-			}
-			this.animationFrameId = requestAnimationFrame(update);
-		};
-		update();
-	}
-
-	private cleanup(): void {
-		if (this.source) {
-			try {
-				this.source.stop();
-			} catch {
-				console.debug('Source already stopped during cleanup');
-			}
-			this.source = null;
-		}
-		this.sourceHasStarted = false;
-		this.audioContext = null;
-		this.analyser = null;
-		this.gainNode = null;
-		this.filterNode = null;
-		this.isInitialized = false;
-		this.loadInProgress = false;
-	}
-
-	destroy(): void {
-		if (this.animationFrameId) {
-			cancelAnimationFrame(this.animationFrameId);
-			this.animationFrameId = null;
-		}
-		if (this.audioContext && this.audioContext.state !== 'closed') {
-			this.audioContext.close().catch(() => {
-				console.debug('Error closing audio context during destroy');
-			});
-		}
-		this.cleanup();
-	}
-}
-
-export function createSingleTrackAudioEngine(): SingleTrackAudioEngine {
-	return new SingleTrackAudioEngine();
 }
