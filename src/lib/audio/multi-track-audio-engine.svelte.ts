@@ -20,6 +20,7 @@ import type { tracks } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { BaseAudioEngine } from './base-audio-engine.svelte';
 import { PlaybackState, type LoadAudioParams } from './playback-state.svelte';
+import { AUDIO_CONFIG } from './audio-config';
 
 /** Track type from database schema */
 type Track = InferSelectModel<typeof tracks>;
@@ -117,9 +118,9 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		}
 
 		try {
-			// Load tracks with limited concurrency (4 parallel) to prevent connection pool exhaustion
+			// Load tracks with limited concurrency to prevent connection pool exhaustion
 			// Browser typically limits to 6 concurrent connections per domain
-			const MAX_CONCURRENCY = 4;
+			const MAX_CONCURRENCY = AUDIO_CONFIG.MAX_CONCURRENT_LOADS;
 			const results: (AudioBuffer | null)[] = new Array(trackList.length).fill(null);
 			let currentIndex = 0;
 
@@ -261,15 +262,16 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		console.log('[MultiTrackAudioEngine] State transition:', state);
 
 		// Route to appropriate state transition
-		if (state.isFirstPlay) {
+		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
+			this.transitionToPaused();
+		} else if (state.playback === PlaybackState.PAUSED) {
+			this.transitionToPlayingFromPaused();
+		} else if (state.isFirstPlay) {
+			// Must check isFirstPlay before contextState - initial play needs full start sequence
 			this.isFirstPlay = false;
 			this.transitionToPlayingFromStart();
-		} else if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
-			this.transitionToPaused();
 		} else if (state.contextState === 'suspended') {
 			this.transitionToPlayingFromSuspended();
-		} else if (state.hasSource && state.sourceStarted) {
-			this.transitionToPlayingFromPaused();
 		} else {
 			this.transitionToPlayingFromStart();
 		}
@@ -282,10 +284,6 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 * Replace gain node, arm audio, fade in.
 	 */
 	private transitionToPlayingFromStart(): void {
-		const ctx = this.audioContext;
-		if (!ctx) return;
-		if (ctx.state === 'closed') return;
-
 		const currentIndex = this.currentTrackIndex;
 		const buffer = this.buffers[currentIndex];
 
@@ -294,8 +292,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 			return;
 		}
 
-		const startPlayback = () => {
-			this.replaceGainNodeWithFresh();
+		this.transitionToPlayingFromStartShared(() => {
 			this.armAudio(currentIndex, () => {
 				if (!this.source) {
 					console.error('[MultiTrackAudioEngine] Failed to create audio source');
@@ -326,44 +323,14 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 				if (this.analyser) {
 					setTimeout(() => {
-						if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
-					}, 50);
+						if (this.analyser)
+							this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
+					}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 				}
 
 				console.log('[MultiTrackAudioEngine] Playback started successfully');
 			});
-		};
-
-		if (ctx.state === 'suspended') {
-			console.log('[MultiTrackAudioEngine] Context suspended, resuming first...');
-			if (this.gainNode) {
-				const t = ctx.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			ctx
-				.resume()
-				.then(() => {
-					console.log('[MultiTrackAudioEngine] Context resumed, starting playback...');
-					const audioCtx = this.audioContext;
-					if (audioCtx && this.gainNode) {
-						const t = audioCtx.currentTime;
-						this.gainNode.gain.cancelScheduledValues(t);
-						this.gainNode.gain.setValueAtTime(0, t);
-					}
-					setTimeout(() => startPlayback(), 10);
-				})
-				.catch((err) => {
-					console.error('[MultiTrackAudioEngine] Failed to resume audio context:', err);
-				});
-		} else {
-			if (this.gainNode) {
-				const t = ctx.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			setTimeout(() => startPlayback(), 10);
-		}
+		});
 	}
 
 	/**
@@ -429,7 +396,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 		// Handle track naturally ending - auto-advance to next
 		newSource.onended = () => {
-			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+			if (
+				this.isPlaying &&
+				this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+			) {
 				this.onTrackEnded();
 			}
 		};
@@ -448,8 +418,9 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		if (this.analyser) {
 			this.analyser.smoothingTimeConstant = 0;
 			setTimeout(() => {
-				if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
-			}, 50);
+				if (this.analyser)
+					this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
+			}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 		}
 
 		// Replace gain node and fade in
@@ -492,7 +463,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			// Handle track naturally ending - auto-advance to next
 			newSource.onended = () => {
-				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				if (
+					this.isPlaying &&
+					this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+				) {
 					this.onTrackEnded();
 				}
 			};
@@ -531,6 +505,12 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 */
 	protected onTrackEnded(): void {
 		this.playedIndices.push(this.currentTrackIndex);
+
+		// Bound shuffle history to prevent unbounded growth
+		if (this.playedIndices.length > AUDIO_CONFIG.MAX_SHUFFLE_HISTORY) {
+			this.playedIndices = this.playedIndices.slice(-AUDIO_CONFIG.MAX_SHUFFLE_HISTORY);
+		}
+
 		this.transitionToNextTrack();
 	}
 
@@ -705,7 +685,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 			newSource.connect(filter).connect(gain).connect(analyser).connect(ctx.destination);
 
 			newSource.onended = () => {
-				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				if (
+					this.isPlaying &&
+					this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+				) {
 					this.onTrackEnded();
 				}
 			};

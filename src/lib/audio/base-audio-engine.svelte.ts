@@ -26,6 +26,7 @@ import {
 	type StateMachineConfig,
 	type LoadAudioParams
 } from './playback-state.svelte';
+import { AUDIO_CONFIG, AUDIO_DERIVED } from './audio-config';
 
 export abstract class BaseAudioEngine {
 	/**
@@ -58,7 +59,7 @@ export abstract class BaseAudioEngine {
 	volume = $state(1);
 
 	/** Low-pass filter frequency in Hz (20-20000) */
-	filterFrequency = $state(20000);
+	filterFrequency: number = $state(AUDIO_CONFIG.DEFAULT_FILTER_FREQUENCY_HZ);
 
 	/** Playback progress as percentage (0-100) */
 	progress = $derived(this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0);
@@ -125,9 +126,6 @@ export abstract class BaseAudioEngine {
 	 * CONSTANTS & CONFIGURATION
 	 * ============================================================================
 	 */
-
-	/** Fade duration in seconds - 20ms is enough to prevent clicks */
-	protected static readonly FADE_DURATION_S = 0.02;
 
 	/** Whether we're running in a browser (for SSR safety) */
 	protected readonly isBrowser: boolean;
@@ -204,7 +202,7 @@ export abstract class BaseAudioEngine {
 
 			// Create analyser for frequency visualization (used by SpectrumVisualizer)
 			this.analyser = this.audioContext.createAnalyser();
-			this.analyser.fftSize = 256;
+			this.analyser.fftSize = AUDIO_CONFIG.ANALYSER_FFT_SIZE;
 
 			// Create gain node for volume control with initial value
 			this.gainNode = this.audioContext.createGain();
@@ -214,7 +212,7 @@ export abstract class BaseAudioEngine {
 			this.filterNode = this.audioContext.createBiquadFilter();
 			this.filterNode.type = 'lowpass';
 			this.filterNode.frequency.value = this.filterFrequency;
-			this.filterNode.Q.value = 0.707; // Butterworth response
+			this.filterNode.Q.value = AUDIO_CONFIG.FILTER_Q; // Butterworth response
 
 			// Listen for context state changes to sync reactive state
 			// This handles cases where the browser pauses audio (e.g., app backgrounding)
@@ -427,7 +425,7 @@ export abstract class BaseAudioEngine {
 
 		const now = ctx.currentTime;
 		gain.gain.setValueAtTime(0, now);
-		gain.gain.linearRampToValueAtTime(this.volume, now + BaseAudioEngine.FADE_DURATION_S);
+		gain.gain.linearRampToValueAtTime(this.volume, now + AUDIO_DERIVED.FADE_DURATION_S);
 	}
 
 	/**
@@ -449,11 +447,11 @@ export abstract class BaseAudioEngine {
 
 		const now = ctx.currentTime;
 		gain.gain.setValueAtTime(gain.gain.value, now);
-		gain.gain.linearRampToValueAtTime(0, now + BaseAudioEngine.FADE_DURATION_S);
+		gain.gain.linearRampToValueAtTime(0, now + AUDIO_DERIVED.FADE_DURATION_S);
 
 		// Store fade completion time for animation loop to handle
 		// This ensures sync with AudioContext instead of using setTimeout
-		this.fadeCompleteTime = now + BaseAudioEngine.FADE_DURATION_S;
+		this.fadeCompleteTime = now + AUDIO_DERIVED.FADE_DURATION_S;
 		this.onFadeComplete = onComplete ?? null;
 	}
 
@@ -521,6 +519,70 @@ export abstract class BaseAudioEngine {
 
 	/**
 	 * ============================================================================
+	 * SHARED STATE TRANSITIONS
+	 * ============================================================================
+	 */
+
+	/**
+	 * STATE TRANSITION: STOPPED/READY → PLAYING
+	 *
+	 * Shared implementation for starting playback from the beginning.
+	 * Child classes provide buffer-specific arming logic via onArmed callback.
+	 *
+	 * iOS Strategy: Handle both suspended and running context states.
+	 * Replace gain node, arm audio, fade in.
+	 *
+	 * @param onArmed - Callback to arm the audio source after gain node replacement
+	 */
+	protected transitionToPlayingFromStartShared(onArmed: () => void): void {
+		const ctx = this.audioContext;
+		if (!ctx) return;
+		if (ctx.state === 'closed') return;
+
+		const startPlayback = () => {
+			this.replaceGainNodeWithFresh();
+			onArmed();
+		};
+
+		if (ctx.state === 'suspended') {
+			console.log(`[${this.stateMachineConfig.engineName}] Context suspended, resuming first...`);
+			if (this.gainNode) {
+				const t = ctx.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
+			ctx
+				.resume()
+				.then(() => {
+					console.log(
+						`[${this.stateMachineConfig.engineName}] Context resumed, starting playback...`
+					);
+					const audioCtx = this.audioContext;
+					if (audioCtx && this.gainNode) {
+						const t = audioCtx.currentTime;
+						this.gainNode.gain.cancelScheduledValues(t);
+						this.gainNode.gain.setValueAtTime(0, t);
+					}
+					setTimeout(() => startPlayback(), AUDIO_CONFIG.PLAYBACK_START_DELAY_MS);
+				})
+				.catch((err) => {
+					console.error(
+						`[${this.stateMachineConfig.engineName}] Failed to resume audio context:`,
+						err
+					);
+				});
+		} else {
+			if (this.gainNode) {
+				const t = ctx.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
+			setTimeout(() => startPlayback(), AUDIO_CONFIG.PLAYBACK_START_DELAY_MS);
+		}
+	}
+
+	/**
+	 * ============================================================================
 	 * PUBLIC CONTROLS
 	 * ============================================================================
 	 */
@@ -541,7 +603,10 @@ export abstract class BaseAudioEngine {
 	 * 20000 = no filtering (full spectrum), lower values cut high frequencies.
 	 */
 	setFilterFrequency(value: number): void {
-		this.filterFrequency = Math.max(20, Math.min(20000, value));
+		this.filterFrequency = Math.max(
+			AUDIO_CONFIG.MIN_FILTER_FREQUENCY_HZ,
+			Math.min(AUDIO_CONFIG.DEFAULT_FILTER_FREQUENCY_HZ, value)
+		);
 		if (this.filterNode) {
 			this.filterNode.frequency.value = this.filterFrequency;
 		}

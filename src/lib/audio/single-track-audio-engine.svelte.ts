@@ -15,6 +15,7 @@
 
 import { BaseAudioEngine } from './base-audio-engine.svelte';
 import { PlaybackState, type LoadAudioParams } from './playback-state.svelte';
+import { AUDIO_CONFIG } from './audio-config';
 
 export class SingleTrackAudioEngine extends BaseAudioEngine {
 	/**
@@ -219,15 +220,16 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		console.log('[SingleTrackAudioEngine] State transition:', state);
 
 		// Route to appropriate state transition
-		if (state.isFirstPlay) {
+		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
+			this.transitionToPaused();
+		} else if (state.playback === PlaybackState.PAUSED) {
+			this.transitionToPlayingFromPaused();
+		} else if (state.isFirstPlay) {
+			// Must check isFirstPlay before contextState - initial play needs full start sequence
 			this.isFirstPlay = false;
 			this.transitionToPlayingFromStart();
-		} else if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
-			this.transitionToPaused();
 		} else if (state.contextState === 'suspended') {
 			this.transitionToPlayingFromSuspended();
-		} else if (state.hasSource && state.sourceStarted) {
-			this.transitionToPlayingFromPaused();
 		} else {
 			this.transitionToPlayingFromStart();
 		}
@@ -240,12 +242,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 	 * Replace gain node, arm audio, fade in.
 	 */
 	private transitionToPlayingFromStart(): void {
-		const ctx = this.audioContext;
-		if (!ctx) return;
-		if (ctx.state === 'closed') return;
-
-		const startPlayback = () => {
-			this.replaceGainNodeWithFresh();
+		this.transitionToPlayingFromStartShared(() => {
 			this.armAudio(() => {
 				if (!this.source) {
 					console.error('[SingleTrackAudioEngine] Failed to create audio source');
@@ -276,44 +273,14 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 				if (this.analyser) {
 					setTimeout(() => {
-						if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
-					}, 50);
+						if (this.analyser)
+							this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
+					}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 				}
 
 				console.log('[SingleTrackAudioEngine] Playback started successfully');
 			});
-		};
-
-		if (ctx.state === 'suspended') {
-			console.log('[SingleTrackAudioEngine] Context suspended, resuming first...');
-			if (this.gainNode) {
-				const t = ctx.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			ctx
-				.resume()
-				.then(() => {
-					console.log('[SingleTrackAudioEngine] Context resumed, starting playback...');
-					const audioCtx = this.audioContext;
-					if (audioCtx && this.gainNode) {
-						const t = audioCtx.currentTime;
-						this.gainNode.gain.cancelScheduledValues(t);
-						this.gainNode.gain.setValueAtTime(0, t);
-					}
-					setTimeout(() => startPlayback(), 10);
-				})
-				.catch((err) => {
-					console.error('[SingleTrackAudioEngine] Failed to resume audio context:', err);
-				});
-		} else {
-			if (this.gainNode) {
-				const t = ctx.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			setTimeout(() => startPlayback(), 10);
-		}
+		});
 	}
 
 	/**
@@ -375,11 +342,18 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		// Create new source at paused position
 		const newSource = ctx.createBufferSource();
 		newSource.buffer = buffer;
-		newSource.connect(this.filterNode).connect(this.gainNode).connect(this.analyser).connect(ctx.destination);
+		newSource
+			.connect(this.filterNode)
+			.connect(this.gainNode)
+			.connect(this.analyser)
+			.connect(ctx.destination);
 
 		// Handle track naturally ending
 		newSource.onended = () => {
-			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+			if (
+				this.isPlaying &&
+				this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+			) {
 				this.onTrackEnded();
 			}
 		};
@@ -398,8 +372,9 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		if (this.analyser) {
 			this.analyser.smoothingTimeConstant = 0;
 			setTimeout(() => {
-				if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
-			}, 50);
+				if (this.analyser)
+					this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
+			}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 		}
 
 		// Replace gain node and fade in
@@ -445,7 +420,10 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 			// Handle track naturally ending
 			newSource.onended = () => {
-				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				if (
+					this.isPlaying &&
+					this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+				) {
 					this.onTrackEnded();
 				}
 			};
@@ -523,7 +501,10 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			newSource.connect(filter).connect(gain).connect(analyser).connect(ctx.destination);
 
 			newSource.onended = () => {
-				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				if (
+					this.isPlaying &&
+					this.currentTime >= this.duration - AUDIO_CONFIG.TRACK_END_THRESHOLD_S
+				) {
 					this.resetToStart();
 				}
 			};

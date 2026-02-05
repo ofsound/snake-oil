@@ -70,6 +70,19 @@ function getEngine(): SingleTrackAudioEngine | null {
 	}
 }
 
+// HMR cleanup - reset module state when module is hot-replaced
+if (import.meta.hot) {
+	import.meta.hot.dispose(() => {
+		if (engine) {
+			engine.destroy();
+			engine = null;
+		}
+		playerRegistry.clear();
+		currentPlayerId = null;
+		isEngineError = false;
+	});
+}
+
 export const quizAudioContext = {
 	/**
 	 * Register a player component with the context.

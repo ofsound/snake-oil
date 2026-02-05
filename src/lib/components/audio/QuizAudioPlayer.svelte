@@ -292,8 +292,7 @@
 		</div>
 
 		<!-- Spectrum Visualizer -->
-		<!-- {#if isPlaying} -->
-		{#if false}
+		{#if isPlaying}
 			<MiniSpectrumVisualizer analyser={quizAudioContext.getAnalyser()} {isPlaying} />
 		{/if}
 	{/if}
