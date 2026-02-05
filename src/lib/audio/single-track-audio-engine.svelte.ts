@@ -186,6 +186,14 @@ export class SingleTrackAudioEngine {
 		if (!this.audioBuffer) return;
 
 		const createNewSource = (): void => {
+			if (this.source) {
+				try {
+					this.source.disconnect();
+				} catch {
+					// Already disconnected or invalid
+				}
+				this.source = null;
+			}
 			this.source = this.audioContext!.createBufferSource();
 			this.source!.buffer = this.audioBuffer;
 
