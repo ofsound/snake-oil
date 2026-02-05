@@ -48,6 +48,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					isCorrect: false // Don't reveal correct answer to client
 				}))
 			};
+		} else if (config.type === 'sequence') {
+			// For sequence, don't reveal the correct track index
+			safeConfig = {
+				type: 'sequence',
+				tracks: config.tracks,
+				correctTrackIndex: -1, // Don't reveal correct track
+				prompt: config.prompt
+			};
 		} else {
 			// For simple_guess, don't send the correct answer to the client
 			safeConfig = {
@@ -128,12 +136,18 @@ export const actions: Actions = {
 			let guess = '';
 			let selectedOptionId: string | undefined;
 			let selectedOptionIds: string[] | undefined;
+			let selectedTrackIndex: number | undefined;
 
 			if (soundbite.variantType === 'multiple_response') {
 				// For multiple response, get all selected option IDs
 				const values = formData.getAll(`answer-${soundbiteId}`);
 				selectedOptionIds = values.map((v) => String(v)).filter((v) => v.length > 0);
 				guess = selectedOptionIds.join(','); // Store as comma-separated for reference
+			} else if (soundbite.variantType === 'sequence') {
+				// For sequence, the answer is the track index
+				const trackIndexStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
+				selectedTrackIndex = parseInt(trackIndexStr, 10);
+				guess = trackIndexStr;
 			} else {
 				guess = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
 				// For multiple choice, the guess is the option ID
@@ -144,7 +158,8 @@ export const actions: Actions = {
 				guess,
 				soundbite.variantConfig,
 				selectedOptionId,
-				selectedOptionIds
+				selectedOptionIds,
+				selectedTrackIndex
 			);
 		}
 
@@ -182,6 +197,9 @@ export const actions: Actions = {
 							} else if (sb.variantConfig.type === 'multiple_response') {
 								const correctOptions = sb.variantConfig.options.filter((opt) => opt.isCorrect);
 								return [sb.id, correctOptions.map((opt) => opt.text).join(', ')];
+							} else if (sb.variantConfig.type === 'sequence') {
+								const correctTrack = sb.variantConfig.tracks[sb.variantConfig.correctTrackIndex];
+								return [sb.id, correctTrack?.name ?? ''];
 							}
 							return [sb.id, ''];
 						})

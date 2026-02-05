@@ -22,6 +22,8 @@ export {
 	type SimpleGuessConfig,
 	type MultipleChoiceConfig,
 	type MultipleResponseConfig,
+	type SequenceConfig,
+	type SequenceTrack,
 	type VariantConfig,
 	type AnswerDetail,
 	type AnswersPayload

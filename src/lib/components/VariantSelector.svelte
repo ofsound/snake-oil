@@ -11,7 +11,12 @@
 
 	let { value, onchange, id = 'variant-type' }: Props = $props();
 
-	const variantOptions: VariantType[] = ['simple_guess', 'multiple_choice', 'multiple_response'];
+	const variantOptions: VariantType[] = [
+		'simple_guess',
+		'multiple_choice',
+		'multiple_response',
+		'sequence'
+	];
 </script>
 
 <FormField label="Question Type" {id}>

@@ -11,7 +11,8 @@
 	import type {
 		VariantType,
 		MultipleChoiceOption,
-		MultipleResponseOption
+		MultipleResponseOption,
+		SequenceTrack
 	} from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
@@ -32,6 +33,9 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		sequenceTracks: SequenceTrack[];
+		sequenceCorrectTrackIndex: number;
+		sequencePrompt: string;
 		question: string;
 	};
 
@@ -43,6 +47,9 @@
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			sequenceTracks: [],
+			sequenceCorrectTrackIndex: 0,
+			sequencePrompt: '',
 			question: ''
 		}
 	]);

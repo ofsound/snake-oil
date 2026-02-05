@@ -3,6 +3,7 @@ import type {
 	SimpleGuessConfig,
 	MultipleChoiceConfig,
 	MultipleResponseConfig,
+	SequenceConfig,
 	AnswersPayload,
 	AnswerDetail
 } from './db/schema';
@@ -63,6 +64,31 @@ export function validateMultipleResponse(config: MultipleResponseConfig): boolea
 }
 
 /**
+ * Validate a Sequence config
+ * - Must have 2-10 tracks
+ * - Each track must have id, name, url
+ * - correctTrackIndex must be valid (0 to tracks.length - 1)
+ * - Prompt is required
+ */
+export function validateSequence(config: SequenceConfig): boolean {
+	if (config.type !== 'sequence') return false;
+	if (!Array.isArray(config.tracks)) return false;
+	if (config.tracks.length < 2 || config.tracks.length > 10) return false;
+	if (typeof config.correctTrackIndex !== 'number') return false;
+	if (config.correctTrackIndex < 0 || config.correctTrackIndex >= config.tracks.length)
+		return false;
+	if (typeof config.prompt !== 'string' || config.prompt.trim().length === 0) return false;
+
+	for (const track of config.tracks) {
+		if (typeof track.id !== 'string' || track.id.trim().length === 0) return false;
+		if (typeof track.name !== 'string' || track.name.trim().length === 0) return false;
+		if (typeof track.url !== 'string' || track.url.trim().length === 0) return false;
+	}
+
+	return true;
+}
+
+/**
  * Validate any variant config
  */
 export function validateVariantConfig(config: VariantConfig): boolean {
@@ -73,6 +99,8 @@ export function validateVariantConfig(config: VariantConfig): boolean {
 			return validateMultipleChoice(config);
 		case 'multiple_response':
 			return validateMultipleResponse(config);
+		case 'sequence':
+			return validateSequence(config);
 		default:
 			return false;
 	}
@@ -119,13 +147,22 @@ export function checkMultipleResponseCorrect(
 }
 
 /**
+ * Check if a sequence answer is correct
+ * The selected track index must match the correctTrackIndex
+ */
+export function checkSequenceCorrect(selectedTrackIndex: number, config: SequenceConfig): boolean {
+	return selectedTrackIndex === config.correctTrackIndex;
+}
+
+/**
  * Check if an answer is correct based on variant type
  */
 export function checkAnswerCorrect(
 	guess: string,
 	config: VariantConfig,
 	selectedOptionId?: string,
-	selectedOptionIds?: string[]
+	selectedOptionIds?: string[],
+	selectedTrackIndex?: number
 ): boolean {
 	switch (config.type) {
 		case 'simple_guess':
@@ -134,6 +171,10 @@ export function checkAnswerCorrect(
 			return selectedOptionId ? checkMultipleChoiceCorrect(selectedOptionId, config) : false;
 		case 'multiple_response':
 			return selectedOptionIds ? checkMultipleResponseCorrect(selectedOptionIds, config) : false;
+		case 'sequence':
+			return selectedTrackIndex !== undefined
+				? checkSequenceCorrect(selectedTrackIndex, config)
+				: false;
 		default:
 			return false;
 	}
@@ -162,16 +203,26 @@ export function buildAnswerDetail(
 	guess: string,
 	config: VariantConfig,
 	selectedOptionId?: string,
-	selectedOptionIds?: string[]
+	selectedOptionIds?: string[],
+	selectedTrackIndex?: number
 ): AnswerDetail {
-	const isCorrect = checkAnswerCorrect(guess, config, selectedOptionId, selectedOptionIds);
+	const isCorrect = checkAnswerCorrect(
+		guess,
+		config,
+		selectedOptionId,
+		selectedOptionIds,
+		selectedTrackIndex
+	);
 
 	return {
 		guess,
 		isCorrect,
 		variantType: config.type,
 		...(config.type === 'multiple_choice' && selectedOptionId ? { selectedOptionId } : {}),
-		...(config.type === 'multiple_response' && selectedOptionIds ? { selectedOptionIds } : {})
+		...(config.type === 'multiple_response' && selectedOptionIds ? { selectedOptionIds } : {}),
+		...(config.type === 'sequence' && selectedTrackIndex !== undefined
+			? { selectedTrackIndex }
+			: {})
 	};
 }
 
@@ -189,6 +240,10 @@ export function getCorrectAnswerText(config: VariantConfig): string {
 		case 'multiple_response': {
 			const correctOptions = config.options.filter((opt) => opt.isCorrect);
 			return correctOptions.map((opt) => opt.text).join(', ');
+		}
+		case 'sequence': {
+			const correctTrack = config.tracks[config.correctTrackIndex];
+			return correctTrack?.name ?? '';
 		}
 		default:
 			return '';

@@ -691,6 +691,21 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	}
 
 	/**
+	 * Get the duration of a specific track.
+	 * Returns 0 if track index is invalid or buffer not loaded.
+	 */
+	getTrackDuration(trackIndex: number): number {
+		return this.buffers[trackIndex]?.duration ?? 0;
+	}
+
+	/**
+	 * Get the total duration of all tracks.
+	 */
+	getTotalDuration(): number {
+		return this.buffers.reduce((sum, buffer) => sum + (buffer?.duration ?? 0), 0);
+	}
+
+	/**
 	 * Seek to a specific time position in the current track.
 	 *
 	 * @param time - Time in seconds to seek to

@@ -8,10 +8,13 @@
 	import FormField from '$lib/components/FormField.svelte';
 	import type { ActionData, PageData } from './$types';
 	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
+	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
+	import SequenceInput from '$lib/components/SequenceInput.svelte';
 	import type {
 		AnswersPayload,
 		MultipleChoiceConfig,
-		MultipleResponseConfig
+		MultipleResponseConfig,
+		SequenceConfig
 	} from '$lib/variant-types';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
@@ -26,9 +29,12 @@
 	// Track user answers for each soundbite
 	// For simple_guess and multiple_choice: string
 	// For multiple_response: comma-separated string (parsed on submit)
+	// For sequence: track index as string
 	let userAnswers = $state<Record<string, string>>({});
 	// Track multiple response selections separately (id -> array of option ids)
 	let multipleResponseSelections = $state<Record<string, string[]>>({});
+	// Track sequence buzzer state (id -> has buzzed)
+	let sequenceBuzzed = $state<Record<string, boolean>>({});
 
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
@@ -41,6 +47,12 @@
 		multipleResponseSelections = { ...multipleResponseSelections, [soundbiteId]: optionIds };
 		// Also update userAnswers with comma-separated values for form submission
 		userAnswers = { ...userAnswers, [soundbiteId]: optionIds.join(',') };
+	}
+
+	function handleSequenceBuzz(soundbiteId: string, trackIndex: number) {
+		sequenceBuzzed = { ...sequenceBuzzed, [soundbiteId]: true };
+		// Store track index as string for form submission
+		userAnswers = { ...userAnswers, [soundbiteId]: String(trackIndex) };
 	}
 
 	// Get results from form action
@@ -181,6 +193,21 @@
 								selectedOptionIds={multipleResponseSelections[soundbite.id] ?? []}
 								onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
 							/>
+						{:else if soundbite.variantType === 'sequence'}
+							{@const config = soundbite.variantConfig as SequenceConfig}
+							<div class="flex flex-col gap-4">
+								<SequenceAudioPlayer
+									tracks={config.tracks}
+									onBuzzer={(trackIndex) => handleSequenceBuzz(soundbite.id, trackIndex)}
+									disabled={sequenceBuzzed[soundbite.id] ?? false}
+								/>
+								<p class="text-center font-medium text-gray-700">{config.prompt}</p>
+								<SequenceInput
+									soundbiteId={soundbite.id}
+									onBuzzer={() => {}}
+									disabled={sequenceBuzzed[soundbite.id] ?? false}
+								/>
+							</div>
 						{/if}
 					</Card>
 				</div>

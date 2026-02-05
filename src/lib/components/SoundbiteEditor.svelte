@@ -3,11 +3,13 @@
 	import SimpleGuessEditor from './SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './MultipleChoiceEditor.svelte';
 	import MultipleResponseEditor from './MultipleResponseEditor.svelte';
+	import SequenceEditor from './SequenceEditor.svelte';
 	import FormField from './FormField.svelte';
 	import type {
 		VariantType,
 		MultipleChoiceOption,
-		MultipleResponseOption
+		MultipleResponseOption,
+		SequenceTrack
 	} from '$lib/variant-types';
 
 	interface Props {
@@ -17,6 +19,9 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		sequenceTracks: SequenceTrack[];
+		sequenceCorrectTrackIndex: number;
+		sequencePrompt: string;
 		variantTypeName: string;
 		variantConfigName: string;
 		questionName: string;
@@ -29,6 +34,9 @@
 		onSimpleGuessAnswerChange: (answer: string) => void;
 		onMultipleChoiceOptionsChange: (options: MultipleChoiceOption[]) => void;
 		onMultipleResponseOptionsChange: (options: MultipleResponseOption[]) => void;
+		onSequenceTracksChange: (tracks: SequenceTrack[]) => void;
+		onSequenceCorrectTrackIndexChange: (index: number) => void;
+		onSequencePromptChange: (prompt: string) => void;
 	}
 
 	let {
@@ -38,6 +46,9 @@
 		simpleGuessAnswer,
 		multipleChoiceOptions,
 		multipleResponseOptions,
+		sequenceTracks,
+		sequenceCorrectTrackIndex,
+		sequencePrompt,
 		variantTypeName,
 		variantConfigName,
 		questionName,
@@ -49,7 +60,10 @@
 		onQuestionChange,
 		onSimpleGuessAnswerChange,
 		onMultipleChoiceOptionsChange,
-		onMultipleResponseOptionsChange
+		onMultipleResponseOptionsChange,
+		onSequenceTracksChange,
+		onSequenceCorrectTrackIndexChange,
+		onSequencePromptChange
 	}: Props = $props();
 
 	function getVariantConfigJson(): string {
@@ -59,6 +73,13 @@
 			return JSON.stringify({ type: 'multiple_choice', options: multipleChoiceOptions });
 		} else if (variantType === 'multiple_response') {
 			return JSON.stringify({ type: 'multiple_response', options: multipleResponseOptions });
+		} else if (variantType === 'sequence') {
+			return JSON.stringify({
+				type: 'sequence',
+				tracks: sequenceTracks,
+				correctTrackIndex: sequenceCorrectTrackIndex,
+				prompt: sequencePrompt
+			});
 		}
 		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
 	}
@@ -118,6 +139,16 @@
 			idPrefix={`mr-${id}`}
 			options={multipleResponseOptions}
 			onchange={onMultipleResponseOptionsChange}
+		/>
+	{:else if variantType === 'sequence'}
+		<SequenceEditor
+			id={`sequence-${id}`}
+			tracks={sequenceTracks}
+			correctTrackIndex={sequenceCorrectTrackIndex}
+			prompt={sequencePrompt}
+			onTracksChange={onSequenceTracksChange}
+			onCorrectTrackIndexChange={onSequenceCorrectTrackIndexChange}
+			onPromptChange={onSequencePromptChange}
 		/>
 	{/if}
 

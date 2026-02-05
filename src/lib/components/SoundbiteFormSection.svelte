@@ -6,7 +6,8 @@
 	import type {
 		VariantType,
 		MultipleChoiceOption,
-		MultipleResponseOption
+		MultipleResponseOption,
+		SequenceTrack
 	} from '$lib/variant-types';
 	import Heading from './Heading.svelte';
 
@@ -16,6 +17,9 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		sequenceTracks: SequenceTrack[];
+		sequenceCorrectTrackIndex: number;
+		sequencePrompt: string;
 		question: string;
 	}
 
@@ -58,6 +62,9 @@
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			sequenceTracks: [],
+			sequenceCorrectTrackIndex: 0,
+			sequencePrompt: '',
 			question: ''
 		};
 		soundbites = [...soundbites, newSoundbite];
@@ -95,6 +102,18 @@
 	function updateMultipleResponseOptions(id: number, options: MultipleResponseOption[]) {
 		updateSoundbite(id, { multipleResponseOptions: options });
 	}
+
+	function updateSequenceTracks(id: number, tracks: SequenceTrack[]) {
+		updateSoundbite(id, { sequenceTracks: tracks });
+	}
+
+	function updateSequenceCorrectTrackIndex(id: number, index: number) {
+		updateSoundbite(id, { sequenceCorrectTrackIndex: index });
+	}
+
+	function updateSequencePrompt(id: number, prompt: string) {
+		updateSoundbite(id, { sequencePrompt: prompt });
+	}
 </script>
 
 <section>
@@ -123,6 +142,9 @@
 						simpleGuessAnswer={soundbite.simpleGuessAnswer}
 						multipleChoiceOptions={soundbite.multipleChoiceOptions}
 						multipleResponseOptions={soundbite.multipleResponseOptions}
+						sequenceTracks={soundbite.sequenceTracks}
+						sequenceCorrectTrackIndex={soundbite.sequenceCorrectTrackIndex}
+						sequencePrompt={soundbite.sequencePrompt}
 						{variantTypeName}
 						{variantConfigName}
 						{questionName}
@@ -137,6 +159,10 @@
 							updateMultipleChoiceOptions(soundbite.id, options)}
 						onMultipleResponseOptionsChange={(options) =>
 							updateMultipleResponseOptions(soundbite.id, options)}
+						onSequenceTracksChange={(tracks) => updateSequenceTracks(soundbite.id, tracks)}
+						onSequenceCorrectTrackIndexChange={(index) =>
+							updateSequenceCorrectTrackIndex(soundbite.id, index)}
+						onSequencePromptChange={(prompt) => updateSequencePrompt(soundbite.id, prompt)}
 					/>
 				</Card>
 			</div>

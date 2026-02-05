@@ -14,6 +14,7 @@
 		VariantType,
 		MultipleChoiceOption,
 		MultipleResponseOption,
+		SequenceTrack,
 		VariantConfig,
 		AnswersPayload
 	} from '$lib/variant-types';
@@ -28,6 +29,9 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		sequenceTracks: SequenceTrack[];
+		sequenceCorrectTrackIndex: number;
+		sequencePrompt: string;
 		question: string;
 	};
 
@@ -36,6 +40,9 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		sequenceTracks: SequenceTrack[];
+		sequenceCorrectTrackIndex: number;
+		sequencePrompt: string;
 		question: string;
 	};
 
@@ -61,38 +68,45 @@
 		config: VariantConfig,
 		question: string | null
 	): ExistingSoundbiteState {
-		if (config.type === 'simple_guess') {
-			return {
-				variantType: 'simple_guess',
-				simpleGuessAnswer: config.correctAnswer,
-				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
-				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
-				question: question ?? ''
-			};
-		} else if (config.type === 'multiple_choice') {
-			return {
-				variantType: 'multiple_choice',
-				simpleGuessAnswer: '',
-				multipleChoiceOptions: config.options,
-				multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
-				question: question ?? ''
-			};
-		} else if (config.type === 'multiple_response') {
-			return {
-				variantType: 'multiple_response',
-				simpleGuessAnswer: '',
-				multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
-				multipleResponseOptions: config.options,
-				question: question ?? ''
-			};
-		}
-		return {
+		const defaultState: ExistingSoundbiteState = {
 			variantType: 'simple_guess',
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			sequenceTracks: [],
+			sequenceCorrectTrackIndex: 0,
+			sequencePrompt: '',
 			question: question ?? ''
 		};
+
+		if (config.type === 'simple_guess') {
+			return {
+				...defaultState,
+				variantType: 'simple_guess',
+				simpleGuessAnswer: config.correctAnswer
+			};
+		} else if (config.type === 'multiple_choice') {
+			return {
+				...defaultState,
+				variantType: 'multiple_choice',
+				multipleChoiceOptions: config.options
+			};
+		} else if (config.type === 'multiple_response') {
+			return {
+				...defaultState,
+				variantType: 'multiple_response',
+				multipleResponseOptions: config.options
+			};
+		} else if (config.type === 'sequence') {
+			return {
+				...defaultState,
+				variantType: 'sequence',
+				sequenceTracks: config.tracks,
+				sequenceCorrectTrackIndex: config.correctTrackIndex,
+				sequencePrompt: config.prompt
+			};
+		}
+		return defaultState;
 	}
 
 	// Only update when navigating to a different quiz
@@ -149,6 +163,27 @@
 		existingSoundbiteState = {
 			...existingSoundbiteState,
 			[id]: { ...existingSoundbiteState[id], question }
+		};
+	}
+
+	function updateExistingSequenceTracks(id: string, tracks: SequenceTrack[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], sequenceTracks: tracks }
+		};
+	}
+
+	function updateExistingSequenceCorrectTrackIndex(id: string, index: number) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], sequenceCorrectTrackIndex: index }
+		};
+	}
+
+	function updateExistingSequencePrompt(id: string, prompt: string) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], sequencePrompt: prompt }
 		};
 	}
 
@@ -312,6 +347,9 @@
 									simpleGuessAnswer={state.simpleGuessAnswer}
 									multipleChoiceOptions={state.multipleChoiceOptions}
 									multipleResponseOptions={state.multipleResponseOptions}
+									sequenceTracks={state.sequenceTracks}
+									sequenceCorrectTrackIndex={state.sequenceCorrectTrackIndex}
+									sequencePrompt={state.sequencePrompt}
 									variantTypeName="existingSoundbiteVariantType"
 									variantConfigName="existingSoundbiteVariantConfig"
 									questionName="existingSoundbiteQuestion"
@@ -327,6 +365,12 @@
 										updateExistingMultipleChoiceOptions(soundbite.id, options)}
 									onMultipleResponseOptionsChange={(options) =>
 										updateExistingMultipleResponseOptions(soundbite.id, options)}
+									onSequenceTracksChange={(tracks) =>
+										updateExistingSequenceTracks(soundbite.id, tracks)}
+									onSequenceCorrectTrackIndexChange={(index) =>
+										updateExistingSequenceCorrectTrackIndex(soundbite.id, index)}
+									onSequencePromptChange={(prompt) =>
+										updateExistingSequencePrompt(soundbite.id, prompt)}
 								/>
 							</Card>
 						</div>
