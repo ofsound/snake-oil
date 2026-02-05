@@ -14,7 +14,7 @@
  */
 
 import { BaseAudioEngine } from './base-audio-engine.svelte';
-import { PlaybackState } from './playback-state.svelte';
+import { PlaybackState, type LoadAudioParams } from './playback-state.svelte';
 
 export class SingleTrackAudioEngine extends BaseAudioEngine {
 	/**
@@ -46,10 +46,14 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 	/**
 	 * Abstract method implementation: load audio.
-	 * For single-track, delegates to loadBuffer with the URL.
+	 * For single-track, extracts URL from params and delegates to loadBuffer.
 	 */
-	async loadAudio(url: string): Promise<void> {
-		return this.loadBuffer(url);
+	async loadAudio(params: LoadAudioParams): Promise<void> {
+		if (params.type !== 'single') {
+			console.error('[SingleTrackAudioEngine] Invalid params type, expected "single"');
+			return;
+		}
+		return this.loadBuffer(params.url);
 	}
 
 	/**
@@ -340,11 +344,67 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			this.isPlaying = false;
 			this.currentTime = 0;
 			this.isFirstPlay = true;
+			this.pausedAt = 0;
 
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
 			}
 		});
+	}
+
+	/**
+	 * STATE TRANSITION: PAUSED → PLAYING
+	 *
+	 * Resume from paused position with proper offset.
+	 */
+	protected transitionToPlayingFromPaused(): void {
+		const ctx = this.audioContext;
+		const buffer = this.audioBuffer;
+
+		if (!ctx || !buffer || !this.filterNode || !this.gainNode || !this.analyser) return;
+
+		// Disconnect old source if exists
+		if (this.source) {
+			try {
+				this.source.disconnect();
+			} catch (err) {
+				console.error('[SingleTrackAudioEngine] Failed to disconnect old source in resume:', err);
+			}
+		}
+
+		// Create new source at paused position
+		const newSource = ctx.createBufferSource();
+		newSource.buffer = buffer;
+		newSource.connect(this.filterNode).connect(this.gainNode).connect(this.analyser).connect(ctx.destination);
+
+		// Handle track naturally ending
+		newSource.onended = () => {
+			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				this.onTrackEnded();
+			}
+		};
+
+		this.source = newSource;
+		this.sourceHasStarted = true;
+
+		// Start at paused position
+		newSource.start(0, this.pausedAt);
+
+		// Update startTime to account for the offset
+		this.startTime = ctx.currentTime - this.pausedAt;
+		this.isPlaying = true;
+
+		// Reset analyser smoothing
+		if (this.analyser) {
+			this.analyser.smoothingTimeConstant = 0;
+			setTimeout(() => {
+				if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
+			}, 50);
+		}
+
+		// Replace gain node and fade in
+		this.replaceGainNodeWithFresh();
+		this.fadeIn();
 	}
 
 	/**

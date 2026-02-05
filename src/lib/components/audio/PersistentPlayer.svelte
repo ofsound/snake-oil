@@ -54,8 +54,11 @@
 		}
 	});
 
-	function handleProgressClick(event: MouseEvent) {
+	function handleProgressPointerDown(event: PointerEvent) {
 		if (!progressRef || engine.duration === 0) return;
+
+		// Capture pointer to track movement outside the element
+		progressRef.setPointerCapture(event.pointerId);
 
 		const rect = progressRef.getBoundingClientRect();
 		const x = event.clientX - rect.left;
@@ -63,9 +66,18 @@
 		const time = percentage * engine.duration;
 
 		engine.seek(time);
+
+		// Show tooltip for touch devices
+		if (event.pointerType === 'touch') {
+			tooltip = {
+				visible: true,
+				x: event.clientX - rect.left,
+				time
+			};
+		}
 	}
 
-	function handleProgressMouseMove(event: MouseEvent) {
+	function handleProgressPointerMove(event: PointerEvent) {
 		if (!progressRef || engine.duration === 0) return;
 
 		const rect = progressRef.getBoundingClientRect();
@@ -80,7 +92,15 @@
 		};
 	}
 
-	function handleProgressMouseLeave() {
+	function handleProgressPointerUp(event: PointerEvent) {
+		// Release pointer capture
+		if (progressRef) {
+			progressRef.releasePointerCapture(event.pointerId);
+		}
+		tooltip = { ...tooltip, visible: false };
+	}
+
+	function handleProgressPointerLeave() {
 		tooltip = { ...tooltip, visible: false };
 	}
 
@@ -230,11 +250,12 @@
 			<!-- Progress Bar -->
 			<div
 				bind:this={progressRef}
-				class="group relative h-3 cursor-pointer rounded-full bg-gray-200 dark:bg-gray-700"
-				onclick={handleProgressClick}
+				class="group relative h-3 cursor-pointer touch-none rounded-full bg-gray-200 dark:bg-gray-700"
+				onpointerdown={handleProgressPointerDown}
+				onpointermove={handleProgressPointerMove}
+				onpointerup={handleProgressPointerUp}
+				onpointerleave={handleProgressPointerLeave}
 				onkeydown={handleProgressKeyDown}
-				onmousemove={handleProgressMouseMove}
-				onmouseleave={handleProgressMouseLeave}
 				role="slider"
 				aria-valuenow={engine.currentTime}
 				aria-valuemax={engine.duration}

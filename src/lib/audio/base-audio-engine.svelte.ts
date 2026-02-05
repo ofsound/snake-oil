@@ -20,7 +20,12 @@
  * - Synchronization via AudioContext.currentTime, not setTimeout
  */
 
-import { PlaybackState, type AudioState, type StateMachineConfig } from './playback-state.svelte';
+import {
+	PlaybackState,
+	type AudioState,
+	type StateMachineConfig,
+	type LoadAudioParams
+} from './playback-state.svelte';
 
 export abstract class BaseAudioEngine {
 	/**
@@ -96,6 +101,9 @@ export abstract class BaseAudioEngine {
 
 	/** AudioContext time when playback started (for calculating currentTime) */
 	protected startTime = 0;
+
+	/** Time position when paused (for resuming from exact position) */
+	protected pausedAt = 0;
 
 	/**
 	 * ============================================================================
@@ -271,8 +279,11 @@ export abstract class BaseAudioEngine {
 
 	/**
 	 * Load audio data. Implementation varies by engine type.
+	 * Use discriminated union for type-safe parameters:
+	 * - Single: { type: 'single', url: string }
+	 * - Multi: { type: 'multi', tracks: AudioTrack[] }
 	 */
-	abstract loadAudio(...args: unknown[]): Promise<void>;
+	abstract loadAudio(params: LoadAudioParams): Promise<void>;
 
 	/**
 	 * Handle track naturally ending (reaching end of audio).
@@ -331,12 +342,26 @@ export abstract class BaseAudioEngine {
 	/**
 	 * STATE TRANSITION: PLAYING → PAUSED
 	 *
-	 * iOS Strategy: Fade out only, do NOT suspend context.
-	 * Keeping context running avoids the suspend→resume click.
+	 * iOS Strategy: Fade out, stop source, save position for resume.
+	 * Keeping context running avoids suspend→resume click.
 	 */
 	protected transitionToPaused(): void {
+		// Save current position immediately before async fade
+		this.pausedAt = this.currentTime;
+		this.isPlaying = false;
+
+		// Stop: playback but keep sourceHasStarted = true so state machine recognizes PAUSED
 		this.fadeOut(() => {
-			this.isPlaying = false;
+			// Stop: playback but keep source reference for state detection
+			if (this.source) {
+				try {
+					this.source.stop();
+					// Note: Keep sourceHasStarted = true for PAUSED state recognition
+					this.sourceHasStarted = true;
+				} catch (err) {
+					console.error('[BaseAudioEngine] Failed to stop source during pause:', err);
+				}
+			}
 		});
 	}
 
@@ -374,14 +399,11 @@ export abstract class BaseAudioEngine {
 	/**
 	 * STATE TRANSITION: PAUSED → PLAYING
 	 *
-	 * iOS Strategy: Context already running, replace gain node, fade in.
+	 * iOS Strategy: Create new source at paused position, replace gain node, fade in.
+	 * Implementation varies by engine (single vs multi-track buffer selection).
 	 * No context.resume() needed since we never suspended.
 	 */
-	protected transitionToPlayingFromPaused(): void {
-		this.replaceGainNodeWithFresh();
-		this.fadeIn();
-		this.isPlaying = true;
-	}
+	protected abstract transitionToPlayingFromPaused(): void;
 
 	/**
 	 * ============================================================================

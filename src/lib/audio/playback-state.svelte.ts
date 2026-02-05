@@ -32,3 +32,15 @@ export interface StateMachineConfig {
 	/** Engine name for logging */
 	engineName: string;
 }
+
+/** Audio track metadata for multi-track loading */
+export interface AudioTrack {
+	id: string;
+	name: string;
+	url: string;
+}
+
+/** Discriminated union for type-safe loadAudio parameters */
+export type LoadAudioParams =
+	| { type: 'single'; url: string }
+	| { type: 'multi'; tracks: AudioTrack[] };

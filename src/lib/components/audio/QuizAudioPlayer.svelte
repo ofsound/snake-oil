@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SingleTrackAudioEngine } from '$lib/audio/single-track-audio-engine.svelte';
+	import { quizAudioContext } from '$lib/audio/quiz-audio-context.svelte';
 	import { formatTime } from '$lib/audio/format-time';
 	import MiniSpectrumVisualizer from './MiniSpectrumVisualizer.svelte';
 
 	interface Props {
+		soundbiteId: string;
 		url: string;
 	}
 
-	let { url }: Props = $props();
+	let { soundbiteId, url }: Props = $props();
 
-	const engine = new SingleTrackAudioEngine();
 	let progressRef = $state<HTMLDivElement | null>(null);
 
 	interface TooltipState {
@@ -20,56 +20,107 @@
 	}
 
 	let tooltip = $state<TooltipState>({ visible: false, x: 0, time: 0 });
-	let isEngineReady = $state(false);
 
-	// Track which URL has been loaded (non-reactive to avoid infinite loops)
-	let loadedUrl: string | null = null;
+	// Local player state
+	let isPlaying = $state(false);
+	let isLoading = $state(false);
+	let currentTime = $state(0);
+	let duration = $state(0);
+	let error = $state<string | null>(null);
 
 	// iOS 17+: use playback session so Web Audio is not muted by the silent switch.
-	// No-op on browsers that don't support the API (e.g. Chrome, Firefox on desktop).
 	function setAudioSessionPlayback(): void {
 		const nav = navigator as Navigator & { audioSession?: { type: string } };
 		if (typeof nav.audioSession !== 'undefined' && nav.audioSession.type !== undefined) {
 			try {
 				nav.audioSession.type = 'playback';
 			} catch {
-				// Ignore if setting fails (e.g. already set or not allowed)
+				// Ignore if setting fails
 			}
 		}
 	}
 
 	onMount(() => {
-		const initialized = engine.initialize();
-		isEngineReady = initialized;
-		return () => engine.destroy();
+		// Register this player with the shared context
+		quizAudioContext.register(soundbiteId, {
+			onPlay: () => {
+				isPlaying = true;
+				isLoading = false;
+			},
+			onPause: () => {
+				isPlaying = false;
+				// Don't reset time - maintain position for resume
+			},
+			onStop: () => {
+				isPlaying = false;
+				currentTime = 0;
+			},
+			onEnded: () => {
+				isPlaying = false;
+				currentTime = 0;
+			}
+		});
+
+		return () => {
+			// Unregister when component destroys
+			quizAudioContext.unregister(soundbiteId);
+		};
 	});
 
+	// Watch for changes in the shared context
 	$effect(() => {
-		// Only load buffer after engine is initialized and we have a URL
-		if (url && isEngineReady && url !== loadedUrl) {
-			loadedUrl = url;
-			engine.loadBuffer(url);
+		const isCurrentPlayer = quizAudioContext.currentPlayerId === soundbiteId;
+
+		// If we're no longer the current player, update playing state only
+		// Don't reset currentTime - preserve it for potential resume
+		if (!isCurrentPlayer && isPlaying) {
+			isPlaying = false;
 		}
 	});
 
-	function handleProgressClick(event: MouseEvent) {
-		if (!progressRef || engine.duration === 0) return;
+	// Sync with shared engine's reactive state when we're the active player
+	$effect(() => {
+		const engine = quizAudioContext.engine;
+		if (quizAudioContext.currentPlayerId === soundbiteId && engine) {
+			// Subscribe to engine's reactive state
+			currentTime = engine.currentTime;
+			duration = engine.duration;
+			isLoading = engine.isLoading;
+			error = engine.error;
+		}
+	});
+
+	function handleProgressPointerDown(event: PointerEvent) {
+		if (!progressRef || duration === 0 || quizAudioContext.currentPlayerId !== soundbiteId) return;
+
+		// Capture pointer to track movement outside the element
+		progressRef.setPointerCapture(event.pointerId);
 
 		const rect = progressRef.getBoundingClientRect();
 		const x = event.clientX - rect.left;
 		const percentage = Math.max(0, Math.min(1, x / rect.width));
-		const time = percentage * engine.duration;
+		const time = percentage * duration;
 
-		engine.seek(time);
+		// Seek in the shared engine
+		quizAudioContext.engine?.seek(time);
+
+		// Show tooltip for touch devices
+		if (event.pointerType === 'touch') {
+			tooltip = {
+				visible: true,
+				x: event.clientX - rect.left,
+				time
+			};
+		}
 	}
 
-	function handleProgressMouseMove(event: MouseEvent) {
-		if (!progressRef || engine.duration === 0) return;
+	function handleProgressPointerMove(event: PointerEvent) {
+		if (!progressRef || duration === 0) return;
 
 		const rect = progressRef.getBoundingClientRect();
 		const x = event.clientX - rect.left;
 		const percentage = Math.max(0, Math.min(1, x / rect.width));
-		const time = percentage * engine.duration;
+		const time = percentage * duration;
 
 		tooltip = {
 			visible: true,
@@ -78,22 +129,33 @@
 		};
 	}
 
-	function handleProgressMouseLeave() {
+	function handleProgressPointerUp(event: PointerEvent) {
+		// Release pointer capture
+		if (progressRef) {
+			progressRef.releasePointerCapture(event.pointerId);
+		}
+		tooltip = { ...tooltip, visible: false };
+	}
+
+	function handleProgressPointerLeave() {
 		tooltip = { ...tooltip, visible: false };
 	}
 
 	function handleProgressKeyDown(event: KeyboardEvent) {
-		if (engine.duration === 0) return;
+		if (duration === 0 || quizAudioContext.currentPlayerId !== soundbiteId) return;
+
+		const engine = quizAudioContext.engine;
+		if (!engine) return;
 
 		const seekStep = 5; // seconds
 		switch (event.key) {
 			case 'ArrowLeft':
 				event.preventDefault();
-				engine.seek(Math.max(0, engine.currentTime - seekStep));
+				engine.seek(Math.max(0, currentTime - seekStep));
 				break;
 			case 'ArrowRight':
 				event.preventDefault();
-				engine.seek(Math.min(engine.duration, engine.currentTime + seekStep));
+				engine.seek(Math.min(duration, currentTime + seekStep));
 				break;
 			case 'Home':
 				event.preventDefault();
@@ -101,62 +163,41 @@
 				break;
 			case 'End':
 				event.preventDefault();
-				engine.seek(engine.duration);
+				engine.seek(duration);
 				break;
 		}
 	}
 
-	// Logarithmic scale functions for filter
-	function linearToLog(value: number): number {
-		// Convert 0-1 to 20-20000 Hz logarithmically
-		const minLog = Math.log10(20);
-		const maxLog = Math.log10(20000);
-		return Math.pow(10, minLog + value * (maxLog - minLog));
-	}
-
-	function logToLinear(value: number): number {
-		// Convert 20-20000 Hz to 0-1 logarithmically
-		const minLog = Math.log10(20);
-		const maxLog = Math.log10(20000);
-		return (Math.log10(value) - minLog) / (maxLog - minLog);
-	}
-
-	function formatFrequency(hz: number): string {
-		if (hz >= 1000) {
-			return `${(hz / 1000).toFixed(1)}kHz`;
+	async function handleTogglePlay() {
+		setAudioSessionPlayback();
+		isLoading = true;
+		await quizAudioContext.play(soundbiteId, url);
+		// isLoading will be set to false by onPlay callback or if play fails
+		if (quizAudioContext.currentPlayerId !== soundbiteId) {
+			isLoading = false;
 		}
-		return `${Math.round(hz)}Hz`;
 	}
 
-	function handleVolumeChange(event: Event) {
-		const target = event.target as HTMLInputElement;
-		engine.setVolume(parseFloat(target.value));
+	function handleStop() {
+		quizAudioContext.stop(soundbiteId);
 	}
 
-	function handleFilterChange(event: Event) {
-		const target = event.target as HTMLInputElement;
-		const linearValue = parseFloat(target.value);
-		const frequency = linearToLog(linearValue);
-		engine.setFilterFrequency(frequency);
-	}
+	const progressPercentage = $derived(duration > 0 ? (currentTime / duration) * 100 : 0);
 
-	const progressPercentage = $derived(
-		engine.duration > 0 ? (engine.currentTime / engine.duration) * 100 : 0
-	);
-
-	const filterLinearValue = $derived(logToLinear(engine.filterFrequency));
+	// Determine if this player is disabled (engine error or not current and can't play)
+	const isDisabled = $derived(quizAudioContext.isEngineError);
 </script>
 
 <div class="w-full min-w-0">
 	<!-- Error Banner -->
-	{#if engine.error}
+	{#if error}
 		<div
 			class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded bg-red-50 px-3 py-2 text-sm"
 		>
-			<span class="min-w-0 flex-1 truncate text-red-700">{engine.error}</span>
+			<span class="min-w-0 flex-1 truncate text-red-700">{error}</span>
 			<button
 				type="button"
-				onclick={() => engine.retryLoad()}
+				onclick={() => quizAudioContext.engine?.retryLoad()}
 				class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
 			>
 				Retry
@@ -165,10 +206,10 @@
 	{/if}
 
 	<!-- Loading State -->
-	{#if engine.isLoading}
+	{#if isLoading}
 		<div class="flex items-center justify-center gap-2 py-4">
 			<div
-				class="rounded-≈full h-4 w-4 animate-spin border-2 border-neutral-300 border-t-emerald-600"
+				class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-emerald-600"
 			></div>
 			<span class="text-sm text-neutral-600">Loading audio...</span>
 		</div>
@@ -178,15 +219,12 @@
 			<!-- Play/Pause Button -->
 			<button
 				type="button"
-				onclick={() => {
-					setAudioSessionPlayback();
-					engine.togglePlayPause();
-				}}
-				disabled={!engine.bufferLoaded}
+				onclick={handleTogglePlay}
+				disabled={isDisabled}
 				class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-				aria-label={engine.isPlaying ? 'Pause' : 'Play'}
+				aria-label={isPlaying ? 'Pause' : 'Play'}
 			>
-				{#if engine.isPlaying}
+				{#if isPlaying}
 					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
 						<rect x="6" y="4" width="4" height="16" rx="1" />
 						<rect x="14" y="4" width="4" height="16" rx="1" />
@@ -201,8 +239,8 @@
 			<!-- Stop/Reset Button -->
 			<button
 				type="button"
-				onclick={() => engine.stopAndReset()}
-				disabled={!engine.bufferLoaded}
+				onclick={handleStop}
+				disabled={!isPlaying || isDisabled}
 				class="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label="Stop and reset"
 			>
@@ -213,23 +251,24 @@
 
 			<!-- Time Display -->
 			<div class="ml-auto shrink-0 text-xs text-neutral-600">
-				<span class="font-mono">{formatTime(engine.currentTime)}</span>
+				<span class="font-mono">{formatTime(currentTime)}</span>
 				<span class="mx-0.5">/</span>
-				<span class="font-mono">{formatTime(engine.duration)}</span>
+				<span class="font-mono">{formatTime(duration)}</span>
 			</div>
 		</div>
 
 		<!-- Progress Bar -->
 		<div
 			bind:this={progressRef}
-			class="group relative h-2 cursor-pointer rounded-full bg-neutral-200"
-			onclick={handleProgressClick}
+			class="group relative h-2 cursor-pointer touch-none rounded-full bg-neutral-200"
+			onpointerdown={handleProgressPointerDown}
+			onpointermove={handleProgressPointerMove}
+			onpointerup={handleProgressPointerUp}
+			onpointerleave={handleProgressPointerLeave}
 			onkeydown={handleProgressKeyDown}
-			onmousemove={handleProgressMouseMove}
-			onmouseleave={handleProgressMouseLeave}
 			role="slider"
-			aria-valuenow={engine.currentTime}
-			aria-valuemax={engine.duration}
+			aria-valuenow={currentTime}
+			aria-valuemax={duration}
 			aria-label="Progress"
 			tabindex="0"
 		>
@@ -250,59 +289,8 @@
 		</div>
 
 		<!-- Spectrum Visualizer -->
-		<MiniSpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
-
-		<!-- Controls Row - Stack vertically on small screens -->
-		<div class="hidden flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-			<!-- Volume Control -->
-			<div class="flex w-full items-center gap-2 sm:flex-1">
-				<svg
-					class="h-4 w-4 shrink-0 text-neutral-500"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-					<path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-				</svg>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={engine.volume}
-					oninput={handleVolumeChange}
-					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-emerald-600"
-					aria-label="Volume"
-				/>
-			</div>
-
-			<!-- Filter Control -->
-			<div class="flex w-full items-center gap-2 sm:flex-1">
-				<svg
-					class="h-4 w-4 shrink-0 text-neutral-500"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-				</svg>
-				<input
-					type="range"
-					min="0"
-					max="1"
-					step="0.01"
-					value={filterLinearValue}
-					oninput={handleFilterChange}
-					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-purple-600"
-					aria-label="Low-pass filter frequency"
-				/>
-				<span class="shrink-0 text-right font-mono text-xs text-neutral-600">
-					{formatFrequency(engine.filterFrequency)}
-				</span>
-			</div>
-		</div>
+		{#if isPlaying}
+			<MiniSpectrumVisualizer analyser={quizAudioContext.getAnalyser()} {isPlaying} />
+		{/if}
 	{/if}
 </div>

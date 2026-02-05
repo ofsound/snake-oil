@@ -19,8 +19,9 @@
 import type { tracks } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { BaseAudioEngine } from './base-audio-engine.svelte';
-import { PlaybackState } from './playback-state.svelte';
+import { PlaybackState, type LoadAudioParams } from './playback-state.svelte';
 
+/** Track type from database schema */
 type Track = InferSelectModel<typeof tracks>;
 
 export class MultiTrackAudioEngine extends BaseAudioEngine {
@@ -67,11 +68,14 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/**
 	 * Load multiple audio tracks from an array of track metadata.
 	 * Automatically skips tracks that fail to load.
-	 *
-	 * @param trackList - Array of track metadata objects
+	 * Extracts tracks from params and delegates to loadBuffers.
 	 */
-	async loadAudio(trackList: Track[]): Promise<void> {
-		return this.loadBuffers(trackList);
+	async loadAudio(params: LoadAudioParams): Promise<void> {
+		if (params.type !== 'multi') {
+			console.error('[MultiTrackAudioEngine] Invalid params type, expected "multi"');
+			return;
+		}
+		return this.loadBuffers(params.tracks as Track[]);
 	}
 
 	/**
@@ -390,6 +394,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 			this.currentTrackIndex = 0;
 			this.isFirstPlay = true;
 			this.playedIndices = [];
+			this.pausedAt = 0;
 
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
@@ -400,6 +405,56 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 				this.duration = this.buffers[0].duration;
 			}
 		});
+	}
+
+	/**
+	 * STATE TRANSITION: PAUSED → PLAYING
+	 *
+	 * Resume from paused position with proper offset.
+	 */
+	protected transitionToPlayingFromPaused(): void {
+		const ctx = this.audioContext;
+		const buffer = this.buffers[this.currentTrackIndex];
+
+		if (!ctx || !buffer || !this.filterNode || !this.gainNode || !this.analyser) return;
+
+		// Create new source at paused position
+		const newSource = ctx.createBufferSource();
+		newSource.buffer = buffer;
+		newSource
+			.connect(this.filterNode)
+			.connect(this.gainNode)
+			.connect(this.analyser)
+			.connect(ctx.destination);
+
+		// Handle track naturally ending - auto-advance to next
+		newSource.onended = () => {
+			if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+				this.onTrackEnded();
+			}
+		};
+
+		this.source = newSource;
+		this.sourceHasStarted = true;
+
+		// Start at paused position
+		newSource.start(0, this.pausedAt);
+
+		// Update startTime to account for the offset
+		this.startTime = ctx.currentTime - this.pausedAt;
+		this.isPlaying = true;
+
+		// Reset analyser smoothing
+		if (this.analyser) {
+			this.analyser.smoothingTimeConstant = 0;
+			setTimeout(() => {
+				if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
+			}, 50);
+		}
+
+		// Replace gain node and fade in
+		this.replaceGainNodeWithFresh();
+		this.fadeIn();
 	}
 
 	/**
