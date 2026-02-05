@@ -234,8 +234,7 @@ export abstract class BaseAudioEngine {
 			this.isInitialized = true;
 			return true;
 		} catch (err) {
-			this.error = 'Failed to initialize audio engine';
-			console.error('[AudioEngine] Initialization failed:', err);
+			this.reportError('Failed to initialize audio engine', 'Initialization failed', err, true);
 			this.isInitialized = false;
 			return false;
 		}
@@ -359,7 +358,7 @@ export abstract class BaseAudioEngine {
 					this.source.stop();
 					this.source.disconnect();
 				} catch (err) {
-					console.error('[BaseAudioEngine] Failed to stop source during pause:', err);
+					this.reportError('', 'Failed to stop source during pause', err, false);
 				} finally {
 					// Clear source reference but keep sourceHasStarted = true for PAUSED state recognition
 					this.source = null;
@@ -392,9 +391,11 @@ export abstract class BaseAudioEngine {
 				setTimeout(() => this.fadeIn(), 10);
 			})
 			.catch((err) => {
-				console.error(
-					`[${this.stateMachineConfig.engineName}] Failed to resume audio context:`,
-					err
+				this.reportError(
+					'Failed to start audio playback',
+					'Failed to resume audio context',
+					err,
+					true
 				);
 			});
 	}
@@ -485,7 +486,7 @@ export abstract class BaseAudioEngine {
 				// Update reference to new gain node
 				this.gainNode = newGain;
 			} catch (err) {
-				console.error('[BaseAudioEngine] Failed to replace gain node:', err);
+				this.reportError('', 'Failed to replace gain node', err, false);
 				// Don't update gainNode reference if replacement failed
 			}
 		});
@@ -613,6 +614,33 @@ export abstract class BaseAudioEngine {
 	}
 
 	/**
+	 * Report an error with consistent handling.
+	 * User-facing errors set this.error for UI display.
+	 * Internal errors are logged only.
+	 *
+	 * @param message - Error message for user display (if userFacing)
+	 * @param context - Context/category for the error
+	 * @param err - Original error object
+	 * @param userFacing - Whether this error should be shown to users
+	 */
+	protected reportError(message: string, context: string, err?: unknown, userFacing = true): void {
+		const errorMessage = err instanceof Error ? err.message : String(err);
+		const fullMessage = `[${this.stateMachineConfig.engineName}] ${context}: ${errorMessage}`;
+
+		if (userFacing) {
+			this.error = message;
+		}
+		console.error(fullMessage, err);
+	}
+
+	/**
+	 * Clear the current error state.
+	 */
+	protected clearError(): void {
+		this.error = null;
+	}
+
+	/**
 	 * Get the analyser node for visualization components.
 	 */
 	getAnalyser(): AnalyserNode | null {
@@ -677,7 +705,7 @@ export abstract class BaseAudioEngine {
 			try {
 				this.source.stop();
 			} catch (err) {
-				console.error('[AudioEngine] Failed to stop source during cleanup:', err);
+				this.reportError('', 'Failed to stop source during cleanup', err, false);
 			} finally {
 				// Always clear reference to prevent double-stop attempts
 				this.source = null;
@@ -714,7 +742,7 @@ export abstract class BaseAudioEngine {
 		// Close audio context
 		if (this.audioContext && this.audioContext.state !== 'closed') {
 			this.audioContext.close().catch((err) => {
-				console.error('[AudioEngine] Failed to close audio context during destroy:', err);
+				this.reportError('', 'Failed to close audio context during destroy', err, false);
 			});
 		}
 

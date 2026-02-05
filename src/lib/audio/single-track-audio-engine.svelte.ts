@@ -51,7 +51,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 	 */
 	async loadAudio(params: LoadAudioParams): Promise<void> {
 		if (params.type !== 'single') {
-			console.error('[SingleTrackAudioEngine] Invalid params type, expected "single"');
+			this.reportError('', 'Invalid params type, expected "single"', undefined, false);
 			return;
 		}
 		return this.loadBuffer(params.url);
@@ -81,7 +81,12 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		if (!this.ensureInitialized()) {
 			// Only update state if this operation is still current
 			if (this.loadOperationId === operationId) {
-				this.error = 'Audio engine not initialized';
+				this.reportError(
+					'Audio engine not initialized',
+					'Initialization failed during load',
+					undefined,
+					true
+				);
 			}
 			return;
 		}
@@ -89,7 +94,12 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		const ctx = this.audioContext;
 		if (!ctx) {
 			if (this.loadOperationId === operationId) {
-				this.error = 'Audio context not available';
+				this.reportError(
+					'Audio context not available',
+					'Context not available during load',
+					undefined,
+					true
+				);
 			}
 			return;
 		}
@@ -99,7 +109,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			this.loadInProgress = true;
 			this.trackUrl = url;
 			this.isLoading = true;
-			this.error = null;
+			this.clearError();
 		}
 
 		try {
@@ -127,7 +137,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			}
 
 			// Context might have been destroyed during async fetch
-			if (!this.audioContext) {
+			if (!this.audioContext || this.audioContext.state === 'closed') {
 				throw new Error('Audio context was destroyed during load');
 			}
 
@@ -156,8 +166,8 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		} catch (err) {
 			// Only update error state if this operation is still current
 			if (this.loadOperationId === operationId) {
-				this.error = err instanceof Error ? err.message : 'Failed to load audio';
-				console.error('[SingleTrackAudioEngine] Error loading buffer:', err);
+				const message = err instanceof Error ? err.message : 'Failed to load audio';
+				this.reportError(message, 'Error loading buffer', err, true);
 				this.bufferLoaded = false;
 			} else {
 				console.log(
@@ -194,8 +204,12 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			console.log('[SingleTrackAudioEngine] AudioContext needs reinitialization...');
 			const reinitSuccess = this.initialize();
 			if (!reinitSuccess || !this.audioContext) {
-				console.error('[SingleTrackAudioEngine] Failed to reinitialize audio context');
-				this.error = 'Failed to initialize audio';
+				this.reportError(
+					'Failed to initialize audio',
+					'Failed to reinitialize audio context',
+					undefined,
+					true
+				);
 				return;
 			}
 			console.log('[SingleTrackAudioEngine] AudioContext reinitialized, reloading buffer...');
@@ -245,13 +259,23 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		this.transitionToPlayingFromStartShared(() => {
 			this.armAudio(() => {
 				if (!this.source) {
-					console.error('[SingleTrackAudioEngine] Failed to create audio source');
+					this.reportError(
+						'Failed to start audio',
+						'Failed to create audio source',
+						undefined,
+						true
+					);
 					return;
 				}
 
 				const audioCtx = this.audioContext;
 				if (!audioCtx) {
-					console.error('[SingleTrackAudioEngine] Audio context lost during playback start');
+					this.reportError(
+						'Failed to start audio',
+						'Audio context lost during playback start',
+						undefined,
+						true
+					);
 					return;
 				}
 
@@ -302,7 +326,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				try {
 					this.source.disconnect();
 				} catch (err) {
-					console.error('[SingleTrackAudioEngine] Failed to disconnect source during stop:', err);
+					this.reportError('', 'Failed to disconnect source during stop', err, false);
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
@@ -335,7 +359,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			try {
 				this.source.disconnect();
 			} catch (err) {
-				console.error('[SingleTrackAudioEngine] Failed to disconnect old source in resume:', err);
+				this.reportError('', 'Failed to disconnect old source in resume', err, false);
 			}
 		}
 
@@ -408,7 +432,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				try {
 					this.source.disconnect();
 				} catch (err) {
-					console.error('[SingleTrackAudioEngine] Failed to disconnect source in armAudio:', err);
+					this.reportError('', 'Failed to disconnect source in armAudio', err, false);
 				}
 				this.source = null;
 			}
@@ -445,7 +469,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				try {
 					this.source?.stop();
 				} catch (err) {
-					console.error('[SingleTrackAudioEngine] Failed to stop source during armAudio:', err);
+					this.reportError('', 'Failed to stop source during armAudio', err, false);
 				} finally {
 					// Always clear references to prevent double-stop attempts
 					this.source = null;
@@ -527,7 +551,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 					.resume()
 					.then(() => createAndStartSource())
 					.catch((err) => {
-						console.error('[SingleTrackAudioEngine] Failed to resume for seek:', err);
+						this.reportError('Failed to seek', 'Failed to resume for seek', err, true);
 					});
 			} else {
 				createAndStartSource();
@@ -540,7 +564,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				try {
 					this.source?.stop();
 				} catch (err) {
-					console.error('[SingleTrackAudioEngine] Failed to stop source during seek:', err);
+					this.reportError('', 'Failed to stop source during seek', err, false);
 				} finally {
 					// Always clear references to prevent double-stop attempts
 					this.source = null;

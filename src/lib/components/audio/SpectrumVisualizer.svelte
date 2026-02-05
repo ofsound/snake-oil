@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import gsap from 'gsap';
-	import { PhysicsPropsPlugin, Physics2DPlugin } from 'gsap/all';
-
-	// Register GSAP plugins
-	gsap.registerPlugin(PhysicsPropsPlugin, Physics2DPlugin);
 
 	// Props
 	interface Props {

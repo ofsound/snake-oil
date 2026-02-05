@@ -1,12 +1,8 @@
 <script lang="ts">
-	interface Track {
-		id: string;
-		name: string;
-		url: string;
-	}
+	import type { AudioTrack } from '$lib/audio/playback-state.svelte';
 
 	interface Props {
-		tracks: Track[];
+		tracks: AudioTrack[];
 		currentTrackIndex: number;
 		isVisible: boolean;
 		onTrackSelect: (index: number) => void;

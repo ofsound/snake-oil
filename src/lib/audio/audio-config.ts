@@ -38,9 +38,10 @@ export const AUDIO_CONFIG = {
 
 	/**
 	 * FFT size for frequency analysis
-	 * 256 = 128 frequency bins (sufficient for visualization)
+	 * 128 = 64 frequency bins (sufficient for visualization, more CPU efficient)
+	 * Mini visualizer only uses 64 bins, full visualizer displays all 64
 	 */
-	ANALYSER_FFT_SIZE: 256,
+	ANALYSER_FFT_SIZE: 128,
 
 	/**
 	 * Maximum concurrent track loads
@@ -89,3 +90,38 @@ export const AUDIO_DERIVED = {
 		return AUDIO_CONFIG.FADE_DURATION_MS / 1000;
 	}
 };
+
+/**
+ * Network-aware concurrent load limit
+ * Adjusts based on connection type to optimize loading performance
+ */
+export function getAdaptiveConcurrencyLimit(): number {
+	// Default fallback
+	const defaultLimit = AUDIO_CONFIG.MAX_CONCURRENT_LOADS;
+
+	// Check if Network Information API is available
+	const connection = (navigator as Navigator & { connection?: NetworkInformation }).connection;
+
+	if (!connection) {
+		return defaultLimit;
+	}
+
+	// Adjust based on effective connection type
+	switch (connection.effectiveType) {
+		case 'slow-2g':
+		case '2g':
+			return 2; // Very slow connections - be conservative
+		case '3g':
+			return 3; // Moderate speed
+		case '4g':
+			return 6; // Fast connection - can handle more
+		default:
+			return defaultLimit;
+	}
+}
+
+// Type definition for Network Information API
+interface NetworkInformation {
+	effectiveType: 'slow-2g' | '2g' | '3g' | '4g';
+	saveData: boolean;
+}

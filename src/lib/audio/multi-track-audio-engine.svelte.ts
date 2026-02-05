@@ -16,14 +16,26 @@
  *   engine.toggleShuffle();
  */
 
-import type { tracks } from '$lib/server/db/schema';
-import type { InferSelectModel } from 'drizzle-orm';
 import { BaseAudioEngine } from './base-audio-engine.svelte';
-import { PlaybackState, type LoadAudioParams } from './playback-state.svelte';
-import { AUDIO_CONFIG } from './audio-config';
+import { PlaybackState, type LoadAudioParams, type AudioTrack } from './playback-state.svelte';
+import { AUDIO_CONFIG, getAdaptiveConcurrencyLimit } from './audio-config';
 
-/** Track type from database schema */
-type Track = InferSelectModel<typeof tracks>;
+/**
+ * Runtime validation for AudioTrack objects.
+ * Ensures required fields are present and have correct types.
+ */
+function isValidTrack(track: unknown): track is AudioTrack {
+	if (typeof track !== 'object' || track === null) return false;
+	const t = track as Record<string, unknown>;
+	return (
+		typeof t.id === 'string' &&
+		typeof t.name === 'string' &&
+		typeof t.url === 'string' &&
+		t.id.length > 0 &&
+		t.name.length > 0 &&
+		t.url.length > 0
+	);
+}
 
 export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/**
@@ -31,7 +43,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 */
 
 	/** Array of track metadata from database */
-	tracks = $state<Track[]>([]);
+	tracks = $state<AudioTrack[]>([]);
 
 	/** Decoded audio buffers for all tracks */
 	private buffers: AudioBuffer[] = [];
@@ -73,10 +85,17 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 */
 	async loadAudio(params: LoadAudioParams): Promise<void> {
 		if (params.type !== 'multi') {
-			console.error('[MultiTrackAudioEngine] Invalid params type, expected "multi"');
+			this.reportError('', 'Invalid params type, expected "multi"', undefined, false);
 			return;
 		}
-		return this.loadBuffers(params.tracks as Track[]);
+
+		// Runtime validation to ensure tracks array has correct shape
+		if (!Array.isArray(params.tracks) || !params.tracks.every(isValidTrack)) {
+			this.reportError('Invalid tracks data', 'Tracks array validation failed', undefined, true);
+			return;
+		}
+
+		return this.loadBuffers(params.tracks);
 	}
 
 	/**
@@ -84,7 +103,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 *
 	 * @param trackList - Array of track metadata objects
 	 */
-	async loadBuffers(trackList: Track[]): Promise<void> {
+	async loadBuffers(trackList: AudioTrack[]): Promise<void> {
 		// Generate unique operation ID for this load attempt
 		const operationId = ++this.loadOperationId;
 
@@ -118,9 +137,9 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		}
 
 		try {
-			// Load tracks with limited concurrency to prevent connection pool exhaustion
-			// Browser typically limits to 6 concurrent connections per domain
-			const MAX_CONCURRENCY = AUDIO_CONFIG.MAX_CONCURRENT_LOADS;
+			// Load tracks with adaptive concurrency based on network conditions
+			// Prevents connection pool exhaustion while optimizing for connection speed
+			const MAX_CONCURRENCY = getAdaptiveConcurrencyLimit();
 			const results: (AudioBuffer | null)[] = new Array(trackList.length).fill(null);
 			let currentIndex = 0;
 
@@ -146,7 +165,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 					}
 
 					// Context might have been destroyed during fetch
-					if (!this.audioContext) {
+					if (!this.audioContext || this.audioContext.state === 'closed') {
 						throw new Error('Audio context destroyed during load');
 					}
 
@@ -192,9 +211,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			this.buffersLoaded = true;
 
-			// Set duration of first track
-			if (this.buffers[0]) {
-				this.duration = this.buffers[0].duration;
+			// Set duration of first valid track (not necessarily buffers[0] if it failed to load)
+			const firstValidBuffer = this.buffers.find((b) => b !== null);
+			if (firstValidBuffer) {
+				this.duration = firstValidBuffer.duration;
 			}
 
 			// Arm audio for first track
@@ -367,9 +387,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 				this.analyser.smoothingTimeConstant = 0;
 			}
 
-			// Reset duration to first track
-			if (this.buffers[0]) {
-				this.duration = this.buffers[0].duration;
+			// Reset duration to first valid track
+			const firstValidBuffer = this.buffers.find((b) => b !== null);
+			if (firstValidBuffer) {
+				this.duration = firstValidBuffer.duration;
 			}
 		});
 	}
@@ -630,6 +651,12 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 */
 	nextTrack(): void {
 		this.playedIndices.push(this.currentTrackIndex);
+
+		// Bound shuffle history to prevent unbounded growth
+		if (this.playedIndices.length > AUDIO_CONFIG.MAX_SHUFFLE_HISTORY) {
+			this.playedIndices = this.playedIndices.slice(-AUDIO_CONFIG.MAX_SHUFFLE_HISTORY);
+		}
+
 		const nextIndex = this.getNextTrackIndex();
 		this.startTrack(nextIndex);
 	}
@@ -659,7 +686,7 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/**
 	 * Get metadata for the currently playing track.
 	 */
-	getCurrentTrack(): Track | null {
+	getCurrentTrack(): AudioTrack | null {
 		return this.tracks[this.currentTrackIndex] ?? null;
 	}
 
