@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
-import type { SequenceConfig } from '$lib/server/db/schema';
+import type { SequenceConfig, RankConfig, ImageChoiceConfig } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
@@ -111,9 +111,21 @@ export const actions: Actions = {
 			// Delete associated blobs from Vercel Blob storage and collect track IDs
 			const trackIds: string[] = [];
 			for (const soundbite of existingQuiz.soundbites) {
+				// Delete track audio file if it exists
 				if (soundbite.track?.pathname) {
 					await deleteFromBlob(soundbite.track.pathname, env.BLOB_READ_WRITE_TOKEN);
 				}
+
+				// Delete image files for image_choice variants
+				if (soundbite.variantType === 'image_choice') {
+					const config = soundbite.variantConfig as ImageChoiceConfig;
+					for (const option of config.options) {
+						if (option.pathname) {
+							await deleteFromBlob(option.pathname, env.BLOB_READ_WRITE_TOKEN);
+						}
+					}
+				}
+
 				if (soundbite.track?.id) {
 					trackIds.push(soundbite.track.id);
 				}
@@ -171,27 +183,31 @@ export const actions: Actions = {
 			files: newFiles
 		} = getNewSoundbites(formData);
 
-		// Count non-sequence variants (these need files)
-		const nonSequenceVariantCount = variantTypes.filter(
-			(_, i) => !removed.has(ids[i]) && variantTypes[i] !== 'sequence'
+		// Count non-sequence and non-rank variants (image_choice needs MP3 too)
+		const simpleVariantCount = variantTypes.filter(
+			(_, i) => !removed.has(ids[i]) && variantTypes[i] !== 'sequence' && variantTypes[i] !== 'rank'
 		).length;
-		const nonSequenceNewCount = newVariantTypes.filter((type) => type !== 'sequence').length;
+		const simpleNewCount = newVariantTypes.filter(
+			(type) => type !== 'sequence' && type !== 'rank'
+		).length;
 
 		// Calculate if files are required
 		const remainingSoundbites = ids.length - removed.size;
 		const addingNewSoundbites = newVariantTypes.length > 0;
 		const filesRequired = remainingSoundbites === 0 && !addingNewSoundbites;
 
-		// Only validate files for non-sequence variants
-		const nonSequenceFiles = files.filter(
-			(_, i) => variantTypes[i] !== 'sequence' && !removed.has(ids[i])
+		// Only validate files for simple variants (not sequence or rank)
+		const simpleFiles = files.filter(
+			(_, i) => variantTypes[i] !== 'sequence' && variantTypes[i] !== 'rank' && !removed.has(ids[i])
 		);
-		const nonSequenceNewFiles = newFiles.filter((_, i) => newVariantTypes[i] !== 'sequence');
+		const simpleNewFiles = newFiles.filter(
+			(_, i) => newVariantTypes[i] !== 'sequence' && newVariantTypes[i] !== 'rank'
+		);
 
 		const fileError = validateFiles(
 			[
-				...nonSequenceFiles.filter((file) => file.size > 0),
-				...nonSequenceNewFiles.filter((file) => file.size > 0)
+				...simpleFiles.filter((file: File) => file.size > 0),
+				...simpleNewFiles.filter((file: File) => file.size > 0)
 			],
 			filesRequired
 		);
@@ -208,13 +224,15 @@ export const actions: Actions = {
 			return fail(400, { message: 'Each new SoundBite needs variant configuration.' });
 		}
 
-		// Validate non-sequence variant configs (sequence configs will be validated after file upload)
+		// Validate simple variant configs (sequence, rank, and image_choice configs will be validated after file upload)
 		for (let i = 0; i < variantConfigs.length; i++) {
 			const config = variantConfigs[i];
 			if (
 				!removed.has(ids[i]) &&
 				config &&
 				config.type !== 'sequence' &&
+				config.type !== 'rank' &&
+				config.type !== 'image_choice' &&
 				!validateVariantConfig(config)
 			) {
 				return fail(400, { message: `Invalid configuration for SoundBite ${i + 1}.` });
@@ -223,8 +241,14 @@ export const actions: Actions = {
 
 		for (let i = 0; i < newVariantConfigs.length; i++) {
 			const config = newVariantConfigs[i];
-			// Skip sequence validation for now - will validate after file upload
-			if (!config || (config.type !== 'sequence' && !validateVariantConfig(config))) {
+			// Skip sequence, rank, and image_choice validation for now - will validate after file upload
+			if (
+				!config ||
+				(config.type !== 'sequence' &&
+					config.type !== 'rank' &&
+					config.type !== 'image_choice' &&
+					!validateVariantConfig(config))
+			) {
 				return fail(400, { message: `Invalid configuration for new SoundBite ${i + 1}.` });
 			}
 		}
@@ -256,8 +280,54 @@ export const actions: Actions = {
 
 				const question = questions[index];
 				const variantType = variantTypes[index];
-				const variantConfig = variantConfigs[index]!;
+				let variantConfig = variantConfigs[index]!;
 				const file = files[index];
+
+				// Handle image_choice image uploads for existing soundbites
+				if (variantType === 'image_choice') {
+					const config = variantConfig as ImageChoiceConfig;
+					const uploadedOptions = [];
+					const imageFiles = formData.getAll(`imageChoiceFiles-${index}`) as File[];
+
+					console.log(
+						`[Edit Quiz] Existing soundbite ${index}: Processing ${config.options.length} options, received ${imageFiles.length} files`
+					);
+
+					for (let optionIndex = 0; optionIndex < config.options.length; optionIndex++) {
+						const option = config.options[optionIndex];
+						const imgFile = imageFiles[optionIndex];
+
+						console.log(
+							`[Edit Quiz] Option ${optionIndex}: id=${option.id}, hasNewFile=${imgFile && imgFile.size > 0}, existingUrl=${option.imageUrl?.substring(0, 50)}...`
+						);
+
+						if (imgFile && imgFile.size > 0) {
+							// New file uploaded - upload to blob
+							console.log(
+								`[Edit Quiz] Uploading new file for option ${optionIndex}: ${imgFile.name}`
+							);
+							const imgBlob = await uploadToBlob(imgFile, env.BLOB_READ_WRITE_TOKEN);
+							uploadedOptions.push({
+								id: option.id,
+								imageUrl: imgBlob.url,
+								pathname: imgBlob.pathname,
+								label: option.label,
+								isCorrect: option.isCorrect
+							});
+						} else if (option.imageUrl && option.imageUrl.startsWith('http')) {
+							// Keep existing option with server URL
+							console.log(`[Edit Quiz] Keeping existing option ${optionIndex} with server URL`);
+							uploadedOptions.push(option);
+						} else {
+							// No file and no valid URL - this shouldn't happen
+							console.warn(
+								`[Edit Quiz] Warning: Option ${optionIndex} has no file and no valid URL`
+							);
+							uploadedOptions.push(option);
+						}
+					}
+					variantConfig = { ...config, options: uploadedOptions };
+				}
 
 				if (file && file.size > 0) {
 					const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
@@ -345,6 +415,123 @@ export const actions: Actions = {
 						})
 						.returning({ id: tracks.id });
 					trackId = track.id;
+				} else if (variantType === 'rank') {
+					// For rank variants, upload the rank files
+					const config = variantConfig as RankConfig;
+					const uploadedItems = [];
+
+					// Get rank files from form data
+					// Note: Client sends files with index starting from 0 for new soundbites
+					const rankFiles = formData.getAll(`rankFiles-${index}`) as File[];
+					console.log(
+						`[Edit Quiz Server] New soundbite ${index}: Found ${rankFiles.length} rank files`
+					);
+
+					for (let itemIndex = 0; itemIndex < config.items.length; itemIndex++) {
+						const item = config.items[itemIndex];
+						const file = rankFiles[itemIndex];
+
+						if (file && file.size > 0) {
+							// Upload to Vercel Blob
+							const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
+							uploadedItems.push({
+								id: item.id,
+								name: item.name,
+								url: blob.url
+							});
+						} else {
+							// If no file provided, keep the original URL
+							uploadedItems.push(item);
+						}
+					}
+
+					// Update config with permanent URLs
+					variantConfig = {
+						...config,
+						items: uploadedItems
+					};
+
+					// Validate the updated rank config
+					if (!validateVariantConfig(variantConfig)) {
+						return fail(400, {
+							message: `Invalid configuration for new SoundBite ${index + 1}. Please ensure all rank files were uploaded successfully.`
+						});
+					}
+
+					// Create a placeholder track for the soundbite
+					const [track] = await db
+						.insert(tracks)
+						.values({
+							name: `Rank ${currentMaxPosition + index + 1}`,
+							url: '',
+							pathname: null
+						})
+						.returning({ id: tracks.id });
+					trackId = track.id;
+				} else if (variantType === 'image_choice') {
+					// For image_choice variants, upload the MP3 file first
+					const file = newFiles[newFileIndex];
+					newFileIndex += 1;
+
+					if (!file || file.size === 0) {
+						return fail(400, { message: `New SoundBite ${index + 1} is missing an MP3 file.` });
+					}
+
+					const blob = await uploadToBlob(file, env.BLOB_READ_WRITE_TOKEN);
+
+					const [track] = await db
+						.insert(tracks)
+						.values({
+							name: file.name,
+							url: blob.url,
+							pathname: blob.pathname
+						})
+						.returning({ id: tracks.id });
+					trackId = track.id;
+
+					// Now handle the image files
+					const config = variantConfig as ImageChoiceConfig;
+					const uploadedOptions = [];
+
+					// Get image files from form data
+					// Note: Client sends files with index starting from 0 for new soundbites
+					const imageFiles = formData.getAll(`imageChoiceFiles-${index}`) as File[];
+					console.log(
+						`[Edit Quiz Server] New soundbite ${index}: Found ${imageFiles.length} image files`
+					);
+
+					for (let optionIndex = 0; optionIndex < config.options.length; optionIndex++) {
+						const option = config.options[optionIndex];
+						const imgFile = imageFiles[optionIndex];
+
+						if (imgFile && imgFile.size > 0) {
+							// Upload to Vercel Blob
+							const imgBlob = await uploadToBlob(imgFile, env.BLOB_READ_WRITE_TOKEN);
+							uploadedOptions.push({
+								id: option.id,
+								imageUrl: imgBlob.url,
+								pathname: imgBlob.pathname,
+								label: option.label,
+								isCorrect: option.isCorrect
+							});
+						} else {
+							// If no file provided, keep the original URL
+							uploadedOptions.push(option);
+						}
+					}
+
+					// Update config with permanent URLs
+					variantConfig = {
+						...config,
+						options: uploadedOptions
+					};
+
+					// Validate the updated image_choice config
+					if (!validateVariantConfig(variantConfig)) {
+						return fail(400, {
+							message: `Invalid configuration for new SoundBite ${index + 1}. Please ensure all image files were uploaded successfully.`
+						});
+					}
 				} else {
 					// For other variants, upload the file
 					const file = newFiles[newFileIndex];

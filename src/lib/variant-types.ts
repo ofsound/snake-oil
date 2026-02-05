@@ -5,7 +5,9 @@ export const VARIANT_TYPES = [
 	'simple_guess',
 	'multiple_choice',
 	'multiple_response',
-	'sequence'
+	'sequence',
+	'rank',
+	'image_choice'
 ] as const;
 export type VariantType = (typeof VARIANT_TYPES)[number];
 
@@ -13,7 +15,9 @@ export const VARIANT_LABELS: Record<VariantType, string> = {
 	simple_guess: 'Simple Guess',
 	multiple_choice: 'Multiple Choice',
 	multiple_response: 'Multiple Response',
-	sequence: 'Audio Sequence'
+	sequence: 'Audio Sequence',
+	rank: 'Audio Ranking',
+	image_choice: 'Image Choice'
 };
 
 // Variant Config Types
@@ -26,6 +30,14 @@ export type MultipleChoiceOption = {
 export type MultipleResponseOption = {
 	id: string;
 	text: string;
+	isCorrect: boolean;
+};
+
+export type ImageChoiceOption = {
+	id: string;
+	imageUrl: string;
+	pathname: string;
+	label: string;
 	isCorrect: boolean;
 };
 
@@ -44,6 +56,11 @@ export type MultipleResponseConfig = {
 	options: MultipleResponseOption[];
 };
 
+export type ImageChoiceConfig = {
+	type: 'image_choice';
+	options: ImageChoiceOption[];
+};
+
 export type SequenceTrack = {
 	id: string;
 	name: string;
@@ -57,11 +74,27 @@ export type SequenceConfig = {
 	prompt: string;
 };
 
+// Rank variant types
+export type RankItem = {
+	id: string;
+	name: string;
+	url: string;
+};
+
+export type RankConfig = {
+	type: 'rank';
+	items: RankItem[];
+	correctOrder: number[];
+	prompt: string;
+};
+
 export type VariantConfig =
 	| SimpleGuessConfig
 	| MultipleChoiceConfig
 	| MultipleResponseConfig
-	| SequenceConfig;
+	| ImageChoiceConfig
+	| SequenceConfig
+	| RankConfig;
 
 // Answer Detail Types
 export type AnswerDetail = {
@@ -71,6 +104,7 @@ export type AnswerDetail = {
 	selectedOptionId?: string; // For multiple_choice
 	selectedOptionIds?: string[]; // For multiple_response
 	selectedTrackIndex?: number; // For sequence
+	userOrder?: number[]; // For rank - user's final order as array of item indices
 };
 
 export type AnswersPayload = Record<string, AnswerDetail>;

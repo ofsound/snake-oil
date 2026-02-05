@@ -8,13 +8,17 @@
 	import FormField from '$lib/components/FormField.svelte';
 	import type { ActionData, PageData } from './$types';
 	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
+	import ImageChoiceInput from '$lib/components/ImageChoiceInput.svelte';
 	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
 	import SequenceInput from '$lib/components/SequenceInput.svelte';
+	import RankAudioPlayer from '$lib/components/RankAudioPlayer.svelte';
 	import type {
 		AnswersPayload,
 		MultipleChoiceConfig,
 		MultipleResponseConfig,
-		SequenceConfig
+		ImageChoiceConfig,
+		SequenceConfig,
+		RankConfig
 	} from '$lib/variant-types';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
@@ -35,6 +39,8 @@
 	let multipleResponseSelections = $state<Record<string, string[]>>({});
 	// Track sequence buzzer state (id -> has buzzed)
 	let sequenceBuzzed = $state<Record<string, boolean>>({});
+	// Track rank order state (id -> array of item indices)
+	let rankOrders = $state<Record<string, number[]>>({});
 
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
@@ -53,6 +59,12 @@
 		sequenceBuzzed = { ...sequenceBuzzed, [soundbiteId]: true };
 		// Store track index as string for form submission
 		userAnswers = { ...userAnswers, [soundbiteId]: String(trackIndex) };
+	}
+
+	function handleRankOrderChange(soundbiteId: string, order: number[]) {
+		rankOrders = { ...rankOrders, [soundbiteId]: order };
+		// Store order as JSON string for form submission
+		userAnswers = { ...userAnswers, [soundbiteId]: JSON.stringify(order) };
 	}
 
 	// Get results from form action
@@ -107,20 +119,31 @@
 				{@const answerDetail = results.answers[soundbite.id]}
 				{@const correctAnswer = results.correctAnswers[soundbite.id]}
 				{#if answerDetail}
+					{@const rankConfig =
+						soundbite.variantType === 'rank' && correctAnswer
+							? (JSON.parse(correctAnswer) as RankConfig)
+							: null}
+					{@const imageChoiceConfig =
+						soundbite.variantType === 'image_choice' && correctAnswer
+							? (JSON.parse(correctAnswer) as ImageChoiceConfig)
+							: null}
 					<div class="rounded-sm bg-neutral-50 p-4">
 						<div class="mb-3">
-							<div class="mb-2 text-base font-medium text-gray-700">Audio #{index + 1}</div>
-							<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
+							<div class="mb-2 text-base font-medium text-gray-700">{index + 1}.</div>
+							{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
+								<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
+							{/if}
 							{#if soundbite.question}
 								<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
 							{/if}
 						</div>
 						<AnswerResultCard
 							{answerDetail}
-							variantConfig={{
-								...soundbite.variantConfig,
-								...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
-							}}
+							variantConfig={rankConfig ??
+								imageChoiceConfig ?? {
+									...soundbite.variantConfig,
+									...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
+								}}
 							{index}
 						/>
 					</div>
@@ -165,7 +188,7 @@
 							>
 								{index + 1}
 							</div>
-							{#if soundbite.variantType !== 'sequence'}
+							{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 								<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 							{/if}
 							{#if soundbite.question}
@@ -195,6 +218,14 @@
 								selectedOptionIds={multipleResponseSelections[soundbite.id] ?? []}
 								onselect={(optionIds) => updateMultipleResponseSelections(soundbite.id, optionIds)}
 							/>
+						{:else if soundbite.variantType === 'image_choice'}
+							{@const config = soundbite.variantConfig as ImageChoiceConfig}
+							<ImageChoiceInput
+								soundbiteId={soundbite.id}
+								options={config.options}
+								selectedOptionId={userAnswers[soundbite.id] ?? ''}
+								onselect={(optionId) => updateAnswer(soundbite.id, optionId)}
+							/>
 						{:else if soundbite.variantType === 'sequence'}
 							{@const config = soundbite.variantConfig as SequenceConfig}
 							<div class="flex flex-col gap-4">
@@ -209,6 +240,22 @@
 									answer={userAnswers[soundbite.id] ?? ''}
 									onBuzzer={() => {}}
 									disabled={sequenceBuzzed[soundbite.id] ?? false}
+								/>
+							</div>
+						{:else if soundbite.variantType === 'rank'}
+							{@const config = soundbite.variantConfig as unknown as RankConfig}
+							<div class="flex flex-col gap-4">
+								<RankAudioPlayer
+									items={config.items}
+									soundbiteId={soundbite.id}
+									onOrderChange={(order) => handleRankOrderChange(soundbite.id, order)}
+									disabled={submitting}
+								/>
+								<p class="text-center font-medium text-gray-700">{config.prompt}</p>
+								<input
+									type="hidden"
+									name="answer-{soundbite.id}"
+									value={userAnswers[soundbite.id] ?? '[]'}
 								/>
 							</div>
 						{/if}

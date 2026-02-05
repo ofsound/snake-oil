@@ -14,7 +14,9 @@
 		VariantType,
 		MultipleChoiceOption,
 		MultipleResponseOption,
+		ImageChoiceOption,
 		SequenceTrack,
+		RankItem,
 		VariantConfig,
 		AnswersPayload
 	} from '$lib/variant-types';
@@ -29,10 +31,16 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		imageChoiceOptions: ImageChoiceOption[];
+		imageChoiceFiles: (File | null)[];
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
 		sequenceFiles: File[];
+		rankItems: RankItem[];
+		rankCorrectOrder: number[];
+		rankPrompt: string;
+		rankFiles: File[];
 		question: string;
 	};
 
@@ -41,10 +49,16 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		imageChoiceOptions: ImageChoiceOption[];
+		imageChoiceFiles: (File | null)[];
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
 		sequenceFiles: File[];
+		rankItems: RankItem[];
+		rankCorrectOrder: number[];
+		rankPrompt: string;
+		rankFiles: File[];
 		question: string;
 	};
 
@@ -75,10 +89,16 @@
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			imageChoiceOptions: [],
+			imageChoiceFiles: [],
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
 			sequenceFiles: [],
+			rankItems: [],
+			rankCorrectOrder: [],
+			rankPrompt: '',
+			rankFiles: [],
 			question: question ?? ''
 		};
 
@@ -107,6 +127,20 @@
 				sequenceTracks: config.tracks,
 				sequenceCorrectTrackIndex: config.correctTrackIndex,
 				sequencePrompt: config.prompt
+			};
+		} else if (config.type === 'rank') {
+			return {
+				...defaultState,
+				variantType: 'rank',
+				rankItems: config.items,
+				rankCorrectOrder: config.correctOrder,
+				rankPrompt: config.prompt
+			};
+		} else if (config.type === 'image_choice') {
+			return {
+				...defaultState,
+				variantType: 'image_choice',
+				imageChoiceOptions: config.options
 			};
 		}
 		return defaultState;
@@ -162,6 +196,20 @@
 		};
 	}
 
+	function updateExistingImageChoiceOptions(id: string, options: ImageChoiceOption[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], imageChoiceOptions: options }
+		};
+	}
+
+	function updateExistingImageChoiceFiles(id: string, files: (File | null)[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], imageChoiceFiles: files }
+		};
+	}
+
 	function updateExistingQuestion(id: string, question: string) {
 		existingSoundbiteState = {
 			...existingSoundbiteState,
@@ -187,6 +235,27 @@
 		existingSoundbiteState = {
 			...existingSoundbiteState,
 			[id]: { ...existingSoundbiteState[id], sequencePrompt: prompt }
+		};
+	}
+
+	function updateExistingRankItems(id: string, items: RankItem[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], rankItems: items }
+		};
+	}
+
+	function updateExistingRankCorrectOrder(id: string, order: number[]) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], rankCorrectOrder: order }
+		};
+	}
+
+	function updateExistingRankPrompt(id: string, prompt: string) {
+		existingSoundbiteState = {
+			...existingSoundbiteState,
+			[id]: { ...existingSoundbiteState[id], rankPrompt: prompt }
 		};
 	}
 
@@ -308,6 +377,73 @@
 				}
 			});
 
+			// Add rank files for new soundbites
+			newSoundbites.forEach((sb, index) => {
+				if (sb.variantType === 'rank') {
+					console.log(
+						`[Edit Quiz] Adding ${sb.rankFiles.length} rank files for new soundbite ${index}`
+					);
+					sb.rankFiles.forEach((file) => {
+						formData.append(`rankFiles-${index}`, file);
+					});
+				}
+			});
+
+			// Add image choice files for new soundbites
+			// Send files in order matching the options array, with empty Blob for placeholders
+			newSoundbites.forEach((sb, index) => {
+				if (sb.variantType === 'image_choice') {
+					const filesToSend = sb.imageChoiceFiles || [];
+					console.log(
+						`[Edit Quiz] Adding ${filesToSend.length} image files for new soundbite ${index}`
+					);
+					filesToSend.forEach((file, fileIndex) => {
+						if (file && file.size > 0) {
+							// New file to upload
+							formData.append(`imageChoiceFiles-${index}`, file);
+							console.log(
+								`[Edit Quiz] Appending new file for new soundbite ${index}, option ${fileIndex}: ${file.name}`
+							);
+						} else {
+							// No new file - send empty blob as placeholder
+							const placeholder = new Blob([], { type: 'application/octet-stream' });
+							formData.append(`imageChoiceFiles-${index}`, placeholder);
+							console.log(
+								`[Edit Quiz] Appending placeholder for new soundbite ${index}, option ${fileIndex}`
+							);
+						}
+					});
+				}
+			});
+
+			// Add image choice files for existing soundbites
+			// Send files in order matching the options array, with empty Blob for unchanged images
+			data.soundbites.forEach((soundbite, index) => {
+				const state = existingSoundbiteState[soundbite.id];
+				if (state && state.variantType === 'image_choice') {
+					const filesToSend = state.imageChoiceFiles || [];
+					console.log(
+						`[Edit Quiz] Adding ${filesToSend.length} image files for existing soundbite ${index}`
+					);
+					filesToSend.forEach((file, fileIndex) => {
+						if (file && file.size > 0) {
+							// New file to upload
+							formData.append(`imageChoiceFiles-${index}`, file);
+							console.log(
+								`[Edit Quiz] Appending new file for soundbite ${index}, option ${fileIndex}: ${file.name}`
+							);
+						} else {
+							// No new file - send empty blob as placeholder
+							const placeholder = new Blob([], { type: 'application/octet-stream' });
+							formData.append(`imageChoiceFiles-${index}`, placeholder);
+							console.log(
+								`[Edit Quiz] Appending placeholder for soundbite ${index}, option ${fileIndex}`
+							);
+						}
+					});
+				}
+			});
+
 			// Debug: Log form data
 			console.log('[Edit Quiz] Form data entries:');
 			for (const [key, value] of formData.entries()) {
@@ -378,9 +514,13 @@
 									simpleGuessAnswer={state.simpleGuessAnswer}
 									multipleChoiceOptions={state.multipleChoiceOptions}
 									multipleResponseOptions={state.multipleResponseOptions}
+									imageChoiceOptions={state.imageChoiceOptions}
 									sequenceTracks={state.sequenceTracks}
 									sequenceCorrectTrackIndex={state.sequenceCorrectTrackIndex}
 									sequencePrompt={state.sequencePrompt}
+									rankItems={state.rankItems}
+									rankCorrectOrder={state.rankCorrectOrder}
+									rankPrompt={state.rankPrompt}
 									variantTypeName="existingSoundbiteVariantType"
 									variantConfigName="existingSoundbiteVariantConfig"
 									questionName="existingSoundbiteQuestion"
@@ -396,12 +536,20 @@
 										updateExistingMultipleChoiceOptions(soundbite.id, options)}
 									onMultipleResponseOptionsChange={(options) =>
 										updateExistingMultipleResponseOptions(soundbite.id, options)}
+									onImageChoiceOptionsChange={(options) =>
+										updateExistingImageChoiceOptions(soundbite.id, options)}
+									onImageChoiceFilesChange={(files) =>
+										updateExistingImageChoiceFiles(soundbite.id, files)}
 									onSequenceTracksChange={(tracks) =>
 										updateExistingSequenceTracks(soundbite.id, tracks)}
 									onSequenceCorrectTrackIndexChange={(index) =>
 										updateExistingSequenceCorrectTrackIndex(soundbite.id, index)}
 									onSequencePromptChange={(prompt) =>
 										updateExistingSequencePrompt(soundbite.id, prompt)}
+									onRankItemsChange={(items) => updateExistingRankItems(soundbite.id, items)}
+									onRankCorrectOrderChange={(order) =>
+										updateExistingRankCorrectOrder(soundbite.id, order)}
+									onRankPromptChange={(prompt) => updateExistingRankPrompt(soundbite.id, prompt)}
 								/>
 							</Card>
 						</div>

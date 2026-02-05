@@ -52,6 +52,8 @@
 		"@vercel/blob": "^2.0.1",
 		"better-auth": "^1.4.17",
 		"gsap": "^3.14.2",
+		"heic2any": "^0.0.4",
+		"svelte-dnd-action": "^0.9.69",
 		"zod": "^4.0.0"
 	}
 }

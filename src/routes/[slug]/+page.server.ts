@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { quizzes, quizAnswers, soundbites } from '$lib/server/db/schema';
-import type { AnswersPayload, VariantConfig } from '$lib/server/db/schema';
+import type { AnswersPayload, VariantConfig, RankConfig } from '$lib/server/db/schema';
 import { error, fail } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
@@ -55,6 +55,26 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				tracks: config.tracks,
 				correctTrackIndex: -1, // Don't reveal correct track
 				prompt: config.prompt
+			};
+		} else if (config.type === 'rank') {
+			// For rank, don't reveal the correct order
+			safeConfig = {
+				type: 'rank',
+				items: config.items,
+				correctOrder: [], // Don't reveal correct order
+				prompt: config.prompt
+			};
+		} else if (config.type === 'image_choice') {
+			// For image_choice, strip out isCorrect from options
+			safeConfig = {
+				type: 'image_choice',
+				options: config.options.map((opt) => ({
+					id: opt.id,
+					imageUrl: opt.imageUrl,
+					pathname: opt.pathname,
+					label: opt.label,
+					isCorrect: false // Don't reveal correct answer to client
+				}))
 			};
 		} else {
 			// For simple_guess, don't send the correct answer to the client
@@ -137,6 +157,7 @@ export const actions: Actions = {
 			let selectedOptionId: string | undefined;
 			let selectedOptionIds: string[] | undefined;
 			let selectedTrackIndex: number | undefined;
+			let userOrder: number[] | undefined;
 
 			if (soundbite.variantType === 'multiple_response') {
 				// For multiple response, get all selected option IDs
@@ -148,10 +169,25 @@ export const actions: Actions = {
 				const trackIndexStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
 				selectedTrackIndex = trackIndexStr ? parseInt(trackIndexStr, 10) : -1;
 				guess = trackIndexStr || '-1';
+			} else if (soundbite.variantType === 'rank') {
+				// For rank, the answer is a JSON array of item indices
+				const orderStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
+				try {
+					userOrder = JSON.parse(orderStr);
+					if (!Array.isArray(userOrder)) {
+						userOrder = [];
+					}
+				} catch {
+					userOrder = [];
+				}
+				guess = orderStr || '[]';
 			} else {
 				guess = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
-				// For multiple choice, the guess is the option ID
-				selectedOptionId = soundbite.variantType === 'multiple_choice' ? guess : undefined;
+				// For multiple choice and image choice, the guess is the option ID
+				selectedOptionId =
+					soundbite.variantType === 'multiple_choice' || soundbite.variantType === 'image_choice'
+						? guess
+						: undefined;
 			}
 
 			answersPayload[soundbiteId] = buildAnswerDetail(
@@ -159,7 +195,8 @@ export const actions: Actions = {
 				soundbite.variantConfig,
 				selectedOptionId,
 				selectedOptionIds,
-				selectedTrackIndex
+				selectedTrackIndex,
+				userOrder
 			);
 		}
 
@@ -200,6 +237,13 @@ export const actions: Actions = {
 							} else if (sb.variantConfig.type === 'sequence') {
 								const correctTrack = sb.variantConfig.tracks[sb.variantConfig.correctTrackIndex];
 								return [sb.id, correctTrack?.name ?? ''];
+							} else if (sb.variantConfig.type === 'rank') {
+								// Return the full rank config with correct order for display
+								const rankConfig = sb.variantConfig as RankConfig;
+								return [sb.id, JSON.stringify(rankConfig)];
+							} else if (sb.variantConfig.type === 'image_choice') {
+								// Return the full image choice config with correct answer marked
+								return [sb.id, JSON.stringify(sb.variantConfig)];
 							}
 							return [sb.id, ''];
 						})

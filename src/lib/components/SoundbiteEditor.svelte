@@ -3,13 +3,17 @@
 	import SimpleGuessEditor from './SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './MultipleChoiceEditor.svelte';
 	import MultipleResponseEditor from './MultipleResponseEditor.svelte';
+	import ImageChoiceEditor from './ImageChoiceEditor.svelte';
 	import SequenceEditor from './SequenceEditor.svelte';
+	import RankEditor from './RankEditor.svelte';
 	import FormField from './FormField.svelte';
 	import type {
 		VariantType,
 		MultipleChoiceOption,
 		MultipleResponseOption,
-		SequenceTrack
+		ImageChoiceOption,
+		SequenceTrack,
+		RankItem
 	} from '$lib/variant-types';
 
 	interface Props {
@@ -19,9 +23,13 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		imageChoiceOptions: ImageChoiceOption[];
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
+		rankItems: RankItem[];
+		rankCorrectOrder: number[];
+		rankPrompt: string;
 		variantTypeName: string;
 		variantConfigName: string;
 		questionName: string;
@@ -34,10 +42,16 @@
 		onSimpleGuessAnswerChange: (answer: string) => void;
 		onMultipleChoiceOptionsChange: (options: MultipleChoiceOption[]) => void;
 		onMultipleResponseOptionsChange: (options: MultipleResponseOption[]) => void;
+		onImageChoiceOptionsChange: (options: ImageChoiceOption[]) => void;
+		onImageChoiceFilesChange?: (files: (File | null)[]) => void;
 		onSequenceTracksChange: (tracks: SequenceTrack[]) => void;
 		onSequenceCorrectTrackIndexChange: (index: number) => void;
 		onSequencePromptChange: (prompt: string) => void;
 		onSequenceFilesChange?: (files: File[]) => void;
+		onRankItemsChange: (items: RankItem[]) => void;
+		onRankCorrectOrderChange: (order: number[]) => void;
+		onRankPromptChange: (prompt: string) => void;
+		onRankFilesChange?: (files: File[]) => void;
 	}
 
 	let {
@@ -47,9 +61,13 @@
 		simpleGuessAnswer,
 		multipleChoiceOptions,
 		multipleResponseOptions,
+		imageChoiceOptions,
 		sequenceTracks,
 		sequenceCorrectTrackIndex,
 		sequencePrompt,
+		rankItems,
+		rankCorrectOrder,
+		rankPrompt,
 		variantTypeName,
 		variantConfigName,
 		questionName,
@@ -62,11 +80,24 @@
 		onSimpleGuessAnswerChange,
 		onMultipleChoiceOptionsChange,
 		onMultipleResponseOptionsChange,
+		onImageChoiceOptionsChange,
+		onImageChoiceFilesChange,
 		onSequenceTracksChange,
 		onSequenceCorrectTrackIndexChange,
 		onSequencePromptChange,
-		onSequenceFilesChange
+		onSequenceFilesChange,
+		onRankItemsChange,
+		onRankCorrectOrderChange,
+		onRankPromptChange,
+		onRankFilesChange
 	}: Props = $props();
+
+	// Debug logging
+	$effect(() => {
+		console.log(
+			`[SoundbiteEditor ${id}] variantType=${variantType}, fileInputName=${fileInputName}, shouldShowFileInput=${fileInputName && variantType !== 'sequence' && variantType !== 'rank'}`
+		);
+	});
 
 	function getVariantConfigJson(): string {
 		if (variantType === 'simple_guess') {
@@ -75,6 +106,8 @@
 			return JSON.stringify({ type: 'multiple_choice', options: multipleChoiceOptions });
 		} else if (variantType === 'multiple_response') {
 			return JSON.stringify({ type: 'multiple_response', options: multipleResponseOptions });
+		} else if (variantType === 'image_choice') {
+			return JSON.stringify({ type: 'image_choice', options: imageChoiceOptions });
 		} else if (variantType === 'sequence') {
 			return JSON.stringify({
 				type: 'sequence',
@@ -82,13 +115,20 @@
 				correctTrackIndex: sequenceCorrectTrackIndex,
 				prompt: sequencePrompt
 			});
+		} else if (variantType === 'rank') {
+			return JSON.stringify({
+				type: 'rank',
+				items: rankItems,
+				correctOrder: rankCorrectOrder,
+				prompt: rankPrompt
+			});
 		}
 		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
 	}
 </script>
 
 <div class="flex flex-col gap-4">
-	{#if fileInputName && variantType !== 'sequence'}
+	{#if fileInputName && variantType !== 'sequence' && variantType !== 'rank'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
 				{fileInputLabel}
@@ -142,6 +182,13 @@
 			options={multipleResponseOptions}
 			onchange={onMultipleResponseOptionsChange}
 		/>
+	{:else if variantType === 'image_choice'}
+		<ImageChoiceEditor
+			idPrefix={`ic-${id}`}
+			options={imageChoiceOptions}
+			onchange={onImageChoiceOptionsChange}
+			onFilesChange={onImageChoiceFilesChange}
+		/>
 	{:else if variantType === 'sequence'}
 		<SequenceEditor
 			id={`sequence-${id}`}
@@ -152,6 +199,17 @@
 			onCorrectTrackIndexChange={onSequenceCorrectTrackIndexChange}
 			onPromptChange={onSequencePromptChange}
 			onFilesChange={onSequenceFilesChange}
+		/>
+	{:else if variantType === 'rank'}
+		<RankEditor
+			id={`rank-${id}`}
+			items={rankItems}
+			correctOrder={rankCorrectOrder}
+			prompt={rankPrompt}
+			onItemsChange={onRankItemsChange}
+			onCorrectOrderChange={onRankCorrectOrderChange}
+			onPromptChange={onRankPromptChange}
+			onFilesChange={onRankFilesChange}
 		/>
 	{/if}
 

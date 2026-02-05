@@ -12,7 +12,9 @@
 		VariantType,
 		MultipleChoiceOption,
 		MultipleResponseOption,
-		SequenceTrack
+		ImageChoiceOption,
+		SequenceTrack,
+		RankItem
 	} from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
@@ -33,10 +35,16 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		imageChoiceOptions: ImageChoiceOption[];
+		imageChoiceFiles: (File | null)[];
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
 		sequenceFiles: File[];
+		rankItems: RankItem[];
+		rankCorrectOrder: number[];
+		rankPrompt: string;
+		rankFiles: File[];
 		question: string;
 	};
 
@@ -48,10 +56,16 @@
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			imageChoiceOptions: [],
+			imageChoiceFiles: [],
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
 			sequenceFiles: [],
+			rankItems: [],
+			rankCorrectOrder: [],
+			rankPrompt: '',
+			rankFiles: [],
 			question: ''
 		}
 	]);
@@ -98,6 +112,56 @@
 				sb.sequenceFiles.forEach((file) => {
 					formData.append(`sequenceFiles-${index}`, file);
 				});
+			}
+		});
+
+		// Add rank files to form data
+		soundbites.forEach((sb, index) => {
+			if (sb.variantType === 'rank') {
+				console.log(
+					`[Create Quiz] Adding ${sb.rankFiles.length} rank files for soundbite ${index}`
+				);
+				sb.rankFiles.forEach((file) => {
+					formData.append(`rankFiles-${index}`, file);
+				});
+			}
+		});
+
+		// Add image choice files to form data
+		// Send files in order matching the options array, with empty Blob for placeholders
+		soundbites.forEach((sb, index) => {
+			if (sb.variantType === 'image_choice') {
+				const filesToSend = sb.imageChoiceFiles || [];
+				console.log(
+					`[Create Quiz] Soundbite ${index}: ${sb.imageChoiceOptions.length} options, ${filesToSend.length} files in imageChoiceFiles`
+				);
+
+				// Log the options and files for debugging
+				sb.imageChoiceOptions.forEach((opt, i) => {
+					const file = filesToSend[i];
+					console.log(
+						`[Create Quiz] Option ${i}: id=${opt.id}, hasFile=${!!file}, fileName=${file?.name}, fileSize=${file?.size}`
+					);
+				});
+
+				// Send one file per option
+				for (let optionIndex = 0; optionIndex < sb.imageChoiceOptions.length; optionIndex++) {
+					const file = filesToSend[optionIndex];
+					if (file && file.size > 0) {
+						// New file to upload
+						formData.append(`imageChoiceFiles-${index}`, file);
+						console.log(
+							`[Create Quiz] Appending file for soundbite ${index}, option ${optionIndex}: ${file.name} (${file.size} bytes)`
+						);
+					} else {
+						// No new file - send empty blob as placeholder
+						const placeholder = new Blob([], { type: 'application/octet-stream' });
+						formData.append(`imageChoiceFiles-${index}`, placeholder);
+						console.log(
+							`[Create Quiz] Appending placeholder for soundbite ${index}, option ${optionIndex}`
+						);
+					}
+				}
 			}
 		});
 

@@ -7,7 +7,9 @@
 		VariantType,
 		MultipleChoiceOption,
 		MultipleResponseOption,
-		SequenceTrack
+		ImageChoiceOption,
+		SequenceTrack,
+		RankItem
 	} from '$lib/variant-types';
 	import Heading from './Heading.svelte';
 
@@ -17,10 +19,16 @@
 		simpleGuessAnswer: string;
 		multipleChoiceOptions: MultipleChoiceOption[];
 		multipleResponseOptions: MultipleResponseOption[];
+		imageChoiceOptions: ImageChoiceOption[];
+		imageChoiceFiles: (File | null)[]; // Actual files to upload (null for existing images)
 		sequenceTracks: SequenceTrack[];
 		sequenceCorrectTrackIndex: number;
 		sequencePrompt: string;
 		sequenceFiles: File[]; // Actual files to upload
+		rankItems: RankItem[];
+		rankCorrectOrder: number[];
+		rankPrompt: string;
+		rankFiles: File[]; // Actual files to upload
 		question: string;
 	}
 
@@ -63,10 +71,16 @@
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
+			imageChoiceOptions: [],
+			imageChoiceFiles: [],
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
 			sequencePrompt: '',
 			sequenceFiles: [],
+			rankItems: [],
+			rankCorrectOrder: [],
+			rankPrompt: '',
+			rankFiles: [],
 			question: ''
 		};
 		soundbites = [...soundbites, newSoundbite];
@@ -105,6 +119,14 @@
 		updateSoundbite(id, { multipleResponseOptions: options });
 	}
 
+	function updateImageChoiceOptions(id: number, options: ImageChoiceOption[]) {
+		updateSoundbite(id, { imageChoiceOptions: options });
+	}
+
+	function updateImageChoiceFiles(id: number, files: (File | null)[]) {
+		updateSoundbite(id, { imageChoiceFiles: files });
+	}
+
 	function updateSequenceTracks(id: number, tracks: SequenceTrack[]) {
 		updateSoundbite(id, { sequenceTracks: tracks });
 	}
@@ -119,6 +141,22 @@
 
 	function updateSequenceFiles(id: number, files: File[]) {
 		updateSoundbite(id, { sequenceFiles: files });
+	}
+
+	function updateRankItems(id: number, items: RankItem[]) {
+		updateSoundbite(id, { rankItems: items });
+	}
+
+	function updateRankCorrectOrder(id: number, order: number[]) {
+		updateSoundbite(id, { rankCorrectOrder: order });
+	}
+
+	function updateRankPrompt(id: number, prompt: string) {
+		updateSoundbite(id, { rankPrompt: prompt });
+	}
+
+	function updateRankFiles(id: number, files: File[]) {
+		updateSoundbite(id, { rankFiles: files });
 	}
 </script>
 
@@ -148,9 +186,13 @@
 						simpleGuessAnswer={soundbite.simpleGuessAnswer}
 						multipleChoiceOptions={soundbite.multipleChoiceOptions}
 						multipleResponseOptions={soundbite.multipleResponseOptions}
+						imageChoiceOptions={soundbite.imageChoiceOptions}
 						sequenceTracks={soundbite.sequenceTracks}
 						sequenceCorrectTrackIndex={soundbite.sequenceCorrectTrackIndex}
 						sequencePrompt={soundbite.sequencePrompt}
+						rankItems={soundbite.rankItems}
+						rankCorrectOrder={soundbite.rankCorrectOrder}
+						rankPrompt={soundbite.rankPrompt}
 						{variantTypeName}
 						{variantConfigName}
 						{questionName}
@@ -165,11 +207,18 @@
 							updateMultipleChoiceOptions(soundbite.id, options)}
 						onMultipleResponseOptionsChange={(options) =>
 							updateMultipleResponseOptions(soundbite.id, options)}
+						onImageChoiceOptionsChange={(options) =>
+							updateImageChoiceOptions(soundbite.id, options)}
+						onImageChoiceFilesChange={(files) => updateImageChoiceFiles(soundbite.id, files)}
 						onSequenceTracksChange={(tracks) => updateSequenceTracks(soundbite.id, tracks)}
 						onSequenceCorrectTrackIndexChange={(index) =>
 							updateSequenceCorrectTrackIndex(soundbite.id, index)}
 						onSequencePromptChange={(prompt) => updateSequencePrompt(soundbite.id, prompt)}
 						onSequenceFilesChange={(files) => updateSequenceFiles(soundbite.id, files)}
+						onRankItemsChange={(items) => updateRankItems(soundbite.id, items)}
+						onRankCorrectOrderChange={(order) => updateRankCorrectOrder(soundbite.id, order)}
+						onRankPromptChange={(prompt) => updateRankPrompt(soundbite.id, prompt)}
+						onRankFilesChange={(files) => updateRankFiles(soundbite.id, files)}
 					/>
 				</Card>
 			</div>

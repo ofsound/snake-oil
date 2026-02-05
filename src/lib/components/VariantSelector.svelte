@@ -15,7 +15,9 @@
 		'simple_guess',
 		'multiple_choice',
 		'multiple_response',
-		'sequence'
+		'image_choice',
+		'sequence',
+		'rank'
 	];
 </script>
 
