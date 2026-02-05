@@ -132,8 +132,11 @@ export abstract class BaseAudioEngine {
 	/** Whether we're running in a browser (for SSR safety) */
 	protected readonly isBrowser: boolean;
 
-	/** Whether gain node replacement is currently in progress (prevents race conditions) */
-	private gainReplaceInProgress = false;
+	/** Queue for gain node replacement operations - ensures atomic serialized execution */
+	private gainReplaceQueue: Array<() => void> = [];
+
+	/** Whether gain node replacement is currently being processed */
+	private isProcessingGainReplace = false;
 
 	/**
 	 * ============================================================================
@@ -324,7 +327,7 @@ export abstract class BaseAudioEngine {
 			return PlaybackState.PLAYING;
 		}
 
-		if (!this.isPlaying && this.source && this.sourceHasStarted) {
+		if (!this.isPlaying && this.sourceHasStarted) {
 			return PlaybackState.PAUSED;
 		}
 
@@ -352,14 +355,17 @@ export abstract class BaseAudioEngine {
 
 		// Stop: playback but keep sourceHasStarted = true so state machine recognizes PAUSED
 		this.fadeOut(() => {
-			// Stop: playback but keep source reference for state detection
+			// Stop: playback and disconnect source to prevent memory leak
 			if (this.source) {
 				try {
 					this.source.stop();
-					// Note: Keep sourceHasStarted = true for PAUSED state recognition
-					this.sourceHasStarted = true;
+					this.source.disconnect();
 				} catch (err) {
 					console.error('[BaseAudioEngine] Failed to stop source during pause:', err);
+				} finally {
+					// Clear source reference but keep sourceHasStarted = true for PAUSED state recognition
+					this.source = null;
+					this.sourceHasStarted = true;
 				}
 			}
 		});
@@ -393,7 +399,6 @@ export abstract class BaseAudioEngine {
 					err
 				);
 			});
-		this.isPlaying = true;
 	}
 
 	/**
@@ -455,16 +460,9 @@ export abstract class BaseAudioEngine {
 	/**
 	 * Replace the gain node with a fresh one to clear automation history.
 	 * Critical for iOS: prevents clicks from stale gain state when resuming playback.
-	 * This operation is serialized to prevent race conditions during rapid play/pause toggles.
+	 * This operation is serialized via a queue to prevent race conditions during rapid play/pause toggles.
 	 */
 	protected replaceGainNodeWithFresh(): void {
-		// Serialize gain node replacement to prevent audio graph corruption
-		// from concurrent calls during rapid state transitions
-		if (this.gainReplaceInProgress) {
-			console.log('[BaseAudioEngine] Gain node replacement already in progress, skipping');
-			return;
-		}
-
 		const ctx = this.audioContext;
 		const filter = this.filterNode;
 		const analyser = this.analyser;
@@ -472,28 +470,53 @@ export abstract class BaseAudioEngine {
 
 		if (!ctx || !filter || !analyser || !oldGain) return;
 
-		this.gainReplaceInProgress = true;
+		// Queue the replacement operation
+		this.gainReplaceQueue.push(() => {
+			try {
+				// Create new gain node with zero initial gain (will fade in after)
+				const newGain = ctx.createGain();
+				const t = ctx.currentTime;
+				newGain.gain.setValueAtTime(0, t);
 
-		try {
-			// Create new gain node with zero initial gain (will fade in after)
-			const newGain = ctx.createGain();
-			const t = ctx.currentTime;
-			newGain.gain.setValueAtTime(0, t);
+				// Rewire the audio chain: filter -> newGain -> analyser
+				filter.disconnect();
+				oldGain.disconnect();
+				filter.connect(newGain);
+				newGain.connect(analyser);
 
-			// Rewire the audio chain: filter -> newGain -> analyser
-			filter.disconnect();
-			oldGain.disconnect();
-			filter.connect(newGain);
-			newGain.connect(analyser);
+				// Update reference to new gain node
+				this.gainNode = newGain;
+			} catch (err) {
+				console.error('[BaseAudioEngine] Failed to replace gain node:', err);
+				// Don't update gainNode reference if replacement failed
+			}
+		});
 
-			// Update reference to new gain node
-			this.gainNode = newGain;
-		} catch (err) {
-			console.error('[BaseAudioEngine] Failed to replace gain node:', err);
-			// Don't update gainNode reference if replacement failed
-		} finally {
-			this.gainReplaceInProgress = false;
+		// Process the queue if not already processing
+		this.processGainReplaceQueue();
+	}
+
+	/**
+	 * Process the gain replacement queue serially.
+	 * This ensures atomic execution without race conditions.
+	 */
+	private processGainReplaceQueue(): void {
+		// If already processing or queue is empty, return
+		if (this.isProcessingGainReplace || this.gainReplaceQueue.length === 0) {
+			return;
 		}
+
+		this.isProcessingGainReplace = true;
+
+		// Process all queued operations in order
+		while (this.gainReplaceQueue.length > 0) {
+			const operation = this.gainReplaceQueue.shift();
+			if (operation) {
+				operation();
+			}
+		}
+
+		this.isProcessingGainReplace = false;
 	}
 
 	/**
@@ -606,6 +629,10 @@ export abstract class BaseAudioEngine {
 		// Clear any pending fade to prevent orphaned callbacks
 		this.fadeCompleteTime = null;
 		this.onFadeComplete = null;
+
+		// Clear gain replacement queue to prevent operations on destroyed context
+		this.gainReplaceQueue = [];
+		this.isProcessingGainReplace = false;
 	}
 
 	/**
