@@ -450,16 +450,9 @@ export class SingleTrackAudioEngine {
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
 			}
-			// If context was suspended (pause then stop), resume after a delay so that when the user
-			// presses play the context is already running (avoids iOS click on play). Immediate resume
-			// caused an artifact at the moment of stop; delayed resume happens while idle/silent.
-			if (this.audioContext?.state === 'suspended') {
-				setTimeout(() => {
-					this.audioContext?.resume().catch((err) => {
-						console.error('Failed to resume audio context after stop:', err);
-					});
-				}, 200);
-			}
+			// Do not resume when suspended (e.g. after pause then stop): immediate resume caused a
+			// click at stop; delayed resume caused a click 200ms after stop. So we leave context
+			// suspended; play after "pause then stop" will call resume() and may click on iOS.
 		});
 	}
 
