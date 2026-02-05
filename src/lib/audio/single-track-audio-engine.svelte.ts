@@ -308,7 +308,7 @@ export class SingleTrackAudioEngine {
 			});
 			this.isPlaying = false;
 		} else if (this.audioContext.state === 'suspended') {
-			// Resume from pause: set gain to 0, resume, then after a short settle delay fade in (avoids iOS resume click)
+			// Resume from pause: set gain to 0, resume, then fade in immediately (smooth ramp, no delay)
 			if (this.audioContext && this.gainNode) {
 				const t = this.audioContext.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
@@ -323,7 +323,7 @@ export class SingleTrackAudioEngine {
 						this.gainNode.gain.cancelScheduledValues(t);
 						this.gainNode.gain.setValueAtTime(0, t);
 					}
-					setTimeout(() => this.fadeIn(), 10);
+					this.fadeIn();
 				})
 				.catch((err) => {
 					console.error('Failed to resume audio context:', err);
@@ -369,13 +369,18 @@ export class SingleTrackAudioEngine {
 					this.gainNode.gain.setValueAtTime(0, t);
 				}
 				if (this.analyser) {
-					this.analyser.smoothingTimeConstant = 0.8;
+					this.analyser.smoothingTimeConstant = 0;
 				}
 				this.source.start(0);
 				this.sourceHasStarted = true;
 				this.startTime = this.audioContext!.currentTime;
 				this.isPlaying = true;
 				this.fadeIn();
+				if (this.analyser) {
+					setTimeout(() => {
+						if (this.analyser) this.analyser.smoothingTimeConstant = 0.8;
+					}, 50);
+				}
 				console.log('Playback started successfully');
 			});
 		};
