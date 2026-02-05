@@ -49,6 +49,7 @@
 			},
 			onPause: () => {
 				isPlaying = false;
+				isLoading = false;
 				// Don't reset time - maintain position for resume
 			},
 			onStop: () => {
@@ -170,9 +171,11 @@
 
 	async function handleTogglePlay() {
 		setAudioSessionPlayback();
-		isLoading = true;
+		// Only show loading when we're about to load (switching to this player); pause/resume is instant
+		if (quizAudioContext.currentPlayerId !== soundbiteId) {
+			isLoading = true;
+		}
 		await quizAudioContext.play(soundbiteId, url);
-		// isLoading will be set to false by onPlay callback or if play fails
 		if (quizAudioContext.currentPlayerId !== soundbiteId) {
 			isLoading = false;
 		}
@@ -289,7 +292,8 @@
 		</div>
 
 		<!-- Spectrum Visualizer -->
-		{#if isPlaying}
+		<!-- {#if isPlaying} -->
+		{#if false}
 			<MiniSpectrumVisualizer analyser={quizAudioContext.getAnalyser()} {isPlaying} />
 		{/if}
 	{/if}
