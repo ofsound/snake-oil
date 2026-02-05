@@ -208,26 +208,22 @@
 		</div>
 	{/if}
 
-	<!-- Loading State -->
-	{#if isLoading}
-		<div class="flex items-center justify-center gap-2 py-4">
-			<div
-				class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-emerald-600"
-			></div>
-			<span class="text-sm text-neutral-600">Loading audio...</span>
-		</div>
-	{:else}
-		<!-- Transport Controls (Left-aligned) -->
-		<div class="mb-4 flex min-w-0 items-center gap-2">
-			<!-- Play/Pause Button -->
+	<!-- Transport Controls (Left-aligned) -->
+	<div class="mb-4 flex min-w-0 items-center gap-2">
+		<!-- Play/Pause Button with Loading Overlay -->
+		<div class="relative">
 			<button
 				type="button"
 				onclick={handleTogglePlay}
-				disabled={isDisabled}
+				disabled={isDisabled || isLoading}
 				class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label={isPlaying ? 'Pause' : 'Play'}
 			>
-				{#if isPlaying}
+				{#if isLoading}
+					<div
+						class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+					></div>
+				{:else if isPlaying}
 					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
 						<rect x="6" y="4" width="4" height="16" rx="1" />
 						<rect x="14" y="4" width="4" height="16" rx="1" />
@@ -238,62 +234,67 @@
 					</svg>
 				{/if}
 			</button>
-
-			<!-- Stop/Reset Button -->
-			<button
-				type="button"
-				onclick={handleStop}
-				disabled={!isPlaying || isDisabled}
-				class="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
-				aria-label="Stop and reset"
-			>
-				<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-					<rect x="4" y="4" width="16" height="16" rx="2" />
-				</svg>
-			</button>
-
-			<!-- Time Display -->
-			<div class="ml-auto shrink-0 text-xs text-neutral-600">
-				<span class="font-mono">{formatTime(currentTime)}</span>
-				<span class="mx-0.5">/</span>
-				<span class="font-mono">{formatTime(duration)}</span>
-			</div>
 		</div>
 
-		<!-- Progress Bar -->
-		<div
-			bind:this={progressRef}
-			class="group relative h-2 cursor-pointer touch-none rounded-full bg-neutral-200"
-			onpointerdown={handleProgressPointerDown}
-			onpointermove={handleProgressPointerMove}
-			onpointerup={handleProgressPointerUp}
-			onpointerleave={handleProgressPointerLeave}
-			onkeydown={handleProgressKeyDown}
-			role="slider"
-			aria-valuenow={currentTime}
-			aria-valuemax={duration}
-			aria-label="Progress"
-			tabindex="0"
+		<!-- Stop/Reset Button -->
+		<button
+			type="button"
+			onclick={handleStop}
+			disabled={!isPlaying || isDisabled || isLoading}
+			class="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
+			aria-label="Stop and reset"
 		>
-			<div
-				class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-emerald-600"
-				style="width: {progressPercentage}%"
-			></div>
+			<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+				<rect x="4" y="4" width="16" height="16" rx="2" />
+			</svg>
+		</button>
 
-			<!-- Tooltip -->
-			{#if tooltip.visible}
-				<div
-					class="pointer-events-none absolute -top-7 -translate-x-1/2 transform rounded bg-neutral-800 px-2 py-1 text-xs text-white"
-					style="left: {tooltip.x}px"
-				>
-					{formatTime(tooltip.time)}
-				</div>
-			{/if}
-		</div>
-
-		<!-- Spectrum Visualizer -->
-		{#if isPlaying}
-			<MiniSpectrumVisualizer analyser={quizAudioContext.getAnalyser()} {isPlaying} />
+		<!-- Loading Indicator Text (shown when loading) -->
+		{#if isLoading}
+			<span class="text-sm text-neutral-600">Loading...</span>
 		{/if}
+
+		<!-- Time Display -->
+		<div class="ml-auto shrink-0 text-xs text-neutral-600">
+			<span class="font-mono">{formatTime(currentTime)}</span>
+			<span class="mx-0.5">/</span>
+			<span class="font-mono">{formatTime(duration)}</span>
+		</div>
+	</div>
+
+	<!-- Progress Bar -->
+	<div
+		bind:this={progressRef}
+		class="group relative h-2 cursor-pointer touch-none rounded-full bg-neutral-200"
+		onpointerdown={handleProgressPointerDown}
+		onpointermove={handleProgressPointerMove}
+		onpointerup={handleProgressPointerUp}
+		onpointerleave={handleProgressPointerLeave}
+		onkeydown={handleProgressKeyDown}
+		role="slider"
+		aria-valuenow={currentTime}
+		aria-valuemax={duration}
+		aria-label="Progress"
+		tabindex="0"
+	>
+		<div
+			class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-emerald-600"
+			style="width: {progressPercentage}%"
+		></div>
+
+		<!-- Tooltip -->
+		{#if tooltip.visible}
+			<div
+				class="pointer-events-none absolute -top-7 -translate-x-1/2 transform rounded bg-neutral-800 px-2 py-1 text-xs text-white"
+				style="left: {tooltip.x}px"
+			>
+				{formatTime(tooltip.time)}
+			</div>
+		{/if}
+	</div>
+
+	<!-- Spectrum Visualizer -->
+	{#if isPlaying}
+		<MiniSpectrumVisualizer analyser={quizAudioContext.getAnalyser()} {isPlaying} />
 	{/if}
 </div>
