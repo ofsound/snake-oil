@@ -86,5 +86,5 @@
 	});
 </script>
 
-<canvas bind:this={canvas} width={300} height={40} class="mb-3 w-full rounded bg-neutral-900"
+<canvas bind:this={canvas} width={300} height={40} class="mb-3 hidden w-full rounded bg-neutral-900"
 ></canvas>

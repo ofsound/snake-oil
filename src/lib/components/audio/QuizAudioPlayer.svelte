@@ -147,7 +147,7 @@
 	const filterLinearValue = $derived(logToLinear(engine.filterFrequency));
 </script>
 
-<div class="w-full min-w-0 rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
+<div class="w-full min-w-0">
 	<!-- Error Banner -->
 	{#if engine.error}
 		<div
@@ -168,13 +168,13 @@
 	{#if engine.isLoading}
 		<div class="flex items-center justify-center gap-2 py-4">
 			<div
-				class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-blue-600"
+				class="rounded-≈full h-4 w-4 animate-spin border-2 border-neutral-300 border-t-emerald-600"
 			></div>
 			<span class="text-sm text-neutral-600">Loading audio...</span>
 		</div>
 	{:else}
 		<!-- Transport Controls (Left-aligned) -->
-		<div class="mb-3 flex min-w-0 items-center gap-2">
+		<div class="mb-4 flex min-w-0 items-center gap-2">
 			<!-- Play/Pause Button -->
 			<button
 				type="button"
@@ -183,16 +183,16 @@
 					engine.togglePlayPause();
 				}}
 				disabled={!engine.bufferLoaded}
-				class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label={engine.isPlaying ? 'Pause' : 'Play'}
 			>
 				{#if engine.isPlaying}
-					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
 						<rect x="6" y="4" width="4" height="16" rx="1" />
 						<rect x="14" y="4" width="4" height="16" rx="1" />
 					</svg>
 				{:else}
-					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
 						<path d="M8 5v14l11-7z" />
 					</svg>
 				{/if}
@@ -203,10 +203,10 @@
 				type="button"
 				onclick={() => engine.stopAndReset()}
 				disabled={!engine.bufferLoaded}
-				class="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label="Stop and reset"
 			>
-				<svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+				<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
 					<rect x="4" y="4" width="16" height="16" rx="2" />
 				</svg>
 			</button>
@@ -222,7 +222,7 @@
 		<!-- Progress Bar -->
 		<div
 			bind:this={progressRef}
-			class="group relative mb-3 h-2 cursor-pointer rounded-full bg-neutral-200"
+			class="group relative h-2 cursor-pointer rounded-full bg-neutral-200"
 			onclick={handleProgressClick}
 			onkeydown={handleProgressKeyDown}
 			onmousemove={handleProgressMouseMove}
@@ -234,7 +234,7 @@
 			tabindex="0"
 		>
 			<div
-				class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-blue-600"
+				class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-emerald-600"
 				style="width: {progressPercentage}%"
 			></div>
 
@@ -253,7 +253,7 @@
 		<MiniSpectrumVisualizer analyser={engine.getAnalyser()} isPlaying={engine.isPlaying} />
 
 		<!-- Controls Row - Stack vertically on small screens -->
-		<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+		<div class="hidden flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
 			<!-- Volume Control -->
 			<div class="flex w-full items-center gap-2 sm:flex-1">
 				<svg
@@ -273,7 +273,7 @@
 					step="0.01"
 					value={engine.volume}
 					oninput={handleVolumeChange}
-					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-blue-600"
+					class="h-1 min-w-0 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-200 accent-emerald-600"
 					aria-label="Volume"
 				/>
 			</div>

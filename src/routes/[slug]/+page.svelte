@@ -145,7 +145,7 @@
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				<div class="flex">
 					<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
-					<Card variant="neutral" padding="md" class="flex flex-1 flex-col gap-6 ">
+					<Card variant="neutral" padding="md" class="flex flex-1 flex-col gap-5 ">
 						<input type="hidden" name="soundbiteId" value={soundbite.id} />
 						<div class="flex flex-col gap-2">
 							<div
@@ -155,7 +155,7 @@
 							</div>
 							<QuizAudioPlayer url={soundbite.trackUrl} />
 							{#if soundbite.question}
-								<p class="mt-6 font-medium">{soundbite.question}</p>
+								<p class="mt-5 font-medium">{soundbite.question}</p>
 							{/if}
 						</div>
 
