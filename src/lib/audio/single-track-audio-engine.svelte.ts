@@ -1,3 +1,37 @@
+/**
+ * SingleTrackAudioEngine - State Machine Implementation
+ * 
+ * This engine manages single-track audio playback with iOS-specific optimizations
+ * to prevent audio clicks and artifacts. The implementation uses an explicit state
+ * machine to manage playback states and transitions.
+ * 
+ * iOS Audio Strategy:
+ * - Never suspend AudioContext on pause/stop (avoids suspend→resume click)
+ * - Use 20ms fade in/out ramps on all state changes
+ * - Replace gain nodes when starting from stop/pause (clears automation history)
+ * - Analyser smoothing reset on stop, restored 50ms after play starts
+ * - 10ms delays before source creation to prevent connection spikes
+ */
+
+enum PlaybackState {
+	IDLE = 'idle',
+	LOADING = 'loading',
+	READY = 'ready',
+	PLAYING = 'playing',
+	PAUSED = 'paused',
+	STOPPED = 'stopped',
+	SEEKING = 'seeking',
+	ERROR = 'error'
+}
+
+interface AudioState {
+	playback: PlaybackState;
+	contextState: AudioContextState | null;
+	hasSource: boolean;
+	sourceStarted: boolean;
+	isFirstPlay: boolean;
+}
+
 export class SingleTrackAudioEngine {
 	// Reactive state using Svelte 5 runes
 	isPlaying = $state(false);
@@ -7,7 +41,7 @@ export class SingleTrackAudioEngine {
 	currentTime = $state(0);
 	duration = $state(0);
 	volume = $state(1);
-	filterFrequency = $state(20000); // Default: no filter (full spectrum)
+	filterFrequency = $state(20000);
 	progress = $derived(this.duration > 0 ? (this.currentTime / this.duration) * 100 : 0);
 	bufferLoaded = $state(false);
 	isInitialized = $state(false);
@@ -24,8 +58,9 @@ export class SingleTrackAudioEngine {
 	private animationFrameId: number | null = null;
 	private isFirstPlay = true;
 	private trackUrl: string | null = null;
+	private loadInProgress = false;
 
-	private static readonly FADE_DURATION_S = 0.02; // 20ms
+	private static readonly FADE_DURATION_S = 0.02;
 
 	constructor() {
 		// Defer initialization to when initialize() is called
@@ -33,7 +68,6 @@ export class SingleTrackAudioEngine {
 	}
 
 	initialize(): boolean {
-		// Must be in browser environment
 		if (typeof window === 'undefined') {
 			return false;
 		}
@@ -46,7 +80,6 @@ export class SingleTrackAudioEngine {
 		}
 
 		try {
-			// Clean up any existing closed context
 			if (this.audioContext?.state === 'closed') {
 				this.cleanup();
 			}
@@ -54,25 +87,17 @@ export class SingleTrackAudioEngine {
 			this.audioContext = new window.AudioContext();
 			this.audioContext.suspend();
 
-			// Create analyser for visualizer
 			this.analyser = this.audioContext.createAnalyser();
 			this.analyser.fftSize = 256;
 
-			// Create gain node for volume
 			this.gainNode = this.audioContext.createGain();
 			this.gainNode.gain.value = this.volume;
 
-			// Create low-pass filter
 			this.filterNode = this.audioContext.createBiquadFilter();
 			this.filterNode.type = 'lowpass';
 			this.filterNode.frequency.value = this.filterFrequency;
-			this.filterNode.Q.value = 0.707; // Butterworth response
+			this.filterNode.Q.value = 0.707;
 
-			// Chain: source -> filter -> gain -> analyser -> destination
-			// (Will be connected when source is created)
-
-			// Listen for state changes: only reflect "playing" when context is running and we have an active source
-			// (so resuming the context after stop doesn't flip the button to pause icon)
 			this.audioContext.addEventListener('statechange', () => {
 				if (this.audioContext) {
 					if (this.audioContext.state === 'running' && this.source && this.sourceHasStarted) {
@@ -83,9 +108,7 @@ export class SingleTrackAudioEngine {
 				}
 			});
 
-			// Start the time update loop
 			this.updateTimeLoop();
-
 			this.isInitialized = true;
 			return true;
 		} catch (err) {
@@ -96,9 +119,7 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Helper to ensure audio context is initialized and not closed
 	private ensureInitialized(): boolean {
-		// Check if we're in a browser environment
 		if (typeof window === 'undefined') {
 			return false;
 		}
@@ -108,24 +129,17 @@ export class SingleTrackAudioEngine {
 
 		if (needsInit) {
 			const success = this.initialize();
-			// Double-check that the context was actually created
 			return success && this.audioContext !== null;
 		}
 		return this.audioContext !== null;
 	}
 
-	// Track if load is in progress to prevent concurrent loads
-	private loadInProgress = false;
-
-	// Load a single audio buffer from URL
 	async loadBuffer(url: string): Promise<void> {
-		// Prevent concurrent loads
 		if (this.loadInProgress) {
 			console.log('Load already in progress, skipping');
 			return;
 		}
 
-		// Don't reload if already loaded with this URL
 		if (this.bufferLoaded && this.trackUrl === url && this.audioBuffer) {
 			console.log('Buffer already loaded for this URL, skipping');
 			return;
@@ -136,7 +150,6 @@ export class SingleTrackAudioEngine {
 			return;
 		}
 
-		// Double-check that audioContext exists before proceeding
 		if (!this.audioContext) {
 			this.error = 'Audio context not available';
 			return;
@@ -150,11 +163,10 @@ export class SingleTrackAudioEngine {
 		try {
 			const response = await fetch(url);
 			if (!response.ok) {
-				throw new Error(`Failed to fetch audio: ${response.statusText}`);
+				throw new Error('Failed to fetch audio: ' + response.statusText);
 			}
 			const arrayBuffer = await response.arrayBuffer();
 
-			// Check context still exists before decoding (it might have been destroyed)
 			if (!this.audioContext) {
 				throw new Error('Audio context was destroyed during load');
 			}
@@ -178,99 +190,55 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Retry loading buffer
 	async retryLoad(): Promise<void> {
 		if (this.trackUrl) {
 			await this.loadBuffer(this.trackUrl);
 		}
 	}
 
-	// Arm audio (prepare source but don't start). Calls afterReady when the new source is ready (sync or after fade-out).
-	private armAudio(afterReady?: () => void): void {
-		if (!this.audioContext || !this.gainNode || !this.analyser || !this.filterNode) return;
-		if (!this.audioBuffer) return;
-
-		const createNewSource = (): void => {
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			if (this.source) {
-				try {
-					this.source.disconnect();
-				} catch {
-					// Already disconnected or invalid
-				}
-				this.source = null;
-			}
-			this.source = this.audioContext!.createBufferSource();
-			this.source!.buffer = this.audioBuffer;
-
-			// Chain: source -> filter -> gain -> analyser -> destination
-			this.source!
-				.connect(this.filterNode!)
-				.connect(this.gainNode!)
-				.connect(this.analyser!)
-				.connect(this.audioContext!.destination);
-
-			// Handle track ending
-			this.source!.onended = () => {
-				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
-					this.resetToStart();
-				}
-			};
-
-			this.sourceHasStarted = false;
-			const t = this.audioContext!.currentTime;
-			this.gainNode!.gain.cancelScheduledValues(t);
-			this.gainNode!.gain.setValueAtTime(0, t);
-			afterReady?.();
+	/**
+	 * State Machine: Determines current playback state based on all internal flags
+	 */
+	private getCurrentState(): AudioState {
+		return {
+			playback: this.determinePlaybackState(),
+			contextState: this.audioContext?.state ?? null,
+			hasSource: this.source !== null,
+			sourceStarted: this.sourceHasStarted,
+			isFirstPlay: this.isFirstPlay
 		};
+	}
 
-		if (this.source && this.sourceHasStarted) {
-			this.fadeOut(() => {
-				try {
-					this.source?.stop();
-				} catch {
-					// Source might already be stopped
-				}
-				this.source = null;
-				this.sourceHasStarted = false;
-				createNewSource();
-			});
-		} else {
-			createNewSource();
+	private determinePlaybackState(): PlaybackState {
+		if (this.error) return PlaybackState.ERROR;
+		if (this.isLoading) return PlaybackState.LOADING;
+		if (!this.bufferLoaded) return PlaybackState.IDLE;
+		if (this.isBuffering) return PlaybackState.SEEKING;
+		
+		if (this.isPlaying && this.sourceHasStarted) {
+			return PlaybackState.PLAYING;
 		}
+		
+		if (!this.isPlaying && this.source && this.sourceHasStarted) {
+			return PlaybackState.PAUSED;
+		}
+		
+		if (!this.isPlaying && !this.source && !this.isFirstPlay) {
+			return PlaybackState.STOPPED;
+		}
+		
+		if (!this.isPlaying && this.isFirstPlay) {
+			return PlaybackState.READY;
+		}
+		
+		return PlaybackState.IDLE;
 	}
 
-	// Fade in audio over 20ms to prevent clicks
-	private fadeIn(): void {
-		if (!this.audioContext || !this.gainNode) return;
-		const now = this.audioContext.currentTime;
-		this.gainNode.gain.setValueAtTime(0, now);
-		this.gainNode.gain.linearRampToValueAtTime(
-			this.volume,
-			now + SingleTrackAudioEngine.FADE_DURATION_S
-		);
-	}
-
-	// Fade out audio over 20ms, then run onComplete (e.g. before source.stop())
-	private fadeOut(onComplete?: () => void): void {
-		if (!this.audioContext || !this.gainNode) return;
-		const now = this.audioContext.currentTime;
-		this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
-		this.gainNode.gain.linearRampToValueAtTime(
-			0,
-			now + SingleTrackAudioEngine.FADE_DURATION_S
-		);
-		const ms = SingleTrackAudioEngine.FADE_DURATION_S * 1000;
-		setTimeout(() => onComplete?.(), ms);
-	}
-
-	// Toggle play/pause
+	/**
+	 * State Machine: Main toggle handler
+	 * Routes to appropriate transition based on current state
+	 */
 	togglePlayPause(): void {
-		// Check if we need to reinitialize
 		const needsReinit = !this.audioContext || this.audioContext.state === 'closed';
 
 		if (needsReinit) {
@@ -282,17 +250,12 @@ export class SingleTrackAudioEngine {
 				return;
 			}
 			console.log('AudioContext reinitialized, reloading buffer...');
-			// After reinit, we need to reload buffer - but for iOS we need to handle this
-			// asynchronously without blocking the user gesture
 			if (this.trackUrl) {
-				// For iOS, we need to start playback immediately with what's available
-				// The buffer will be reloaded in the background
 				this.loadBuffer(this.trackUrl).then(() => {
 					if (this.bufferLoaded) {
 						console.log('Buffer reloaded after reinit');
 					}
 				});
-				// Don't return here - try to continue with playback
 			}
 		}
 
@@ -304,68 +267,75 @@ export class SingleTrackAudioEngine {
 			return;
 		}
 
-		if (this.isFirstPlay) {
+		const state = this.getCurrentState();
+		console.log('State transition:', state);
+
+		if (state.isFirstPlay) {
 			this.isFirstPlay = false;
-			this.startFromBeginning();
-		} else if (this.isPlaying && this.audioContext.state === 'running') {
-			// Pause: fade out only, do not suspend. Keeping context running avoids suspend→resume
-			// and the iOS click on "pause then stop then play".
-			this.fadeOut(() => {
-				this.isPlaying = false;
-			});
-		} else if (this.audioContext.state === 'suspended') {
-			// Context suspended (e.g. page load or browser). Must resume to play.
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
-			}
-			this.audioContext
-				.resume()
-				.then(() => {
-					this.isPlaying = true;
-					this.replaceGainNodeWithFresh();
-					setTimeout(() => this.fadeIn(), 10);
-				})
-				.catch((err) => {
-					console.error('Failed to resume audio context:', err);
-				});
-			this.isPlaying = true;
-		} else if (this.source && this.sourceHasStarted) {
-			// Resume from pause: context already running, source still connected. No suspend/resume.
-			this.replaceGainNodeWithFresh();
-			this.fadeIn();
-			this.isPlaying = true;
+			this.transitionToPlayingFromStart();
+		} else if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
+			this.transitionToPaused();
+		} else if (state.contextState === 'suspended') {
+			this.transitionToPlayingFromSuspended();
+		} else if (state.hasSource && state.sourceStarted) {
+			this.transitionToPlayingFromPaused();
 		} else {
-			// Stopped: no source, context running. Start from beginning (no resume needed).
-			this.startFromBeginning();
+			this.transitionToPlayingFromStart();
 		}
 	}
 
-	// Replace the gain node with a fresh one (no automation history). Use when starting after stop to avoid iOS click from stale gain state.
-	private replaceGainNodeWithFresh(): void {
-		if (!this.audioContext || !this.filterNode || !this.analyser) return;
-		const oldGain = this.gainNode;
-		if (!oldGain) return;
-
-		const newGain = this.audioContext.createGain();
-		const t = this.audioContext.currentTime;
-		newGain.gain.setValueAtTime(0, t);
-
-		this.filterNode.disconnect();
-		oldGain.disconnect();
-		this.filterNode.connect(newGain);
-		newGain.connect(this.analyser);
-		this.gainNode = newGain;
+	/**
+	 * State Transition: PLAYING → PAUSED
+	 * iOS: Fade out only, do NOT suspend context
+	 */
+	private transitionToPaused(): void {
+		this.fadeOut(() => {
+			this.isPlaying = false;
+		});
 	}
 
-	// Start playback from beginning
-	private startFromBeginning(): void {
+	/**
+	 * State Transition: SUSPENDED → PLAYING
+	 * iOS: Must resume context, replace gain node, fade in
+	 */
+	private transitionToPlayingFromSuspended(): void {
+		if (!this.audioContext || !this.gainNode) return;
+
+		const t = this.audioContext.currentTime;
+		this.gainNode.gain.cancelScheduledValues(t);
+		this.gainNode.gain.setValueAtTime(0, t);
+
+		this.audioContext
+			.resume()
+			.then(() => {
+				this.isPlaying = true;
+				this.replaceGainNodeWithFresh();
+				setTimeout(() => this.fadeIn(), 10);
+			})
+			.catch((err) => {
+				console.error('Failed to resume audio context:', err);
+			});
+		this.isPlaying = true;
+	}
+
+	/**
+	 * State Transition: PAUSED → PLAYING
+	 * iOS: Context already running, replace gain node, fade in
+	 */
+	private transitionToPlayingFromPaused(): void {
+		this.replaceGainNodeWithFresh();
+		this.fadeIn();
+		this.isPlaying = true;
+	}
+
+	/**
+	 * State Transition: STOPPED/READY → PLAYING
+	 * iOS: Handles both suspended and running context states
+	 */
+	private transitionToPlayingFromStart(): void {
 		if (!this.audioContext) return;
 		if (this.audioContext.state === 'closed') return;
 
-		// iOS fix: Create the source AFTER the context is resumed
-		// Sources created while context is suspended may not play
 		const startPlayback = () => {
 			this.replaceGainNodeWithFresh();
 			this.armAudio(() => {
@@ -395,7 +365,6 @@ export class SingleTrackAudioEngine {
 			});
 		};
 
-		// On iOS, context must be running BEFORE creating/starting the source
 		if (this.audioContext.state === 'suspended') {
 			console.log('Context suspended, resuming first...');
 			if (this.audioContext && this.gainNode) {
@@ -418,7 +387,6 @@ export class SingleTrackAudioEngine {
 					console.error('Failed to resume audio context:', err);
 				});
 		} else {
-			// Play after stop: context already running. Brief delay before startPlayback so analyser doesn't show connection spike.
 			if (this.audioContext && this.gainNode) {
 				const t = this.audioContext.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
@@ -428,7 +396,10 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Stop playback and reset to beginning
+	/**
+	 * State Transition: PLAYING/PAUSED → STOPPED
+	 * iOS: Fade out, disconnect source, DO NOT suspend context
+	 */
 	stopAndReset(): void {
 		if (!this.audioContext) return;
 
@@ -438,13 +409,12 @@ export class SingleTrackAudioEngine {
 				this.gainNode.gain.cancelScheduledValues(t);
 				this.gainNode.gain.setValueAtTime(0, t);
 			}
-			// Do not suspend the context on stop. Keeping it running avoids the
-			// suspend→resume transition on play, which on iOS often causes an audible click.
+
 			if (this.source) {
 				try {
 					this.source.disconnect();
 				} catch {
-					// Already disconnected or invalid
+					console.debug('Source already disconnected');
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
@@ -455,25 +425,113 @@ export class SingleTrackAudioEngine {
 			if (this.analyser) {
 				this.analyser.smoothingTimeConstant = 0;
 			}
-			// Do not resume when suspended (e.g. after pause then stop): immediate resume caused a
-			// click at stop; delayed resume caused a click 200ms after stop. So we leave context
-			// suspended; play after "pause then stop" will call resume() and may click on iOS.
 		});
 	}
 
-	// Reset to beginning (called when track ends naturally or via stop)
+	private armAudio(afterReady?: () => void): void {
+		if (!this.audioContext || !this.gainNode || !this.analyser || !this.filterNode) return;
+		if (!this.audioBuffer) return;
+
+		const createNewSource = (): void => {
+			if (this.audioContext && this.gainNode) {
+				const t = this.audioContext.currentTime;
+				this.gainNode.gain.cancelScheduledValues(t);
+				this.gainNode.gain.setValueAtTime(0, t);
+			}
+			if (this.source) {
+				try {
+					this.source.disconnect();
+				} catch {
+					console.debug('Source already disconnected');
+				}
+				this.source = null;
+			}
+			this.source = this.audioContext!.createBufferSource();
+			this.source!.buffer = this.audioBuffer;
+
+			this.source!
+				.connect(this.filterNode!)
+				.connect(this.gainNode!)
+				.connect(this.analyser!)
+				.connect(this.audioContext!.destination);
+
+			this.source!.onended = () => {
+				if (this.isPlaying && this.currentTime >= this.duration - 0.1) {
+					this.resetToStart();
+				}
+			};
+
+			this.sourceHasStarted = false;
+			const t = this.audioContext!.currentTime;
+			this.gainNode!.gain.cancelScheduledValues(t);
+			this.gainNode!.gain.setValueAtTime(0, t);
+			afterReady?.();
+		};
+
+		if (this.source && this.sourceHasStarted) {
+			this.fadeOut(() => {
+				try {
+					this.source?.stop();
+				} catch {
+					console.debug('Source already stopped');
+				}
+				this.source = null;
+				this.sourceHasStarted = false;
+				createNewSource();
+			});
+		} else {
+			createNewSource();
+		}
+	}
+
+	private replaceGainNodeWithFresh(): void {
+		if (!this.audioContext || !this.filterNode || !this.analyser) return;
+		const oldGain = this.gainNode;
+		if (!oldGain) return;
+
+		const newGain = this.audioContext.createGain();
+		const t = this.audioContext.currentTime;
+		newGain.gain.setValueAtTime(0, t);
+
+		this.filterNode.disconnect();
+		oldGain.disconnect();
+		this.filterNode.connect(newGain);
+		newGain.connect(this.analyser);
+		this.gainNode = newGain;
+	}
+
+	private fadeIn(): void {
+		if (!this.audioContext || !this.gainNode) return;
+		const now = this.audioContext.currentTime;
+		this.gainNode.gain.setValueAtTime(0, now);
+		this.gainNode.gain.linearRampToValueAtTime(
+			this.volume,
+			now + SingleTrackAudioEngine.FADE_DURATION_S
+		);
+	}
+
+	private fadeOut(onComplete?: () => void): void {
+		if (!this.audioContext || !this.gainNode) return;
+		const now = this.audioContext.currentTime;
+		this.gainNode.gain.setValueAtTime(this.gainNode.gain.value, now);
+		this.gainNode.gain.linearRampToValueAtTime(
+			0,
+			now + SingleTrackAudioEngine.FADE_DURATION_S
+		);
+		const ms = SingleTrackAudioEngine.FADE_DURATION_S * 1000;
+		setTimeout(() => onComplete?.(), ms);
+	}
+
 	private resetToStart(): void {
 		this.isPlaying = false;
 		this.currentTime = 0;
 		this.isFirstPlay = true;
 
-		// Re-arm the audio for next play
 		if (this.audioBuffer) {
 			this.armAudio();
 		}
 	}
 
-	// Seek to a specific time in seconds
 	seek(time: number): void {
 		if (
 			!this.audioBuffer ||
@@ -529,7 +587,7 @@ export class SingleTrackAudioEngine {
 				try {
 					this.source?.stop();
 				} catch {
-					// Source might already be stopped
+					console.debug('Source already stopped');
 				}
 				this.source = null;
 				this.sourceHasStarted = false;
@@ -540,7 +598,6 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Set volume
 	setVolume(value: number): void {
 		this.volume = Math.max(0, Math.min(1, value));
 		if (this.gainNode) {
@@ -548,7 +605,6 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Set filter frequency (logarithmic scale handling done in UI)
 	setFilterFrequency(value: number): void {
 		this.filterFrequency = Math.max(20, Math.min(20000, value));
 		if (this.filterNode) {
@@ -556,23 +612,19 @@ export class SingleTrackAudioEngine {
 		}
 	}
 
-	// Get analyser node for visualizer
 	getAnalyser(): AnalyserNode | null {
 		return this.analyser;
 	}
 
-	// Get current time from audio context
 	private getCurrentTime(): number {
 		if (!this.audioContext) return 0;
 		return this.audioContext.currentTime;
 	}
 
-	// Time update loop for progress bar
 	private updateTimeLoop(): void {
 		const update = () => {
 			if (this.isPlaying && this.sourceHasStarted) {
 				this.currentTime = this.getCurrentTime() - this.startTime;
-				// Clamp to duration
 				if (this.currentTime > this.duration) {
 					this.currentTime = this.duration;
 				}
@@ -582,13 +634,12 @@ export class SingleTrackAudioEngine {
 		update();
 	}
 
-	// Cleanup
 	private cleanup(): void {
 		if (this.source) {
 			try {
 				this.source.stop();
 			} catch {
-				// Ignore
+				console.debug('Source already stopped during cleanup');
 			}
 			this.source = null;
 		}
@@ -606,17 +657,15 @@ export class SingleTrackAudioEngine {
 			cancelAnimationFrame(this.animationFrameId);
 			this.animationFrameId = null;
 		}
-		// Close the context first, then cleanup
 		if (this.audioContext && this.audioContext.state !== 'closed') {
 			this.audioContext.close().catch(() => {
-				// Ignore errors during cleanup
+				console.debug('Error closing audio context during destroy');
 			});
 		}
 		this.cleanup();
 	}
 }
 
-// Factory function to create audio engine instance
 export function createSingleTrackAudioEngine(): SingleTrackAudioEngine {
 	return new SingleTrackAudioEngine();
 }
