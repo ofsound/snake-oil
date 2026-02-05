@@ -116,10 +116,20 @@
 		// Local array for bin totals (not reactive)
 		const binTotals = new Array(binConfigs.length).fill(0);
 
-		const draw = () => {
+		// Throttle to 30fps to reduce CPU/memory bandwidth usage
+		// Audio analysis transfers data from audio thread to main thread
+		let lastDrawTime = 0;
+		const FRAME_INTERVAL = 1000 / 30; // 30fps = ~33.33ms
+
+		const draw = (timestamp: number) => {
 			if (!isDrawing || !ctx || !canvas) return;
 
 			animationId = requestAnimationFrame(draw);
+
+			// Skip frame if not enough time has passed
+			if (timestamp - lastDrawTime < FRAME_INTERVAL) return;
+			lastDrawTime = timestamp;
+
 			currentAnalyser.getByteFrequencyData(dataArray);
 
 			// Clear canvas
@@ -165,7 +175,7 @@
 			});
 		};
 
-		draw();
+		draw(performance.now());
 	}
 
 	// Watch for analyser and isPlaying changes

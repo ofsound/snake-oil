@@ -14,27 +14,7 @@
  */
 
 import { BaseAudioEngine } from './base-audio-engine.svelte';
-
-// Playback states for the state machine
-enum PlaybackState {
-	IDLE = 'idle',
-	LOADING = 'loading',
-	READY = 'ready',
-	PLAYING = 'playing',
-	PAUSED = 'paused',
-	STOPPED = 'stopped',
-	SEEKING = 'seeking',
-	ERROR = 'error'
-}
-
-// Internal state representation
-interface AudioState {
-	playback: PlaybackState;
-	contextState: AudioContextState | null;
-	hasSource: boolean;
-	sourceStarted: boolean;
-	isFirstPlay: boolean;
-}
+import { PlaybackState } from './playback-state.svelte';
 
 export class SingleTrackAudioEngine extends BaseAudioEngine {
 	/**
@@ -53,8 +33,16 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 	/** Whether a load operation is in progress (prevents concurrent loads) */
 	private loadInProgress = false;
 
-	/** Whether this is the first play (affects initialization flow) */
-	private isFirstPlay = true;
+	/** Operation ID counter for canceling superseded load operations */
+	private loadOperationId = 0;
+
+	/**
+	 * State machine configuration
+	 */
+	protected stateMachineConfig = {
+		hasContent: () => this.bufferLoaded,
+		engineName: 'SingleTrackAudioEngine'
+	};
 
 	/**
 	 * Abstract method implementation: load audio.
@@ -70,42 +58,68 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 	 * @param url - URL of the audio file to load
 	 */
 	async loadBuffer(url: string): Promise<void> {
-		// Prevent concurrent load operations
-		if (this.loadInProgress) {
-			console.log('[SingleTrackAudioEngine] Load already in progress, skipping');
+		// Generate unique operation ID for this load attempt
+		const operationId = ++this.loadOperationId;
+
+		// Skip if already loaded this URL (but still allow re-load if explicitly requested)
+		if (this.bufferLoaded && this.trackUrl === url && this.audioBuffer && !this.loadInProgress) {
+			console.log('[SingleTrackAudioEngine] Buffer already loaded for this URL, skipping');
 			return;
 		}
 
-		// Skip if already loaded this URL
-		if (this.bufferLoaded && this.trackUrl === url && this.audioBuffer) {
-			console.log('[SingleTrackAudioEngine] Buffer already loaded for this URL, skipping');
+		// Check if engine was destroyed before we started
+		if (!this.isBrowser) {
 			return;
 		}
 
 		// Initialize audio context if needed
 		if (!this.ensureInitialized()) {
-			this.error = 'Audio engine not initialized';
+			// Only update state if this operation is still current
+			if (this.loadOperationId === operationId) {
+				this.error = 'Audio engine not initialized';
+			}
 			return;
 		}
 
 		const ctx = this.audioContext;
 		if (!ctx) {
-			this.error = 'Audio context not available';
+			if (this.loadOperationId === operationId) {
+				this.error = 'Audio context not available';
+			}
 			return;
 		}
 
-		this.loadInProgress = true;
-		this.trackUrl = url;
-		this.isLoading = true;
-		this.error = null;
+		// Mark loading started for this operation
+		if (this.loadOperationId === operationId) {
+			this.loadInProgress = true;
+			this.trackUrl = url;
+			this.isLoading = true;
+			this.error = null;
+		}
 
 		try {
 			// Fetch audio data
 			const response = await fetch(url);
+
+			// Check if a newer load operation has superseded this one
+			if (this.loadOperationId !== operationId) {
+				console.log(`[SingleTrackAudioEngine] Load operation ${operationId} superseded, aborting`);
+				return;
+			}
+
 			if (!response.ok) {
 				throw new Error('Failed to fetch audio: ' + response.statusText);
 			}
+
 			const arrayBuffer = await response.arrayBuffer();
+
+			// Check again after async operation
+			if (this.loadOperationId !== operationId) {
+				console.log(
+					`[SingleTrackAudioEngine] Load operation ${operationId} superseded after fetch, aborting`
+				);
+				return;
+			}
 
 			// Context might have been destroyed during async fetch
 			if (!this.audioContext) {
@@ -113,23 +127,44 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			}
 
 			// Decode audio data
-			this.audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+			const decodedBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
 
-			if (!this.audioBuffer) {
+			// Final check before applying results
+			if (this.loadOperationId !== operationId) {
+				console.log(
+					`[SingleTrackAudioEngine] Load operation ${operationId} superseded after decode, aborting`
+				);
+				return;
+			}
+
+			if (!decodedBuffer) {
 				throw new Error('Failed to decode audio data');
 			}
 
 			// Update state and prepare for playback
+			this.audioBuffer = decodedBuffer;
 			this.bufferLoaded = true;
-			this.duration = this.audioBuffer.duration;
+			this.duration = decodedBuffer.duration;
 			this.armAudio();
+
+			console.log(`[SingleTrackAudioEngine] Load operation ${operationId} completed successfully`);
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Failed to load audio';
-			console.error('[SingleTrackAudioEngine] Error loading buffer:', err);
-			this.bufferLoaded = false;
+			// Only update error state if this operation is still current
+			if (this.loadOperationId === operationId) {
+				this.error = err instanceof Error ? err.message : 'Failed to load audio';
+				console.error('[SingleTrackAudioEngine] Error loading buffer:', err);
+				this.bufferLoaded = false;
+			} else {
+				console.log(
+					`[SingleTrackAudioEngine] Error in superseded operation ${operationId}, ignoring`
+				);
+			}
 		} finally {
-			this.isLoading = false;
-			this.loadInProgress = false;
+			// Only clear loading state if this is the current operation
+			if (this.loadOperationId === operationId) {
+				this.isLoading = false;
+				this.loadInProgress = false;
+			}
 		}
 	}
 
@@ -140,48 +175,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		if (this.trackUrl) {
 			await this.loadBuffer(this.trackUrl);
 		}
-	}
-
-	/**
-	 * Determine current playback state based on internal flags.
-	 * Used by the state machine to decide which transition to execute.
-	 */
-	private getCurrentState(): AudioState {
-		return {
-			playback: this.determinePlaybackState(),
-			contextState: this.audioContext?.state ?? null,
-			hasSource: this.source !== null,
-			sourceStarted: this.sourceHasStarted,
-			isFirstPlay: this.isFirstPlay
-		};
-	}
-
-	/**
-	 * Map internal flags to a PlaybackState enum value.
-	 */
-	private determinePlaybackState(): PlaybackState {
-		if (this.error) return PlaybackState.ERROR;
-		if (this.isLoading) return PlaybackState.LOADING;
-		if (!this.bufferLoaded) return PlaybackState.IDLE;
-		if (this.isBuffering) return PlaybackState.SEEKING;
-
-		if (this.isPlaying && this.sourceHasStarted) {
-			return PlaybackState.PLAYING;
-		}
-
-		if (!this.isPlaying && this.source && this.sourceHasStarted) {
-			return PlaybackState.PAUSED;
-		}
-
-		if (!this.isPlaying && !this.source && !this.isFirstPlay) {
-			return PlaybackState.STOPPED;
-		}
-
-		if (!this.isPlaying && this.isFirstPlay) {
-			return PlaybackState.READY;
-		}
-
-		return PlaybackState.IDLE;
 	}
 
 	/**
@@ -234,58 +227,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		} else {
 			this.transitionToPlayingFromStart();
 		}
-	}
-
-	/**
-	 * STATE TRANSITION: PLAYING → PAUSED
-	 *
-	 * iOS Strategy: Fade out only, do NOT suspend context.
-	 * Keeping context running avoids the suspend→resume click.
-	 */
-	private transitionToPaused(): void {
-		this.fadeOut(() => {
-			this.isPlaying = false;
-		});
-	}
-
-	/**
-	 * STATE TRANSITION: SUSPENDED → PLAYING
-	 *
-	 * iOS Strategy: Must resume context, replace gain node, fade in.
-	 * This is for initial play after page load.
-	 */
-	private transitionToPlayingFromSuspended(): void {
-		const ctx = this.audioContext;
-		const gain = this.gainNode;
-		if (!ctx || !gain) return;
-
-		const t = ctx.currentTime;
-		gain.gain.cancelScheduledValues(t);
-		gain.gain.setValueAtTime(0, t);
-
-		ctx
-			.resume()
-			.then(() => {
-				this.isPlaying = true;
-				this.replaceGainNodeWithFresh();
-				setTimeout(() => this.fadeIn(), 10);
-			})
-			.catch((err) => {
-				console.error('[SingleTrackAudioEngine] Failed to resume audio context:', err);
-			});
-		this.isPlaying = true;
-	}
-
-	/**
-	 * STATE TRANSITION: PAUSED → PLAYING
-	 *
-	 * iOS Strategy: Context already running, replace gain node, fade in.
-	 * No context.resume() needed since we never suspended.
-	 */
-	private transitionToPlayingFromPaused(): void {
-		this.replaceGainNodeWithFresh();
-		this.fadeIn();
-		this.isPlaying = true;
 	}
 
 	/**
@@ -467,9 +408,11 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 					this.source?.stop();
 				} catch (err) {
 					console.error('[SingleTrackAudioEngine] Failed to stop source during armAudio:', err);
+				} finally {
+					// Always clear references to prevent double-stop attempts
+					this.source = null;
+					this.sourceHasStarted = false;
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
 				createNewSource();
 			});
 		} else {
@@ -557,9 +500,11 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 					this.source?.stop();
 				} catch (err) {
 					console.error('[SingleTrackAudioEngine] Failed to stop source during seek:', err);
+				} finally {
+					// Always clear references to prevent double-stop attempts
+					this.source = null;
+					this.sourceHasStarted = false;
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
 				doSeek();
 			});
 		} else {

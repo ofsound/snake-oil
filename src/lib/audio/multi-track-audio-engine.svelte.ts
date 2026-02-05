@@ -19,30 +19,9 @@
 import type { tracks } from '$lib/server/db/schema';
 import type { InferSelectModel } from 'drizzle-orm';
 import { BaseAudioEngine } from './base-audio-engine.svelte';
+import { PlaybackState } from './playback-state.svelte';
 
 type Track = InferSelectModel<typeof tracks>;
-
-// Playback states for the state machine
-enum PlaybackState {
-	IDLE = 'idle',
-	LOADING = 'loading',
-	READY = 'ready',
-	PLAYING = 'playing',
-	PAUSED = 'paused',
-	STOPPED = 'stopped',
-	TRACK_SWITCHING = 'track_switching',
-	SEEKING = 'seeking',
-	ERROR = 'error'
-}
-
-// Internal state representation
-interface AudioState {
-	playback: PlaybackState;
-	contextState: AudioContextState | null;
-	hasSource: boolean;
-	sourceStarted: boolean;
-	isFirstPlay: boolean;
-}
 
 export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/**
@@ -64,8 +43,16 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/** Whether a load operation is in progress */
 	private loadInProgress = false;
 
-	/** Whether this is the first play (affects initialization flow) */
-	private isFirstPlay = true;
+	/** Operation ID counter for canceling superseded load operations */
+	private loadOperationId = 0;
+
+	/**
+	 * State machine configuration
+	 */
+	protected stateMachineConfig = {
+		hasContent: () => this.buffersLoaded && this.buffers.length > 0,
+		engineName: 'MultiTrackAudioEngine'
+	};
 
 	/**
 	 * SHUFFLE STATE
@@ -93,52 +80,101 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 * @param trackList - Array of track metadata objects
 	 */
 	async loadBuffers(trackList: Track[]): Promise<void> {
-		// Prevent concurrent loads
-		if (this.loadInProgress) {
-			console.log('[MultiTrackAudioEngine] Load already in progress, skipping');
+		// Generate unique operation ID for this load attempt
+		const operationId = ++this.loadOperationId;
+
+		// Check if engine was destroyed before we started
+		if (!this.isBrowser) {
 			return;
 		}
 
 		// Initialize if needed
 		if (!this.ensureInitialized()) {
-			this.error = 'Audio engine not initialized';
+			if (this.loadOperationId === operationId) {
+				this.error = 'Audio engine not initialized';
+			}
 			return;
 		}
 
 		const ctx = this.audioContext;
 		if (!ctx) {
-			this.error = 'Audio context not available';
+			if (this.loadOperationId === operationId) {
+				this.error = 'Audio context not available';
+			}
 			return;
 		}
 
-		this.loadInProgress = true;
-		this.tracks = trackList;
-		this.isLoading = true;
-		this.error = null;
+		// Mark loading started for this operation
+		if (this.loadOperationId === operationId) {
+			this.loadInProgress = true;
+			this.tracks = trackList;
+			this.isLoading = true;
+			this.error = null;
+		}
 
 		try {
-			// Load all tracks in parallel, skip failures
-			const bufferPromises = trackList.map(async (track) => {
+			// Load tracks with limited concurrency (4 parallel) to prevent connection pool exhaustion
+			// Browser typically limits to 6 concurrent connections per domain
+			const MAX_CONCURRENCY = 4;
+			const results: (AudioBuffer | null)[] = new Array(trackList.length).fill(null);
+			let currentIndex = 0;
+
+			const loadTrack = async (trackIndex: number): Promise<void> => {
+				const track = trackList[trackIndex];
 				try {
 					const response = await fetch(track.url);
+
+					// Check if superseded after each async operation
+					if (this.loadOperationId !== operationId) {
+						return;
+					}
+
 					if (!response.ok) {
 						throw new Error(`Failed to fetch ${track.name}: ${response.statusText}`);
 					}
+
 					const arrayBuffer = await response.arrayBuffer();
+
+					// Check again after async operation
+					if (this.loadOperationId !== operationId) {
+						return;
+					}
 
 					// Context might have been destroyed during fetch
 					if (!this.audioContext) {
 						throw new Error('Audio context destroyed during load');
 					}
 
-					return this.audioContext.decodeAudioData(arrayBuffer);
+					const buffer = await this.audioContext.decodeAudioData(arrayBuffer);
+					results[trackIndex] = buffer;
 				} catch (err) {
 					console.error(`[MultiTrackAudioEngine] Error loading track ${track.name}:`, err);
-					return null;
+					// results[trackIndex] remains null
 				}
-			});
+			};
 
-			const results = await Promise.all(bufferPromises);
+			const worker = async (): Promise<void> => {
+				while (currentIndex < trackList.length) {
+					const trackIndex = currentIndex++;
+					await loadTrack(trackIndex);
+				}
+			};
+
+			// Start MAX_CONCURRENCY workers
+			const workers: Promise<void>[] = [];
+			for (let i = 0; i < Math.min(MAX_CONCURRENCY, trackList.length); i++) {
+				workers.push(worker());
+			}
+			await Promise.all(workers);
+
+			// Final check before applying results
+			if (this.loadOperationId !== operationId) {
+				console.log(
+					`[MultiTrackAudioEngine] Load operation ${operationId} superseded after decode, aborting`
+				);
+				return;
+			}
+
 			this.buffers = results.filter((buffer): buffer is AudioBuffer => buffer !== null);
 
 			if (this.buffers.length === 0) {
@@ -158,13 +194,25 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			// Arm audio for first track
 			this.armAudio(0);
+
+			console.log(`[MultiTrackAudioEngine] Load operation ${operationId} completed successfully`);
 		} catch (err) {
-			this.error = err instanceof Error ? err.message : 'Failed to load audio';
-			console.error('[MultiTrackAudioEngine] Error loading buffers:', err);
-			this.buffersLoaded = false;
+			// Only update error state if this operation is still current
+			if (this.loadOperationId === operationId) {
+				this.error = err instanceof Error ? err.message : 'Failed to load audio';
+				console.error('[MultiTrackAudioEngine] Error loading buffers:', err);
+				this.buffersLoaded = false;
+			} else {
+				console.log(
+					`[MultiTrackAudioEngine] Error in superseded operation ${operationId}, ignoring`
+				);
+			}
 		} finally {
-			this.isLoading = false;
-			this.loadInProgress = false;
+			// Only clear loading state if this is the current operation
+			if (this.loadOperationId === operationId) {
+				this.isLoading = false;
+				this.loadInProgress = false;
+			}
 		}
 	}
 
@@ -173,47 +221,6 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	 */
 	async retryLoad(): Promise<void> {
 		await this.loadBuffers(this.tracks);
-	}
-
-	/**
-	 * Determine current playback state based on internal flags.
-	 */
-	private getCurrentState(): AudioState {
-		return {
-			playback: this.determinePlaybackState(),
-			contextState: this.audioContext?.state ?? null,
-			hasSource: this.source !== null,
-			sourceStarted: this.sourceHasStarted,
-			isFirstPlay: this.isFirstPlay
-		};
-	}
-
-	/**
-	 * Map internal flags to a PlaybackState enum value.
-	 */
-	private determinePlaybackState(): PlaybackState {
-		if (this.error) return PlaybackState.ERROR;
-		if (this.isLoading) return PlaybackState.LOADING;
-		if (!this.buffersLoaded || this.buffers.length === 0) return PlaybackState.IDLE;
-		if (this.isBuffering) return PlaybackState.SEEKING;
-
-		if (this.isPlaying && this.sourceHasStarted) {
-			return PlaybackState.PLAYING;
-		}
-
-		if (!this.isPlaying && this.source && this.sourceHasStarted) {
-			return PlaybackState.PAUSED;
-		}
-
-		if (!this.isPlaying && !this.source && !this.isFirstPlay) {
-			return PlaybackState.STOPPED;
-		}
-
-		if (!this.isPlaying && this.isFirstPlay) {
-			return PlaybackState.READY;
-		}
-
-		return PlaybackState.IDLE;
 	}
 
 	/**
@@ -265,50 +272,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	}
 
 	/**
-	 * STATE TRANSITION: PLAYING → PAUSED
-	 */
-	private transitionToPaused(): void {
-		this.fadeOut(() => {
-			this.isPlaying = false;
-		});
-	}
-
-	/**
-	 * STATE TRANSITION: SUSPENDED → PLAYING
-	 */
-	private transitionToPlayingFromSuspended(): void {
-		const ctx = this.audioContext;
-		const gain = this.gainNode;
-		if (!ctx || !gain) return;
-
-		const t = ctx.currentTime;
-		gain.gain.cancelScheduledValues(t);
-		gain.gain.setValueAtTime(0, t);
-
-		ctx
-			.resume()
-			.then(() => {
-				this.isPlaying = true;
-				this.replaceGainNodeWithFresh();
-				setTimeout(() => this.fadeIn(), 10);
-			})
-			.catch((err) => {
-				console.error('[MultiTrackAudioEngine] Failed to resume audio context:', err);
-			});
-		this.isPlaying = true;
-	}
-
-	/**
-	 * STATE TRANSITION: PAUSED → PLAYING
-	 */
-	private transitionToPlayingFromPaused(): void {
-		this.replaceGainNodeWithFresh();
-		this.fadeIn();
-		this.isPlaying = true;
-	}
-
-	/**
 	 * STATE TRANSITION: STOPPED/READY → PLAYING
+	 *
+	 * iOS Strategy: Handle both suspended and running context states.
+	 * Replace gain node, arm audio, fade in.
 	 */
 	private transitionToPlayingFromStart(): void {
 		const ctx = this.audioContext;
@@ -491,9 +458,11 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 					this.source?.stop();
 				} catch (err) {
 					console.error('[MultiTrackAudioEngine] Failed to stop source during armAudio:', err);
+				} finally {
+					// Always clear references to prevent double-stop attempts
+					this.source = null;
+					this.sourceHasStarted = false;
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
 				createNewSource();
 			});
 		} else {
@@ -717,9 +686,11 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 					this.source?.stop();
 				} catch (err) {
 					console.error('[MultiTrackAudioEngine] Failed to stop source during seek:', err);
+				} finally {
+					// Always clear references to prevent double-stop attempts
+					this.source = null;
+					this.sourceHasStarted = false;
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
 				doSeek();
 			});
 		} else {

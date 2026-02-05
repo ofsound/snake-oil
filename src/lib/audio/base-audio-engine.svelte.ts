@@ -7,6 +7,7 @@
  * - Volume and filter controls
  * - Time tracking and animation loop
  * - Cleanup and lifecycle management
+ * - Shared playback state machine
  *
  * Child classes (SingleTrackAudioEngine, MultiTrackAudioEngine) extend this
  * and implement track-specific logic (loading, switching, playlists).
@@ -18,6 +19,8 @@
  * - Analyser smoothing reset on stop, restored 50ms after play starts
  * - Synchronization via AudioContext.currentTime, not setTimeout
  */
+
+import { PlaybackState, type AudioState, type StateMachineConfig } from './playback-state.svelte';
 
 export abstract class BaseAudioEngine {
 	/**
@@ -121,6 +124,21 @@ export abstract class BaseAudioEngine {
 	/** Whether we're running in a browser (for SSR safety) */
 	protected readonly isBrowser: boolean;
 
+	/** Whether gain node replacement is currently in progress (prevents race conditions) */
+	private gainReplaceInProgress = false;
+
+	/**
+	 * ============================================================================
+	 * STATE MACHINE
+	 * ============================================================================
+	 */
+
+	/** Whether this is the first play (affects initialization flow) */
+	protected isFirstPlay = true;
+
+	/** State machine configuration - must be set by child classes */
+	protected abstract stateMachineConfig: StateMachineConfig;
+
 	/**
 	 * ============================================================================
 	 * CONSTRUCTOR
@@ -157,6 +175,13 @@ export abstract class BaseAudioEngine {
 		}
 
 		try {
+			// Cancel any existing animation frame to prevent memory leaks
+			// from overlapping RAF loops during rapid reinitializations
+			if (this.animationFrameId) {
+				cancelAnimationFrame(this.animationFrameId);
+				this.animationFrameId = null;
+			}
+
 			// Clean up any existing closed context before creating new one
 			if (this.audioContext?.state === 'closed') {
 				this.cleanup();
@@ -257,6 +282,109 @@ export abstract class BaseAudioEngine {
 
 	/**
 	 * ============================================================================
+	 * STATE MACHINE
+	 * ============================================================================
+	 */
+
+	/**
+	 * Determine current playback state based on internal flags.
+	 * Used by the state machine to decide which transition to execute.
+	 */
+	protected getCurrentState(): AudioState {
+		return {
+			playback: this.determinePlaybackState(),
+			contextState: this.audioContext?.state ?? null,
+			hasSource: this.source !== null,
+			sourceStarted: this.sourceHasStarted,
+			isFirstPlay: this.isFirstPlay
+		};
+	}
+
+	/**
+	 * Map internal flags to a PlaybackState enum value.
+	 */
+	protected determinePlaybackState(): PlaybackState {
+		if (this.error) return PlaybackState.ERROR;
+		if (this.isLoading) return PlaybackState.LOADING;
+		if (!this.stateMachineConfig.hasContent()) return PlaybackState.IDLE;
+		if (this.isBuffering) return PlaybackState.SEEKING;
+
+		if (this.isPlaying && this.sourceHasStarted) {
+			return PlaybackState.PLAYING;
+		}
+
+		if (!this.isPlaying && this.source && this.sourceHasStarted) {
+			return PlaybackState.PAUSED;
+		}
+
+		if (!this.isPlaying && !this.source && !this.isFirstPlay) {
+			return PlaybackState.STOPPED;
+		}
+
+		if (!this.isPlaying && this.isFirstPlay) {
+			return PlaybackState.READY;
+		}
+
+		return PlaybackState.IDLE;
+	}
+
+	/**
+	 * STATE TRANSITION: PLAYING → PAUSED
+	 *
+	 * iOS Strategy: Fade out only, do NOT suspend context.
+	 * Keeping context running avoids the suspend→resume click.
+	 */
+	protected transitionToPaused(): void {
+		this.fadeOut(() => {
+			this.isPlaying = false;
+		});
+	}
+
+	/**
+	 * STATE TRANSITION: SUSPENDED → PLAYING
+	 *
+	 * iOS Strategy: Must resume context, replace gain node, fade in.
+	 * This is for initial play after page load.
+	 */
+	protected transitionToPlayingFromSuspended(): void {
+		const ctx = this.audioContext;
+		const gain = this.gainNode;
+		if (!ctx || !gain) return;
+
+		const t = ctx.currentTime;
+		gain.gain.cancelScheduledValues(t);
+		gain.gain.setValueAtTime(0, t);
+
+		ctx
+			.resume()
+			.then(() => {
+				this.isPlaying = true;
+				this.replaceGainNodeWithFresh();
+				setTimeout(() => this.fadeIn(), 10);
+			})
+			.catch((err) => {
+				console.error(
+					`[${this.stateMachineConfig.engineName}] Failed to resume audio context:`,
+					err
+				);
+			});
+		this.isPlaying = true;
+	}
+
+	/**
+	 * STATE TRANSITION: PAUSED → PLAYING
+	 *
+	 * iOS Strategy: Context already running, replace gain node, fade in.
+	 * No context.resume() needed since we never suspended.
+	 */
+	protected transitionToPlayingFromPaused(): void {
+		this.replaceGainNodeWithFresh();
+		this.fadeIn();
+		this.isPlaying = true;
+	}
+
+	/**
+	 * ============================================================================
 	 * FADE OPERATIONS (iOS Click Prevention)
 	 * ============================================================================
 	 */
@@ -305,8 +433,16 @@ export abstract class BaseAudioEngine {
 	/**
 	 * Replace the gain node with a fresh one to clear automation history.
 	 * Critical for iOS: prevents clicks from stale gain state when resuming playback.
+	 * This operation is serialized to prevent race conditions during rapid play/pause toggles.
 	 */
 	protected replaceGainNodeWithFresh(): void {
+		// Serialize gain node replacement to prevent audio graph corruption
+		// from concurrent calls during rapid state transitions
+		if (this.gainReplaceInProgress) {
+			console.log('[BaseAudioEngine] Gain node replacement already in progress, skipping');
+			return;
+		}
+
 		const ctx = this.audioContext;
 		const filter = this.filterNode;
 		const analyser = this.analyser;
@@ -314,19 +450,28 @@ export abstract class BaseAudioEngine {
 
 		if (!ctx || !filter || !analyser || !oldGain) return;
 
-		// Create new gain node with zero initial gain (will fade in after)
-		const newGain = ctx.createGain();
-		const t = ctx.currentTime;
-		newGain.gain.setValueAtTime(0, t);
+		this.gainReplaceInProgress = true;
 
-		// Rewire the audio chain: filter -> newGain -> analyser
-		filter.disconnect();
-		oldGain.disconnect();
-		filter.connect(newGain);
-		newGain.connect(analyser);
+		try {
+			// Create new gain node with zero initial gain (will fade in after)
+			const newGain = ctx.createGain();
+			const t = ctx.currentTime;
+			newGain.gain.setValueAtTime(0, t);
 
-		// Update reference to new gain node
-		this.gainNode = newGain;
+			// Rewire the audio chain: filter -> newGain -> analyser
+			filter.disconnect();
+			oldGain.disconnect();
+			filter.connect(newGain);
+			newGain.connect(analyser);
+
+			// Update reference to new gain node
+			this.gainNode = newGain;
+		} catch (err) {
+			console.error('[BaseAudioEngine] Failed to replace gain node:', err);
+			// Don't update gainNode reference if replacement failed
+		} finally {
+			this.gainReplaceInProgress = false;
+		}
 	}
 
 	/**
@@ -423,8 +568,10 @@ export abstract class BaseAudioEngine {
 				this.source.stop();
 			} catch (err) {
 				console.error('[AudioEngine] Failed to stop source during cleanup:', err);
+			} finally {
+				// Always clear reference to prevent double-stop attempts
+				this.source = null;
 			}
-			this.source = null;
 		}
 
 		this.sourceHasStarted = false;

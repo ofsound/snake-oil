@@ -83,10 +83,20 @@
 		const dataArray = new Uint8Array(bufferLength);
 		const barWidth = canvasWidth / bufferLength;
 
-		const draw = () => {
+		// Throttle to 30fps to reduce CPU/memory bandwidth usage
+		// Audio analysis transfers data from audio thread to main thread
+		let lastDrawTime = 0;
+		const FRAME_INTERVAL = 1000 / 30; // 30fps = ~33.33ms
+
+		const draw = (timestamp: number) => {
 			if (!isDrawing || !ctx || !canvas) return;
 
 			animationId = requestAnimationFrame(draw);
+
+			// Skip frame if not enough time has passed
+			if (timestamp - lastDrawTime < FRAME_INTERVAL) return;
+			lastDrawTime = timestamp;
+
 			currentAnalyser.getByteFrequencyData(dataArray);
 
 			// Clear with semi-transparent black for trail effect
@@ -114,7 +124,7 @@
 			}
 		};
 
-		draw();
+		draw(performance.now());
 	}
 
 	// Watch for analyser and playing state changes
