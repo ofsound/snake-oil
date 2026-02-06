@@ -361,10 +361,10 @@
 		<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
 			{successMessage}
 			{#if form?.slug}
-				<a class="ml-2 underline" href={`/${form.slug}`}>View quiz</a>
+				<a class="ml-2 underline" href={`/quiz/${form.slug}`}>View quiz</a>
 			{/if}
-			{#if form?.quizId}
-				<a class="ml-2 underline" href={`/quizzes/${form.quizId}`}>Manage quiz</a>
+			{#if form?.slug}
+				<a class="ml-2 underline" href={`/quiz/edit/${form.slug}`}>Manage quiz</a>
 			{/if}
 			{#if form?.speedRunSlug}
 				<a class="ml-2 underline" href={`/speed-run/${form.speedRunSlug}`}>Play Speed Run</a>

@@ -22,7 +22,7 @@
 
 	let { quiz, showOwner = false, linkToManage = false }: Props = $props();
 
-	const rowHref = $derived(linkToManage ? `/quizzes/${quiz.id}` : `/${quiz.slug}`);
+	const rowHref = $derived(linkToManage ? `/quiz/edit/${quiz.slug}` : `/quiz/${quiz.slug}`);
 	const speedRunHref = $derived(`/speed-run/${quiz.slug}`);
 
 	function handleClick(event: MouseEvent): void {

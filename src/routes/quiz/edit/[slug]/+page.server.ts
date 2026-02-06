@@ -23,29 +23,13 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 	}
 
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
+		where: and(eq(quizzes.slug, params.slug), eq(quizzes.ownerId, locals.user.id)),
 		with: {
 			soundbites: {
 				with: {
 					track: true
 				},
 				orderBy: asc(soundbites.position)
-			},
-			quizAnswers: {
-				with: {
-					user: true
-				},
-				orderBy: asc(quizAnswers.createdAt)
-			},
-			speedRun: {
-				with: {
-					results: {
-						with: {
-							user: true
-						},
-						orderBy: asc(speedRunResults.createdAt)
-					}
-				}
 			}
 		}
 	});
@@ -65,33 +49,6 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		variantConfig: soundbite.variantConfig
 	}));
 
-	const answerRows = quiz.quizAnswers.map((answer) => ({
-		id: answer.id,
-		createdAt: answer.createdAt,
-		answers: answer.answers,
-		score: answer.score,
-		totalCorrect: answer.totalCorrect,
-		totalQuestions: answer.totalQuestions,
-		displayName: answer.displayName,
-		userName: answer.user?.name ?? null,
-		userEmail: answer.user?.email ?? null
-	}));
-
-	const speedRunResultsRows =
-		quiz.speedRun?.results.map((result) => ({
-			id: result.id,
-			createdAt: result.createdAt,
-			displayName: result.displayName,
-			userName: result.user?.name ?? null,
-			userEmail: result.user?.email ?? null,
-			totalQuestions: result.totalQuestions,
-			correctCount: result.correctCount,
-			totalTimeMs: result.totalTimeMs,
-			streakMax: result.streakMax,
-			score: result.score,
-			answers: result.answers
-		})) ?? [];
-
 	return {
 		quiz: {
 			id: quiz.id,
@@ -101,10 +58,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			visibility: quiz.visibility,
 			createdAt: quiz.createdAt
 		},
-		soundbites: soundbiteItems,
-		answers: answerRows,
-		speedRunResults: speedRunResultsRows,
-		hasSpeedRun: !!quiz.speedRun
+		soundbites: soundbiteItems
 	};
 };
 
@@ -119,7 +73,7 @@ export const actions: Actions = {
 		}
 
 		const existingQuiz = await db.query.quizzes.findFirst({
-			where: and(eq(quizzes.id, params.quizId), eq(quizzes.ownerId, locals.user.id)),
+			where: and(eq(quizzes.slug, params.slug), eq(quizzes.ownerId, locals.user.id)),
 			columns: { id: true },
 			with: {
 				soundbites: {
@@ -158,7 +112,7 @@ export const actions: Actions = {
 				}
 			}
 
-			await db.delete(quizzes).where(eq(quizzes.id, params.quizId));
+			await db.delete(quizzes).where(eq(quizzes.id, existingQuiz.id));
 
 			// Delete orphaned tracks after quiz and soundbites are deleted
 			for (const trackId of trackIds) {
@@ -180,13 +134,23 @@ export const actions: Actions = {
 			return fail(500, { message: 'Blob storage not configured.' });
 		}
 
+		// First, find the quiz by slug to get its ID
+		const existingQuiz = await db.query.quizzes.findFirst({
+			where: and(eq(quizzes.slug, params.slug), eq(quizzes.ownerId, locals.user.id)),
+			columns: { id: true }
+		});
+
+		if (!existingQuiz) {
+			return fail(404, { message: 'Quiz not found or you do not have permission to edit it.' });
+		}
+
 		const formData = await request.formData();
 
 		const result = await processQuizSubmission({
 			formData,
 			userId: locals.user.id,
 			blobToken: env.BLOB_READ_WRITE_TOKEN,
-			quizId: params.quizId
+			quizId: existingQuiz.id
 		});
 
 		if (!result.success) {

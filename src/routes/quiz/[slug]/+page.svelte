@@ -91,7 +91,7 @@
 		</a>
 		{#if isOwner}
 			<span class="text-sm text-gray-500">
-				(<a href="/quizzes/{data.quiz.id}" class="hover:underline">manage quiz</a>)
+				(<a href="/quiz/edit/{data.quiz.slug}" class="hover:underline">manage quiz</a>)
 			</span>
 		{/if}
 	</div>
@@ -185,7 +185,7 @@
 
 		<div class="flex justify-center">
 			<Button
-				href={`/${data.quiz.slug}`}
+				href={`/quiz/${data.quiz.slug}`}
 				variant="outline"
 				size="sm"
 				onclick={() => {
