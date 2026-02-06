@@ -141,3 +141,50 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
 	{ count: 10, message: 'UNSTOPPABLE!', emoji: '🔥🔥🔥' },
 	{ count: 15, message: 'LEGENDARY!', emoji: '👑' }
 ];
+
+// API Request/Response Types
+// Used for type-safe API communication
+
+// POST /api/speed-run/check-answer
+export type SpeedRunCheckAnswerRequest = {
+	soundbiteId: string;
+	guess: string;
+};
+
+export type SpeedRunCheckAnswerResponse =
+	| {
+			success: true;
+			isCorrect: boolean;
+			correctAnswer: string;
+	  }
+	| {
+			success: false;
+			error: string;
+	  };
+
+// POST /api/speed-run/submit
+export type SpeedRunSubmitRequest = {
+	speedRunId: string;
+	answers: SpeedRunAnswer[];
+	startTime: number;
+	endTime: number;
+	displayName: string;
+};
+
+export type SpeedRunSubmitResponse =
+	| {
+			success: true;
+			result: {
+				id: string;
+				correctCount: number;
+				totalTimeMs: number;
+				score: number;
+				streakMax: number;
+			};
+			rank: number;
+			top10: SpeedRunLeaderboardEntry[];
+	  }
+	| {
+			success: false;
+			error: string;
+	  };

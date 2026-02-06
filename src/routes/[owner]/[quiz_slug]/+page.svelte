@@ -12,13 +12,17 @@
 	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
 	import SequenceInput from '$lib/components/SequenceInput.svelte';
 	import RankAudioPlayer from '$lib/components/RankAudioPlayer.svelte';
-	import type {
-		AnswersPayload,
-		MultipleChoiceConfig,
-		MultipleResponseConfig,
-		ImageChoiceConfig,
-		SequenceConfig,
-		RankConfig
+	import {
+		type AnswersPayload,
+		type MultipleChoiceConfig,
+		type MultipleResponseConfig,
+		type ImageChoiceConfig,
+		type SequenceConfig,
+		type RankConfig,
+		isRankConfig,
+		isImageChoiceConfig,
+		isMultipleResponseConfig,
+		isMultipleChoiceConfig
 	} from '$lib/variant-types';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
@@ -164,21 +168,28 @@
 					{@const answerDetail = results.answers[soundbite.id]}
 					{@const correctAnswer = results.correctAnswers[soundbite.id]}
 					{#if answerDetail}
+						{@const parsedConfig = correctAnswer ? JSON.parse(correctAnswer) : null}
 						{@const rankConfig =
-							soundbite.variantType === 'rank' && correctAnswer
-								? (JSON.parse(correctAnswer) as RankConfig)
+							soundbite.variantType === 'rank' && parsedConfig && isRankConfig(parsedConfig)
+								? parsedConfig
 								: null}
 						{@const imageChoiceConfig =
-							soundbite.variantType === 'image_choice' && correctAnswer
-								? (JSON.parse(correctAnswer) as ImageChoiceConfig)
+							soundbite.variantType === 'image_choice' &&
+							parsedConfig &&
+							isImageChoiceConfig(parsedConfig)
+								? parsedConfig
 								: null}
 						{@const multipleResponseConfig =
-							soundbite.variantType === 'multiple_response' && correctAnswer
-								? (JSON.parse(correctAnswer) as MultipleResponseConfig)
+							soundbite.variantType === 'multiple_response' &&
+							parsedConfig &&
+							isMultipleResponseConfig(parsedConfig)
+								? parsedConfig
 								: null}
 						{@const multipleChoiceConfig =
-							soundbite.variantType === 'multiple_choice' && correctAnswer
-								? (JSON.parse(correctAnswer) as MultipleChoiceConfig)
+							soundbite.variantType === 'multiple_choice' &&
+							parsedConfig &&
+							isMultipleChoiceConfig(parsedConfig)
+								? parsedConfig
 								: null}
 						<div class="rounded-sm bg-neutral-50 p-4">
 							<div class="mb-3">

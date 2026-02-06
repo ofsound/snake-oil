@@ -196,7 +196,7 @@
 
 		// Focus management - focus the item that moved
 		setTimeout(() => {
-			const row = document.querySelector(`[data-rank-editor-row="${toIndex}"]`) as HTMLElement;
+			const row = document.querySelector<HTMLElement>(`[data-rank-editor-row="${toIndex}"]`);
 			row?.focus();
 		}, 0);
 	}

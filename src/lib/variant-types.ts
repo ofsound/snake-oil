@@ -109,3 +109,52 @@ export type AnswerDetail = {
 };
 
 export type AnswersPayload = Record<string, AnswerDetail>;
+
+// Type guard functions for safe parsing
+export function isRankConfig(value: unknown): value is RankConfig {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'type' in value &&
+		(value as Record<string, unknown>).type === 'rank' &&
+		'items' in value &&
+		Array.isArray((value as Record<string, unknown>).items) &&
+		'correctOrder' in value &&
+		Array.isArray((value as Record<string, unknown>).correctOrder) &&
+		'prompt' in value &&
+		typeof (value as Record<string, unknown>).prompt === 'string'
+	);
+}
+
+export function isImageChoiceConfig(value: unknown): value is ImageChoiceConfig {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'type' in value &&
+		(value as Record<string, unknown>).type === 'image_choice' &&
+		'options' in value &&
+		Array.isArray((value as Record<string, unknown>).options)
+	);
+}
+
+export function isMultipleResponseConfig(value: unknown): value is MultipleResponseConfig {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'type' in value &&
+		(value as Record<string, unknown>).type === 'multiple_response' &&
+		'options' in value &&
+		Array.isArray((value as Record<string, unknown>).options)
+	);
+}
+
+export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceConfig {
+	return (
+		typeof value === 'object' &&
+		value !== null &&
+		'type' in value &&
+		(value as Record<string, unknown>).type === 'multiple_choice' &&
+		'options' in value &&
+		Array.isArray((value as Record<string, unknown>).options)
+	);
+}

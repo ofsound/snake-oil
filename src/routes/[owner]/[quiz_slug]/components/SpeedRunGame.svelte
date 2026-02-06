@@ -1,71 +1,19 @@
 <script lang="ts">
-	import type { GamePhase, SpeedRunQuestion, SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
+	import type {
+		GamePhase,
+		SpeedRunQuestion,
+		SpeedRunLeaderboardEntry,
+		SpeedRunCheckAnswerResponse,
+		SpeedRunSubmitResponse
+	} from '$lib/speed-run/types';
 	import type { SpeedRun, User } from '$lib/server/db/schema';
-	import { calculateSpeedRunScore, calculateMaxStreak, formatTimeMs } from '$lib/speed-run/scoring';
+	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 	import StartScreen from './StartScreen.svelte';
 	import CountdownOverlay from './CountdownOverlay.svelte';
 	import QuestionCard from './QuestionCard.svelte';
 	import AnswerReveal from './AnswerReveal.svelte';
 	import ResultsScreen from './ResultsScreen.svelte';
 	import GameHUD from './GameHUD.svelte';
-
-	/**
-	 * Resolves SvelteKit's devalue serialization format
-	 * Format: Array where index 0 is the root object.
-	 * Property values can be:
-	 * - primitives: used directly
-	 * - numbers: references to other indices in the array (for deduplication)
-	 * - objects/arrays: contain a mix of primitives and references
-	 */
-	function resolveDevalue(parsed: unknown[]): Record<string, unknown> {
-		if (!Array.isArray(parsed) || parsed.length === 0) {
-			return {};
-		}
-
-		const resolved = new Map<number, unknown>();
-
-		function resolveValue(value: unknown, path: string = ''): unknown {
-			// Direct primitive value
-			if (value === null || (typeof value !== 'object' && typeof value !== 'number')) {
-				return value;
-			}
-
-			// Handle reference indices
-			if (typeof value === 'number') {
-				// This is a reference - resolve it from the parsed array
-				if (value >= 0 && value < parsed.length) {
-					// Check for circular reference
-					if (resolved.has(value)) {
-						return resolved.get(value);
-					}
-					// Mark as resolving to prevent infinite loops
-					resolved.set(value, parsed[value]);
-					const dereferenced = resolveValue(parsed[value], `${path}[${value}]`);
-					resolved.set(value, dereferenced);
-					return dereferenced;
-				}
-				return value;
-			}
-
-			// Handle arrays
-			if (Array.isArray(value)) {
-				return value.map((item, i) => resolveValue(item, `${path}[${i}]`));
-			}
-
-			// Handle objects
-			if (typeof value === 'object' && value !== null) {
-				const obj: Record<string, unknown> = {};
-				for (const [key, val] of Object.entries(value)) {
-					obj[key] = resolveValue(val, `${path}.${key}`);
-				}
-				return obj;
-			}
-
-			return value;
-		}
-
-		return resolveValue(parsed[0]) as Record<string, unknown>;
-	}
 
 	interface Props {
 		quiz: {
@@ -81,18 +29,7 @@
 			audioLoopGapMs: number;
 			enableStreakBonus: boolean;
 		};
-		questions: Array<{
-			id: string;
-			position: number;
-			question: string | null;
-			variantType: string;
-			variantConfig: {
-				type: string;
-				options: Array<{ id: string; text: string; isCorrect: boolean }>;
-				questionTimeLimit?: number;
-			};
-			track: { id: string; name: string; url: string };
-		}>;
+		questions: SpeedRunQuestion[];
 		initialLeaderboard: SpeedRunLeaderboardEntry[];
 		user: User | null | undefined;
 	}
@@ -199,46 +136,29 @@
 		const currentQuestion = questions[currentQuestionIndex];
 		const timeSpent = Date.now() - questionStartTime;
 
-		// Validate answer with server immediately
-		const formData = new FormData();
-		formData.append('soundbiteId', currentQuestion.id);
-		formData.append('guess', guess);
-
+		// Validate answer with server via API
 		let isCorrect = false;
 		let correctAnswer = '';
 
 		try {
-			const response = await fetch('?/checkAnswer', {
+			const response = await fetch('/api/speed-run/check-answer', {
 				method: 'POST',
-				body: formData
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					soundbiteId: currentQuestion.id,
+					guess
+				})
 			});
-			const responseData = await response.json();
-			console.log('Check answer raw response:', JSON.stringify(responseData, null, 2));
 
-			// Parse SvelteKit form action response using devalue format
-			let result: Record<string, unknown> = {};
-			if (responseData.type === 'success' && responseData.data) {
-				const parsed = JSON.parse(responseData.data);
-				console.log('Check answer parsed:', parsed);
+			const result: SpeedRunCheckAnswerResponse = await response.json();
 
-				if (Array.isArray(parsed) && parsed.length > 0) {
-					result = resolveDevalue(parsed);
-				} else {
-					result = parsed as Record<string, unknown>;
-				}
-			} else if (responseData.success) {
-				result = responseData as Record<string, unknown>;
-			}
-
-			console.log('Check answer resolved result:', JSON.stringify(result, null, 2));
-
-			if (result && result.success) {
-				isCorrect = result.isCorrect === true;
-				correctAnswer = String(result.correctAnswer || '');
-				console.log('Answer validation:', { isCorrect, correctAnswer });
+			if (result.success) {
+				isCorrect = result.isCorrect;
+				correctAnswer = result.correctAnswer;
 			}
 		} catch (e) {
 			console.error('Failed to validate answer:', e);
+			// Continue with local state - don't block the game on API failure
 		}
 
 		// Update streak
@@ -263,8 +183,6 @@
 
 		const isLastQuestion = currentQuestionIndex >= questions.length - 1;
 
-		console.log('Setting lastAnswer:', { isCorrect, guess, correctAnswer, isLastQuestion });
-
 		lastAnswer = {
 			isCorrect,
 			guess,
@@ -279,7 +197,6 @@
 		if (isLastQuestion) {
 			stopGlobalTimer();
 			const finalEndTime = Date.now();
-			console.log('Last question answered, timer stopped at:', finalEndTime);
 
 			// Auto-advance after reveal delay, but use pre-captured end time
 			setTimeout(() => {
@@ -296,173 +213,69 @@
 	}
 
 	async function finishGame(capturedEndTime?: number) {
-		// Use pre-captured end time if provided (for last question), otherwise stop timer now
 		const endTime = capturedEndTime ?? Date.now();
 
 		if (!capturedEndTime) {
 			stopGlobalTimer();
 		}
 
-		console.log('Finishing game with end time:', endTime, '(captured:', !!capturedEndTime, ')');
-
-		console.log('Submitting answers:', JSON.stringify(answers, null, 2));
-
-		// Submit to server using FormData (required for SvelteKit form actions)
-		const formData = new FormData();
-		formData.append('speedRunId', speedRun.id);
-		formData.append('answers', JSON.stringify(answers));
-		formData.append('startTime', String(globalStartTime));
-		formData.append('endTime', String(endTime));
-		formData.append('displayName', displayName);
-
+		// Submit results via API
 		try {
-			const response = await fetch('?/submitSpeedRun', {
+			const response = await fetch('/api/speed-run/submit', {
 				method: 'POST',
-				body: formData
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					speedRunId: speedRun.id,
+					answers,
+					startTime: globalStartTime,
+					endTime,
+					displayName
+				})
 			});
 
-			const responseData = await response.json();
-			console.log('Raw response:', JSON.stringify(responseData, null, 2));
+			const result: SpeedRunSubmitResponse = await response.json();
 
-			// Parse SvelteKit form action response
-			// Format: {type: 'success', status: 200, data: '<devalue-serialized-string>'}
-			let result: Record<string, unknown> = {};
+			if (result.success) {
+				finalResult = {
+					rank: result.rank,
+					correctCount: result.result.correctCount,
+					totalTimeMs: result.result.totalTimeMs,
+					score: result.result.score,
+					maxStreak: result.result.streakMax
+				};
 
-			if (responseData.type === 'success' && responseData.data) {
-				try {
-					// The data is devalue-serialized, we need to parse it
-					const parsed = JSON.parse(responseData.data);
-					console.log('Parsed devalue data:', parsed);
-
-					// Check if it's the array format with references
-					if (Array.isArray(parsed) && parsed.length > 0) {
-						result = resolveDevalue(parsed);
-					} else {
-						result = parsed as Record<string, unknown>;
-					}
-				} catch (e) {
-					console.error('Failed to parse response data:', e);
-					result = {};
-				}
-			} else if (responseData.success) {
-				// Already parsed
-				result = responseData as Record<string, unknown>;
-			}
-
-			console.log('Resolved result:', JSON.stringify(result, null, 2));
-
-			if (result && result.success && result.result) {
-				const resultData = result.result as Record<string, unknown>;
-				console.log('resultData:', resultData);
-
-				// Calculate client-side values from answers array as fallback
-				const clientCorrectCount = answers.filter((a) => a.isCorrect).length;
-				const clientTotalTimeMs = endTime - globalStartTime;
-				const clientStreakMax = calculateMaxStreak(answers);
-				const clientScore = calculateSpeedRunScore(clientCorrectCount, clientTotalTimeMs);
-
-				console.log('Client-side calculated values:', {
-					clientCorrectCount,
-					clientTotalTimeMs,
-					clientScore,
-					clientStreakMax
-				});
-
-				// Validate and extract numeric values from server, with client-side fallback
-				const correctCount =
-					typeof resultData.correctCount === 'number' && resultData.correctCount > 0
-						? resultData.correctCount
-						: clientCorrectCount;
-				const totalTimeMs =
-					typeof resultData.totalTimeMs === 'number' && resultData.totalTimeMs > 0
-						? resultData.totalTimeMs
-						: clientTotalTimeMs;
-				const score =
-					typeof resultData.score === 'number' && resultData.score > 0
-						? resultData.score
-						: clientScore;
-				const streakMax =
-					typeof resultData.streakMax === 'number' && resultData.streakMax > 0
-						? resultData.streakMax
-						: clientStreakMax;
-
-				console.log('Final values (server with fallback):', {
-					correctCount,
-					totalTimeMs,
-					score,
-					streakMax
-				});
+				leaderboard = result.top10;
+			} else {
+				console.error('Submission failed:', result.error);
+				// Fallback to client-side calculation
+				const correctCount = answers.filter((a) => a.isCorrect).length;
+				const totalTimeMs = endTime - globalStartTime;
+				const maxStreak = calculateMaxStreak(answers);
+				const score = calculateSpeedRunScore(correctCount, totalTimeMs);
 
 				finalResult = {
-					rank: typeof result.rank === 'number' && result.rank > 0 ? result.rank : 1,
+					rank: 1,
 					correctCount,
 					totalTimeMs,
 					score,
-					maxStreak: streakMax
+					maxStreak
 				};
-
-				// Handle top10 leaderboard - use client-side values for current user
-				// to avoid devalue parsing issues
-				const rawTop10 = result.top10;
-				let top10: SpeedRunLeaderboardEntry[] = [];
-
-				// Create current user entry with client-side calculated values
-				const currentUserEntry: SpeedRunLeaderboardEntry = {
-					id: String(resultData.id ?? 'current'),
-					displayName: displayName || 'You',
-					correctCount,
-					totalTimeMs,
-					streakMax,
-					score,
-					createdAt: new Date(),
-					isCurrentUser: true
-				};
-
-				if (Array.isArray(rawTop10) && rawTop10.length > 0) {
-					// Try to use server data for other players, but use client data for current user
-					top10 = rawTop10
-						.filter((entry: unknown) => typeof entry === 'object' && entry !== null)
-						.map((entry: unknown) => {
-							const e = entry as Record<string, unknown>;
-							const isCurrent = Boolean(e.isCurrentUser);
-
-							// If this is the current user, use our client-side calculated values
-							if (isCurrent) {
-								return currentUserEntry;
-							}
-
-							// For other users, try to use server values
-							return {
-								id: String(e.id ?? ''),
-								displayName: String(e.displayName ?? 'Anonymous'),
-								correctCount: typeof e.correctCount === 'number' ? e.correctCount : 0,
-								totalTimeMs: typeof e.totalTimeMs === 'number' ? e.totalTimeMs : 0,
-								streakMax: typeof e.streakMax === 'number' ? e.streakMax : 0,
-								score: typeof e.score === 'number' ? e.score : 0,
-								createdAt:
-									e.createdAt instanceof Date
-										? e.createdAt
-										: new Date(String(e.createdAt ?? Date.now())),
-								isCurrentUser: false
-							};
-						});
-				}
-
-				// If parsing failed or no entries, use just the current user
-				if (top10.length === 0) {
-					top10 = [currentUserEntry];
-				}
-
-				console.log('Processed leaderboard:', JSON.stringify(top10, null, 2));
-
-				leaderboard = top10;
-				console.log('finalResult set:', finalResult);
-				console.log('leaderboard set:', leaderboard);
-			} else {
-				console.error('Submission failed or missing result:', result);
 			}
 		} catch (error) {
 			console.error('Error submitting results:', error);
+			// Fallback to client-side calculation on error
+			const correctCount = answers.filter((a) => a.isCorrect).length;
+			const totalTimeMs = endTime - globalStartTime;
+			const maxStreak = calculateMaxStreak(answers);
+			const score = calculateSpeedRunScore(correctCount, totalTimeMs);
+
+			finalResult = {
+				rank: 1,
+				correctCount,
+				totalTimeMs,
+				score,
+				maxStreak
+			};
 		}
 
 		phase = 'results';

@@ -115,10 +115,10 @@
 
 		// Focus management - focus the item that moved
 		setTimeout(() => {
-			const row = document.querySelector(
+			const row = document.querySelector<HTMLElement>(
 				`[data-rank-player-row="${soundbiteId}-${toIndex}"]`
-			) as HTMLElement;
-			const handle = row?.querySelector('[data-drag-handle]') as HTMLElement;
+			);
+			const handle = row?.querySelector<HTMLElement>('[data-drag-handle]');
 			handle?.focus();
 		}, 0);
 	}
