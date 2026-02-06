@@ -66,7 +66,7 @@
 	let newSoundbites = $state<NewSoundbiteState[]>([]);
 
 	let submitting = $state(false);
-	let activeTab = $state<'edit' | 'answers'>('edit');
+	let activeTab = $state<'edit' | 'answers' | 'speedruns'>('edit');
 	let successMessage = $derived(form?.success ? 'Quiz updated successfully.' : null);
 	let errorMessage = $derived(form?.message ?? null);
 
@@ -323,6 +323,20 @@
 	>
 		View Answers
 	</button>
+	{#if data.hasSpeedRun}
+		<button
+			type="button"
+			class="cursor-pointer border-b-2 px-4 py-2 text-sm font-medium transition-colors"
+			class:border-indigo-600={activeTab === 'speedruns'}
+			class:text-indigo-600={activeTab === 'speedruns'}
+			class:border-transparent={activeTab !== 'speedruns'}
+			class:text-gray-500={activeTab !== 'speedruns'}
+			class:hover:text-gray-700={activeTab !== 'speedruns'}
+			onclick={() => (activeTab = 'speedruns')}
+		>
+			View Speed Runs
+		</button>
+	{/if}
 	<form
 		method="POST"
 		action="?/delete"
@@ -644,6 +658,49 @@
 								</div>
 							{/each}
 						</div>
+					</Card>
+				{/each}
+			</div>
+		{/if}
+	</section>
+{/if}
+
+{#if activeTab === 'speedruns'}
+	<section class="flex flex-col gap-4">
+		{#if data.speedRunResults.length === 0}
+			<p class="text-sm text-gray-500">No speed run submissions yet.</p>
+		{:else}
+			<div class="flex flex-col gap-4">
+				{#each data.speedRunResults as result, index (result.id)}
+					<Card variant="flat" padding="sm" class="flex flex-col gap-3">
+						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+							<div class="flex gap-1">
+								<span class="font-medium"
+									>{result.displayName || result.userName || result.userEmail || 'Anonymous'}</span
+								>
+								on
+								<span>
+									{result.createdAt ? new Date(result.createdAt).toLocaleDateString() : ''}
+								</span>
+							</div>
+							<div class="flex items-center gap-3">
+								<span class="font-medium">{result.correctCount}/{result.totalQuestions}</span>
+								<span class="text-xs text-gray-500">
+									({Math.round((result.correctCount / result.totalQuestions) * 100)}%)
+								</span>
+								<span class="text-xs text-gray-500">
+									{Math.floor(result.totalTimeMs / 1000)}s
+								</span>
+								<span class="text-xs font-medium text-amber-600">
+									Score: {result.score?.toLocaleString()}
+								</span>
+							</div>
+						</div>
+						{#if result.streakMax > 0}
+							<div class="text-xs text-orange-500">
+								🔥 Best Streak: {result.streakMax}
+							</div>
+						{/if}
 					</Card>
 				{/each}
 			</div>

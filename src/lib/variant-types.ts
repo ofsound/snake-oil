@@ -49,6 +49,7 @@ export type SimpleGuessConfig = {
 export type MultipleChoiceConfig = {
 	type: 'multiple_choice';
 	options: MultipleChoiceOption[];
+	questionTimeLimit?: number; // Optional per-question timer in seconds (for speed runs)
 };
 
 export type MultipleResponseConfig = {

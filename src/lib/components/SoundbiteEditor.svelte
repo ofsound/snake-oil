@@ -37,6 +37,7 @@
 		fileInputRequired?: boolean;
 		fileInputLabel?: string;
 		fileInputId?: string;
+		disabledVariantType?: boolean; // If true, variant selector is disabled
 		onVariantTypeChange: (variantType: VariantType) => void;
 		onQuestionChange: (question: string) => void;
 		onSimpleGuessAnswerChange: (answer: string) => void;
@@ -75,6 +76,7 @@
 		fileInputRequired = false,
 		fileInputLabel = 'MP3 file',
 		fileInputId,
+		disabledVariantType = false,
 		onVariantTypeChange,
 		onQuestionChange,
 		onSimpleGuessAnswerChange,
@@ -128,7 +130,12 @@
 </script>
 
 <div class="flex flex-col gap-4">
-	<VariantSelector id={`variant-type-${id}`} value={variantType} onchange={onVariantTypeChange} />
+	<VariantSelector
+		id={`variant-type-${id}`}
+		value={variantType}
+		onchange={onVariantTypeChange}
+		disabled={disabledVariantType}
+	/>
 
 	{#if fileInputName && variantType !== 'sequence' && variantType !== 'rank'}
 		<div class="flex flex-col gap-2">

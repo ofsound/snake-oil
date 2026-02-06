@@ -11,6 +11,11 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		where: eq(quizzes.slug, params.slug),
 		with: {
 			owner: true,
+			speedRun: {
+				columns: {
+					id: true
+				}
+			},
 			soundbites: {
 				with: {
 					track: true
@@ -102,6 +107,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			slug: quiz.slug,
 			description: quiz.description,
 			createdAt: quiz.createdAt,
+			hasSpeedRun: !!quiz.speedRun,
 			owner: {
 				id: quiz.owner.id,
 				name: quiz.owner.name,

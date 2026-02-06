@@ -45,6 +45,7 @@
 		headerTitle?: string;
 		addButtonText?: string;
 		cardTitle?: (index: number) => string;
+		forceVariantType?: VariantType; // If set, all soundbites will use this variant type
 	}
 
 	let {
@@ -59,15 +60,18 @@
 		showHeader = true,
 		headerTitle = 'Audio Clips',
 		addButtonText = 'Add Audio Clip',
-		cardTitle = (index) => `SoundBite #${index + 1}`
+		cardTitle = (index) => `SoundBite #${index + 1}`,
+		forceVariantType
 	}: Props = $props();
 
 	let nextId = $state(Math.max(...soundbites.map((s) => s.id), 0) + 1);
 
 	function addSoundbite() {
+		// Default to forced variant type if set, otherwise simple_guess
+		const defaultVariantType = forceVariantType || 'simple_guess';
 		const newSoundbite: SoundbiteState = {
 			id: nextId,
-			variantType: 'simple_guess',
+			variantType: defaultVariantType,
 			simpleGuessAnswer: '',
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
@@ -181,7 +185,7 @@
 
 					<SoundbiteEditor
 						id={String(soundbite.id)}
-						variantType={soundbite.variantType}
+						variantType={forceVariantType || soundbite.variantType}
 						question={soundbite.question}
 						simpleGuessAnswer={soundbite.simpleGuessAnswer}
 						multipleChoiceOptions={soundbite.multipleChoiceOptions}
@@ -200,6 +204,7 @@
 						{fileInputRequired}
 						{fileInputLabel}
 						fileInputId={`soundbite-file-${soundbite.id}`}
+						disabledVariantType={!!forceVariantType}
 						onVariantTypeChange={(value) => updateVariantType(soundbite.id, value)}
 						onQuestionChange={(value) => updateQuestion(soundbite.id, value)}
 						onSimpleGuessAnswerChange={(value) => updateSimpleGuessAnswer(soundbite.id, value)}

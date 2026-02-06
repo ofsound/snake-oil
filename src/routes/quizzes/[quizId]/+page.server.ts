@@ -1,5 +1,12 @@
 import { db } from '$lib/server/db';
-import { quizAnswers, quizzes, soundbites, tracks } from '$lib/server/db/schema';
+import {
+	quizAnswers,
+	quizzes,
+	soundbites,
+	tracks,
+	speedRuns,
+	speedRunResults
+} from '$lib/server/db/schema';
 import type { SequenceConfig, RankConfig, ImageChoiceConfig } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
@@ -37,6 +44,16 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 					user: true
 				},
 				orderBy: asc(quizAnswers.createdAt)
+			},
+			speedRun: {
+				with: {
+					results: {
+						with: {
+							user: true
+						},
+						orderBy: asc(speedRunResults.createdAt)
+					}
+				}
 			}
 		}
 	});
@@ -68,6 +85,21 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		userEmail: answer.user?.email ?? null
 	}));
 
+	const speedRunResultsRows =
+		quiz.speedRun?.results.map((result) => ({
+			id: result.id,
+			createdAt: result.createdAt,
+			displayName: result.displayName,
+			userName: result.user?.name ?? null,
+			userEmail: result.user?.email ?? null,
+			totalQuestions: result.totalQuestions,
+			correctCount: result.correctCount,
+			totalTimeMs: result.totalTimeMs,
+			streakMax: result.streakMax,
+			score: result.score,
+			answers: result.answers
+		})) ?? [];
+
 	return {
 		quiz: {
 			id: quiz.id,
@@ -77,7 +109,9 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			createdAt: quiz.createdAt
 		},
 		soundbites: soundbiteItems,
-		answers: answerRows
+		answers: answerRows,
+		speedRunResults: speedRunResultsRows,
+		hasSpeedRun: !!quiz.speedRun
 	};
 };
 

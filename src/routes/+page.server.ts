@@ -20,6 +20,11 @@ export const load: PageServerLoad = async () => {
 					name: true,
 					slug: true
 				}
+			},
+			speedRun: {
+				columns: {
+					id: true
+				}
 			}
 		}
 	});

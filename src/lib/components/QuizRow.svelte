@@ -9,6 +9,9 @@
 			name: string | null;
 			slug: string;
 		};
+		speedRun?: {
+			id: string;
+		} | null;
 	}
 
 	interface Props {
@@ -20,10 +23,12 @@
 	let { quiz, showOwner = false, linkToManage = false }: Props = $props();
 
 	const rowHref = $derived(linkToManage ? `/quizzes/${quiz.id}` : `/${quiz.slug}`);
+	const speedRunHref = $derived(`/speed-run/${quiz.slug}`);
 
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-speed-run]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -40,6 +45,7 @@
 		event.preventDefault();
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-speed-run]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -56,12 +62,31 @@
 	class="flex cursor-pointer items-center justify-between rounded-md border border-neutral-200/80 bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200/60"
 >
 	<div class="flex flex-col">
-		<div class="font-semibold tracking-wide">{quiz.title}</div>
+		<div class="flex items-center gap-2">
+			<div class="font-semibold tracking-wide">{quiz.title}</div>
+			{#if quiz.speedRun}
+				<span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+					⚡ Speed Run
+				</span>
+			{/if}
+		</div>
 		<div class="text-sm text-gray-600">{quiz.description}</div>
 	</div>
 	<div class="flex flex-col items-end gap-1">
-		<div class="text-xs">
-			{new Date(quiz.createdAt).toLocaleDateString()}
+		<div class="flex items-center gap-2">
+			{#if quiz.speedRun}
+				<a
+					data-speed-run
+					href={speedRunHref}
+					class="rounded-md bg-amber-500 px-2 py-1 text-xs font-medium text-white hover:bg-amber-600"
+					onclick={(e) => e.stopPropagation()}
+				>
+					⚡ Play Speed Run
+				</a>
+			{/if}
+			<div class="text-xs">
+				{new Date(quiz.createdAt).toLocaleDateString()}
+			</div>
 		</div>
 		{#if showOwner && quiz.owner && quiz.owner.name}
 			<a

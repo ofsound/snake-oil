@@ -99,6 +99,28 @@
 	<div class="mt-10">
 		{data.quiz.description}
 	</div>
+
+	{#if data.quiz.hasSpeedRun}
+		<div class="mt-6">
+			<a
+				href="/speed-run/{data.quiz.slug}"
+				class="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
+			>
+				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 10V3L4 14h7v7l9-11h-7z"
+					/>
+				</svg>
+				Play Speed Run Mode
+			</a>
+			<p class="mt-2 text-sm text-gray-600">
+				⚡ Race against the clock! Answer questions as fast as you can.
+			</p>
+		</div>
+	{/if}
 </header>
 
 {#if hasResults && results}

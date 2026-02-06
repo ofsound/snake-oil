@@ -2,7 +2,7 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions, RequestEvent } from './$types';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
-import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
+import { quizzes, soundbites, tracks, speedRuns } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
 import { generateUniqueSlug } from '$lib/server/db/slug-utils';
 import { validateVariantConfig } from '$lib/server/variant-utils';
@@ -41,6 +41,8 @@ export const actions: Actions = {
 		const title = String(formData.get('title') ?? '').trim();
 		const rawSlug = String(formData.get('slug') ?? '').trim();
 		const description = String(formData.get('description') ?? '').trim();
+		const quizMode = String(formData.get('quizMode') ?? 'standard') as 'standard' | 'speed_run';
+		const speedRunConfigJson = String(formData.get('speedRunConfig') ?? '{}');
 		const { files, questions, variantTypes, variantConfigs } = getSoundbiteValues(formData);
 
 		if (!title) {
@@ -104,6 +106,16 @@ export const actions: Actions = {
 			}
 		}
 
+		// For speed run mode, ensure all questions are multiple_choice
+		if (quizMode === 'speed_run') {
+			const nonMultipleChoice = variantTypes.filter((type) => type !== 'multiple_choice');
+			if (nonMultipleChoice.length > 0) {
+				return fail(400, {
+					message: `Speed Run mode only supports Multiple Choice questions. Found ${nonMultipleChoice.length} unsupported question type(s).`
+				});
+			}
+		}
+
 		const baseSlug = slugify(rawSlug || title);
 
 		try {
@@ -120,6 +132,7 @@ export const actions: Actions = {
 			});
 
 			console.log('[Create Quiz] Starting soundbite creation:', {
+				quizMode,
 				variantTypes,
 				filesCount: files.length,
 				files: files.map((f) => ({ name: f.name, size: f.size }))
@@ -378,10 +391,24 @@ export const actions: Actions = {
 				});
 			}
 
+			// Create speed run configuration if applicable
+			if (quizMode === 'speed_run') {
+				const speedRunConfig = JSON.parse(speedRunConfigJson);
+				await db.insert(speedRuns).values({
+					quizId: quiz.id,
+					defaultQuestionTimeLimit: speedRunConfig.defaultQuestionTimeLimit || null,
+					revealDelayMs: speedRunConfig.revealDelayMs || 3000,
+					audioLoopGapMs: speedRunConfig.audioLoopGapMs || 2000,
+					enableStreakBonus: speedRunConfig.enableStreakBonus ?? true
+				});
+			}
+
 			return {
 				success: true,
 				quizId: quiz.id,
-				slug: quiz.slug
+				slug: quiz.slug,
+				quizMode,
+				speedRunSlug: quizMode === 'speed_run' ? quiz.slug : null
 			};
 		} catch (error) {
 			console.error('Error creating quiz:', error);
