@@ -54,6 +54,7 @@
 	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
 	let isSpeedRun = $derived(!!data.quiz.speedRun);
+	let speedRunConfig = $derived(isSpeedRun ? data.quiz.speedRun : null);
 
 	function updateAnswer(soundbiteId: string, value: string) {
 		userAnswers = { ...userAnswers, [soundbiteId]: value };
@@ -118,7 +119,7 @@
 		{/if}
 		<SpeedRunGame
 			quiz={data.quiz}
-			speedRun={data.quiz.speedRun}
+			speedRun={speedRunConfig!}
 			questions={data.speedRunQuestions}
 			initialLeaderboard={data.leaderboard}
 			user={data.user}

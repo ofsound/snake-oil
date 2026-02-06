@@ -6,7 +6,6 @@
 		SpeedRunCheckAnswerResponse,
 		SpeedRunSubmitResponse
 	} from '$lib/speed-run/types';
-	import type { SpeedRun, User } from '$lib/server/db/schema';
 	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 	import StartScreen from './StartScreen.svelte';
 	import CountdownOverlay from './CountdownOverlay.svelte';
@@ -31,7 +30,7 @@
 		};
 		questions: SpeedRunQuestion[];
 		initialLeaderboard: SpeedRunLeaderboardEntry[];
-		user: User | null | undefined;
+		user: { id: string; name: string | null; email: string } | null | undefined;
 	}
 
 	let { quiz, speedRun, questions, initialLeaderboard, user }: Props = $props();

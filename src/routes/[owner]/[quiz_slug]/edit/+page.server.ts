@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { quizzes, soundbites, tracks, speedRuns } from '$lib/server/db/schema';
+import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
 import { env } from '$env/dynamic/private';
@@ -76,11 +76,11 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		isSpeedRun: !!quiz.speedRun,
 		speedRunConfig: quiz.speedRun
 			? {
-					defaultQuestionTimeLimit: quiz.speedRun.defaultQuestionTimeLimit?.toString() ?? '10',
-					revealDelayMs: quiz.speedRun.revealDelayMs.toString(),
-					audioLoopGapMs: quiz.speedRun.audioLoopGapMs.toString(),
-					enableStreakBonus: quiz.speedRun.enableStreakBonus
-				}
+				defaultQuestionTimeLimit: quiz.speedRun.defaultQuestionTimeLimit?.toString() ?? '10',
+				revealDelayMs: quiz.speedRun.revealDelayMs.toString(),
+				audioLoopGapMs: quiz.speedRun.audioLoopGapMs.toString(),
+				enableStreakBonus: quiz.speedRun.enableStreakBonus
+			}
 			: null
 	};
 };

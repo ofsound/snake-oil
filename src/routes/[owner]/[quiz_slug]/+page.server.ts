@@ -127,33 +127,35 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		const supportedVariants = quiz.soundbites.filter((sb) => sb.variantType === 'multiple_choice');
 
 		if (supportedVariants.length > 0) {
-			speedRunQuestions = supportedVariants.map((sb) => {
-				const config = sb.variantConfig as {
-					type: 'multiple_choice';
-					options: { id: string; text: string; isCorrect: boolean }[];
-					questionTimeLimit?: number;
-				};
-				return {
-					id: sb.id,
-					position: sb.position,
-					question: sb.question,
-					variantType: sb.variantType,
-					variantConfig: {
-						type: config.type,
-						options: config.options.map((opt) => ({
-							id: opt.id,
-							text: opt.text,
-							isCorrect: false // Hide correct answer
-						})),
-						questionTimeLimit: config.questionTimeLimit
-					},
-					track: {
-						id: sb.track.id,
-						name: sb.track.name,
-						url: sb.track.url
-					}
-				};
-			});
+			speedRunQuestions = supportedVariants.map(
+				(sb): import('$lib/speed-run/types').SpeedRunQuestion => {
+					const config = sb.variantConfig as {
+						type: 'multiple_choice';
+						options: { id: string; text: string; isCorrect: boolean }[];
+						questionTimeLimit?: number;
+					};
+					return {
+						id: sb.id,
+						position: sb.position,
+						question: sb.question,
+						variantType: 'multiple_choice',
+						variantConfig: {
+							type: 'multiple_choice',
+							options: config.options.map((opt) => ({
+								id: opt.id,
+								text: opt.text,
+								isCorrect: false // Hide correct answer
+							})),
+							questionTimeLimit: config.questionTimeLimit
+						},
+						track: {
+							id: sb.track.id,
+							name: sb.track.name,
+							url: sb.track.url
+						}
+					};
+				}
+			);
 
 			// Fetch top 10 leaderboard entries
 			const topResults = await db.query.speedRunResults.findMany({

@@ -34,7 +34,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			},
 			owner: {
 				columns: {
-					slug: true
+					slug: true,
+					name: true
 				}
 			}
 		}
