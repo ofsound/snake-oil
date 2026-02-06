@@ -91,7 +91,10 @@
 		</a>
 		{#if isOwner}
 			<span class="text-sm text-gray-500">
-				(<a href="/quiz/edit/{data.quiz.slug}" class="hover:underline">manage quiz</a>)
+				(<a href="/quiz/edit/{data.quiz.slug}" class="hover:underline">edit quiz</a>) (<a
+					href="/quiz/submissions/{data.quiz.slug}"
+					class="hover:underline">view submissions</a
+				>)
 			</span>
 		{/if}
 	</div>

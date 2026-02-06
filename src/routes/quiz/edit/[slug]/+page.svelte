@@ -133,7 +133,7 @@
 </script>
 
 <header class="mb-6 flex items-baseline gap-1">
-	<Heading level={1}>Manage Quiz</Heading>
+	<Heading level={1}>Edit Quiz</Heading>
 	<div class="text-gray-500">
 		(<a class="text-sm hover:underline" href={`/quiz/${slug}`}>view quiz</a>) (<a
 			class="text-sm hover:underline"
