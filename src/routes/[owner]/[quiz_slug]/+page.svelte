@@ -92,6 +92,26 @@
 {#if isSpeedRun && data.speedRunQuestions}
 	<!-- Speed Run Mode -->
 	<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+		{#if isOwner}
+			<div class="border-b border-white/10 bg-slate-800/50 px-4 py-3">
+				<div class="mx-auto flex max-w-4xl items-center gap-4 text-sm">
+					<span class="text-white/60">Owner:</span>
+					<a
+						href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
+						class="text-indigo-400 hover:text-indigo-300 hover:underline"
+					>
+						edit quiz
+					</a>
+					<span class="text-white/30">|</span>
+					<a
+						href="/{data.quiz.owner.slug}/{data.quiz.slug}/submissions"
+						class="text-indigo-400 hover:text-indigo-300 hover:underline"
+					>
+						view submissions
+					</a>
+				</div>
+			</div>
+		{/if}
 		<SpeedRunGame
 			quiz={data.quiz}
 			speedRun={data.quiz.speedRun}

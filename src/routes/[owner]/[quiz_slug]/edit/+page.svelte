@@ -284,7 +284,7 @@
 	}}
 >
 	{#if data.isSpeedRun}
-		<Card variant="flat" padding="md" class="mb-6 border-amber-200 bg-amber-50">
+		<Card variant="flat" padding="md" class="mb-6 border-amber-200 bg-amber-50!">
 			<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
 			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
