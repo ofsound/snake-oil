@@ -96,7 +96,7 @@
 
 {#if isSpeedRun && data.speedRunQuestions}
 	<!-- Speed Run Mode -->
-	<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+	<div class="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900">
 		{#if isOwner}
 			<div class="border-b border-white/10 bg-slate-800/50 px-4 py-3">
 				<div class="mx-auto flex max-w-4xl items-center gap-4 text-sm">
