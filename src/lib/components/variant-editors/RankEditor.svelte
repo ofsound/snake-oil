@@ -1,32 +1,14 @@
 <script lang="ts">
-	import FormField from './FormField.svelte';
-	import type { RankItem } from '$lib/variant-types';
+	import FormField from '$lib/components/FormField.svelte';
 	import { flip } from 'svelte/animate';
 	import { dndzone } from 'svelte-dnd-action';
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 
-	interface Props {
-		items: RankItem[];
-		correctOrder: number[];
-		prompt: string;
-		onItemsChange: (items: RankItem[]) => void;
-		onCorrectOrderChange: (order: number[]) => void;
-		onPromptChange: (prompt: string) => void;
-		onFilesChange?: (files: File[]) => void;
-		id?: string;
-		soundbiteIndex?: number;
-	}
+	let { soundbite, onChange, editorId = 'rank-editor' }: VariantEditorProps = $props();
 
-	let {
-		items,
-		correctOrder,
-		prompt,
-		onItemsChange,
-		onCorrectOrderChange,
-		onPromptChange,
-		onFilesChange,
-		id = 'rank-editor',
-		soundbiteIndex = 0
-	}: Props = $props();
+	const items = $derived(soundbite.rankItems);
+	const correctOrder = $derived(soundbite.rankCorrectOrder);
+	const prompt = $derived(soundbite.rankPrompt);
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isUploading = $state(false);
@@ -38,8 +20,8 @@
 
 	// Helper to build display items from items and order
 	function buildDisplayItems(
-		itemsList: RankItem[],
-		order: number[]
+		itemsList: typeof items,
+		order: typeof correctOrder
 	): Array<{ id: string; itemIdx: number; name: string }> {
 		if (itemsList.length === 0) return [];
 
@@ -81,10 +63,8 @@
 	});
 
 	// Update parent with files when they change
-	function updateParentFiles() {
-		if (onFilesChange) {
-			onFilesChange(Array.from(itemFiles.values()));
-		}
+	function notifyFilesChange() {
+		onChange({ rankFiles: Array.from(itemFiles.values()) });
 	}
 
 	function extractNameFromFilename(filename: string): string {
@@ -100,7 +80,7 @@
 		if (!files || files.length === 0) return;
 
 		isUploading = true;
-		const newItems: RankItem[] = [];
+		const newItems: typeof items = [];
 		const newFiles: File[] = [];
 
 		for (const file of Array.from(files)) {
@@ -124,15 +104,15 @@
 
 		// Merge with existing items
 		const updatedItems = [...items, ...newItems].slice(0, 10); // Max 10 items
-		onItemsChange(updatedItems);
+		onChange({ rankItems: updatedItems });
 
 		// If this is the first upload, set correctOrder to identity
 		if (items.length === 0 && updatedItems.length > 0) {
-			onCorrectOrderChange(updatedItems.map((_, i) => i));
+			onChange({ rankCorrectOrder: updatedItems.map((_, i) => i) });
 		}
 
 		// Notify parent of file changes
-		updateParentFiles();
+		notifyFilesChange();
 
 		// Reset file input
 		if (fileInput) {
@@ -143,17 +123,17 @@
 	}
 
 	function removeItem(index: number) {
-		const itemToRemove = displayItems[index];
-		if (!itemToRemove) return;
+		const displayItemToRemove = displayItems[index];
+		if (!displayItemToRemove) return;
 
 		// Remove from files map
-		const itemId = items[itemToRemove.itemIdx]?.id;
+		const itemId = items[displayItemToRemove.itemIdx]?.id;
 		if (itemId) {
 			itemFiles.delete(itemId);
 		}
 
 		// Remove the item from the items array
-		const itemIdxToRemove = itemToRemove.itemIdx;
+		const itemIdxToRemove = displayItemToRemove.itemIdx;
 		const updatedItems = items.filter((_, i) => i !== itemIdxToRemove);
 
 		// Rebuild correctOrder: remove the removed index and adjust all higher indices
@@ -167,16 +147,15 @@
 				return idx;
 			});
 
-		onItemsChange(updatedItems);
-		onCorrectOrderChange(updatedOrder);
-		updateParentFiles();
+		onChange({ rankItems: updatedItems, rankCorrectOrder: updatedOrder });
+		notifyFilesChange();
 	}
 
 	function updateItemName(itemIdx: number, newName: string) {
 		const updatedItems = items.map((item, i) =>
 			i === itemIdx ? { ...item, name: newName } : item
 		);
-		onItemsChange(updatedItems);
+		onChange({ rankItems: updatedItems });
 		// Update display item name too
 		displayItems = displayItems.map((d) => (d.itemIdx === itemIdx ? { ...d, name: newName } : d));
 	}
@@ -190,7 +169,7 @@
 		displayItems = e.detail.items;
 		// Extract the new correctOrder from the reordered display items
 		const newOrder = displayItems.map((d) => d.itemIdx);
-		onCorrectOrderChange(newOrder);
+		onChange({ rankCorrectOrder: newOrder });
 	}
 
 	// Keyboard accessibility handlers
@@ -213,7 +192,7 @@
 		displayItems = newDisplayItems;
 		// Update the correctOrder
 		const newOrder = newDisplayItems.map((d) => d.itemIdx);
-		onCorrectOrderChange(newOrder);
+		onChange({ rankCorrectOrder: newOrder });
 
 		// Focus management - focus the item that moved
 		setTimeout(() => {
@@ -229,11 +208,11 @@
 <div class="flex flex-col gap-4">
 	<!-- File Upload -->
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`${id}-files`}>
+		<label class="text-sm font-medium text-gray-700" for={`${editorId}-files`}>
 			Upload MP3 Files (2-10 tracks)
 		</label>
 		<input
-			id={`${id}-files`}
+			id={`${editorId}-files`}
 			bind:this={fileInput}
 			type="file"
 			accept="audio/mpeg,.mp3"
@@ -339,11 +318,11 @@
 	{/if}
 
 	<!-- Prompt -->
-	<FormField label="Prompt" id={`${id}-prompt`}>
+	<FormField label="Prompt" id={`${editorId}-prompt`}>
 		<textarea
-			id={`${id}-prompt`}
+			id={`${editorId}-prompt`}
 			value={prompt}
-			oninput={(e) => onPromptChange(e.currentTarget.value)}
+			oninput={(e) => onChange({ rankPrompt: e.currentTarget.value })}
 			rows="2"
 			class="w-full rounded border border-neutral-200 bg-white px-2 py-2 text-sm"
 			placeholder="e.g., Rank these from lowest to highest pitch"

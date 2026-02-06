@@ -8,16 +8,11 @@
 	import FormInput from '$lib/components/FormInput.svelte';
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import type { ActionData } from './$types';
-	import type {
-		VariantType,
-		MultipleChoiceOption,
-		MultipleResponseOption,
-		ImageChoiceOption,
-		SequenceTrack,
-		RankItem
-	} from '$lib/variant-types';
+	import type { VariantType } from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
+	import { buildQuizFormData } from '$lib/form-builder';
+	import type { SoundbiteState } from '$lib/types/soundbite';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
@@ -39,26 +34,6 @@
 		audioLoopGapMs: 2000, // ms gap between loops for short audio
 		enableStreakBonus: true
 	});
-
-	type SoundbiteState = {
-		id: number;
-		variantType: VariantType;
-		simpleGuessAnswer: string;
-		multipleChoiceOptions: MultipleChoiceOption[];
-		multipleResponseOptions: MultipleResponseOption[];
-		imageChoiceOptions: ImageChoiceOption[];
-		imageChoiceFiles: (File | null)[];
-		sequenceTracks: SequenceTrack[];
-		sequenceCorrectTrackIndex: number;
-		sequencePrompt: string;
-		sequenceFiles: File[];
-		rankItems: RankItem[];
-		rankCorrectOrder: number[];
-		rankPrompt: string;
-		rankFiles: File[];
-		question: string;
-		questionTimeLimit?: number; // Optional per-question override
-	};
 
 	let nextSoundbiteId = $state(1);
 	let soundbites = $state<SoundbiteState[]>([
@@ -138,87 +113,28 @@
 	use:enhance={({ formData }) => {
 		submitting = true;
 
-		// Add quiz mode
-		formData.append('quizMode', quizMode);
-
-		// Add speed run config if applicable
-		if (quizMode === 'speed_run') {
-			formData.append('speedRunConfig', JSON.stringify(speedRunConfig));
-		}
-
-		// Debug: Log what's in the form data before modifications
-		console.log('[Create Quiz] Form data before modifications:');
-		for (const [key, value] of formData.entries()) {
-			console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`);
-		}
-
-		// Add sequence files to form data
-		soundbites.forEach((sb, index) => {
-			if (sb.variantType === 'sequence') {
-				console.log(
-					`[Create Quiz] Adding ${sb.sequenceFiles.length} sequence files for soundbite ${index}`
-				);
-				sb.sequenceFiles.forEach((file) => {
-					formData.append(`sequenceFiles-${index}`, file);
-				});
-			}
+		// Build complete form data using centralized utility
+		const completeFormData = buildQuizFormData({
+			title,
+			description,
+			slug,
+			quizMode,
+			speedRunConfig: quizMode === 'speed_run' ? speedRunConfig : undefined,
+			soundbites: soundbites.map((sb) => ({
+				id: sb.id,
+				state: sb,
+				type: 'new' as const
+			}))
 		});
 
-		// Add rank files to form data
-		soundbites.forEach((sb, index) => {
-			if (sb.variantType === 'rank') {
-				console.log(
-					`[Create Quiz] Adding ${sb.rankFiles.length} rank files for soundbite ${index}`
-				);
-				sb.rankFiles.forEach((file) => {
-					formData.append(`rankFiles-${index}`, file);
-				});
+		// Merge into the formData that enhance provides
+		// Only skip basic fields that are already in the form HTML
+		const skipKeys = ['title', 'description', 'slug', 'quizMode', 'speedRunConfig'];
+		completeFormData.forEach((value, key) => {
+			if (!skipKeys.includes(key)) {
+				formData.append(key, value);
 			}
 		});
-
-		// Add image choice files to form data
-		// Send files in order matching the options array, with empty Blob for placeholders
-		soundbites.forEach((sb, index) => {
-			if (sb.variantType === 'image_choice') {
-				const filesToSend = sb.imageChoiceFiles || [];
-				console.log(
-					`[Create Quiz] Soundbite ${index}: ${sb.imageChoiceOptions.length} options, ${filesToSend.length} files in imageChoiceFiles`
-				);
-
-				// Log the options and files for debugging
-				sb.imageChoiceOptions.forEach((opt, i) => {
-					const file = filesToSend[i];
-					console.log(
-						`[Create Quiz] Option ${i}: id=${opt.id}, hasFile=${!!file}, fileName=${file?.name}, fileSize=${file?.size}`
-					);
-				});
-
-				// Send one file per option
-				for (let optionIndex = 0; optionIndex < sb.imageChoiceOptions.length; optionIndex++) {
-					const file = filesToSend[optionIndex];
-					if (file && file.size > 0) {
-						// New file to upload
-						formData.append(`imageChoiceFiles-${index}`, file);
-						console.log(
-							`[Create Quiz] Appending file for soundbite ${index}, option ${optionIndex}: ${file.name} (${file.size} bytes)`
-						);
-					} else {
-						// No new file - send empty blob as placeholder
-						const placeholder = new Blob([], { type: 'application/octet-stream' });
-						formData.append(`imageChoiceFiles-${index}`, placeholder);
-						console.log(
-							`[Create Quiz] Appending placeholder for soundbite ${index}, option ${optionIndex}`
-						);
-					}
-				}
-			}
-		});
-
-		// Debug: Log what's in the form data after modifications
-		console.log('[Create Quiz] Form data after modifications:');
-		for (const [key, value] of formData.entries()) {
-			console.log(`  ${key}: ${value instanceof File ? `File(${value.name})` : value}`);
-		}
 
 		return async ({ update }) => {
 			submitting = false;

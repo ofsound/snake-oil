@@ -3,34 +3,9 @@
 	import Card from './Card.svelte';
 	import Button from './Button.svelte';
 	import SoundbiteEditor from './SoundbiteEditor.svelte';
-	import type {
-		VariantType,
-		MultipleChoiceOption,
-		MultipleResponseOption,
-		ImageChoiceOption,
-		SequenceTrack,
-		RankItem
-	} from '$lib/variant-types';
+	import type { SoundbiteState } from '$lib/types/soundbite';
+	import type { VariantType } from '$lib/variant-types';
 	import Heading from './Heading.svelte';
-
-	interface SoundbiteState {
-		id: number;
-		variantType: VariantType;
-		simpleGuessAnswer: string;
-		multipleChoiceOptions: MultipleChoiceOption[];
-		multipleResponseOptions: MultipleResponseOption[];
-		imageChoiceOptions: ImageChoiceOption[];
-		imageChoiceFiles: (File | null)[]; // Actual files to upload (null for existing images)
-		sequenceTracks: SequenceTrack[];
-		sequenceCorrectTrackIndex: number;
-		sequencePrompt: string;
-		sequenceFiles: File[]; // Actual files to upload
-		rankItems: RankItem[];
-		rankCorrectOrder: number[];
-		rankPrompt: string;
-		rankFiles: File[]; // Actual files to upload
-		question: string;
-	}
 
 	interface Props {
 		soundbites: SoundbiteState[];
@@ -64,7 +39,9 @@
 		forceVariantType
 	}: Props = $props();
 
-	let nextId = $state(Math.max(...soundbites.map((s) => s.id), 0) + 1);
+	let nextId = $state(
+		Math.max(...soundbites.map((s) => (typeof s.id === 'number' ? s.id : 0)), 0) + 1
+	);
 
 	function addSoundbite() {
 		// Default to forced variant type if set, otherwise simple_guess
@@ -102,66 +79,6 @@
 		soundbites = soundbites.map((sb) => (sb.id === id ? { ...sb, ...updates } : sb));
 		onChange(soundbites);
 	}
-
-	function updateVariantType(id: number, variantType: VariantType) {
-		updateSoundbite(id, { variantType });
-	}
-
-	function updateQuestion(id: number, question: string) {
-		updateSoundbite(id, { question });
-	}
-
-	function updateSimpleGuessAnswer(id: number, answer: string) {
-		updateSoundbite(id, { simpleGuessAnswer: answer });
-	}
-
-	function updateMultipleChoiceOptions(id: number, options: MultipleChoiceOption[]) {
-		updateSoundbite(id, { multipleChoiceOptions: options });
-	}
-
-	function updateMultipleResponseOptions(id: number, options: MultipleResponseOption[]) {
-		updateSoundbite(id, { multipleResponseOptions: options });
-	}
-
-	function updateImageChoiceOptions(id: number, options: ImageChoiceOption[]) {
-		updateSoundbite(id, { imageChoiceOptions: options });
-	}
-
-	function updateImageChoiceFiles(id: number, files: (File | null)[]) {
-		updateSoundbite(id, { imageChoiceFiles: files });
-	}
-
-	function updateSequenceTracks(id: number, tracks: SequenceTrack[]) {
-		updateSoundbite(id, { sequenceTracks: tracks });
-	}
-
-	function updateSequenceCorrectTrackIndex(id: number, index: number) {
-		updateSoundbite(id, { sequenceCorrectTrackIndex: index });
-	}
-
-	function updateSequencePrompt(id: number, prompt: string) {
-		updateSoundbite(id, { sequencePrompt: prompt });
-	}
-
-	function updateSequenceFiles(id: number, files: File[]) {
-		updateSoundbite(id, { sequenceFiles: files });
-	}
-
-	function updateRankItems(id: number, items: RankItem[]) {
-		updateSoundbite(id, { rankItems: items });
-	}
-
-	function updateRankCorrectOrder(id: number, order: number[]) {
-		updateSoundbite(id, { rankCorrectOrder: order });
-	}
-
-	function updateRankPrompt(id: number, prompt: string) {
-		updateSoundbite(id, { rankPrompt: prompt });
-	}
-
-	function updateRankFiles(id: number, files: File[]) {
-		updateSoundbite(id, { rankFiles: files });
-	}
 </script>
 
 <section>
@@ -177,53 +94,25 @@
 					<button
 						type="button"
 						class="absolute top-4 right-4 cursor-pointer text-xs font-medium hover:underline"
-						onclick={() => removeSoundbite(soundbite.id)}
+						onclick={() => removeSoundbite(Number(soundbite.id))}
 						disabled={soundbites.length <= 1}
 					>
 						Remove
 					</button>
 
 					<SoundbiteEditor
-						id={String(soundbite.id)}
-						variantType={forceVariantType || soundbite.variantType}
-						question={soundbite.question}
-						simpleGuessAnswer={soundbite.simpleGuessAnswer}
-						multipleChoiceOptions={soundbite.multipleChoiceOptions}
-						multipleResponseOptions={soundbite.multipleResponseOptions}
-						imageChoiceOptions={soundbite.imageChoiceOptions}
-						sequenceTracks={soundbite.sequenceTracks}
-						sequenceCorrectTrackIndex={soundbite.sequenceCorrectTrackIndex}
-						sequencePrompt={soundbite.sequencePrompt}
-						rankItems={soundbite.rankItems}
-						rankCorrectOrder={soundbite.rankCorrectOrder}
-						rankPrompt={soundbite.rankPrompt}
+						soundbite={forceVariantType
+							? { ...soundbite, variantType: forceVariantType }
+							: soundbite}
 						{variantTypeName}
 						{variantConfigName}
 						{questionName}
 						{fileInputName}
 						{fileInputRequired}
 						{fileInputLabel}
-						fileInputId={`soundbite-file-${soundbite.id}`}
+						fileInputId={`soundbite-file-${String(soundbite.id)}`}
 						disabledVariantType={!!forceVariantType}
-						onVariantTypeChange={(value) => updateVariantType(soundbite.id, value)}
-						onQuestionChange={(value) => updateQuestion(soundbite.id, value)}
-						onSimpleGuessAnswerChange={(value) => updateSimpleGuessAnswer(soundbite.id, value)}
-						onMultipleChoiceOptionsChange={(options) =>
-							updateMultipleChoiceOptions(soundbite.id, options)}
-						onMultipleResponseOptionsChange={(options) =>
-							updateMultipleResponseOptions(soundbite.id, options)}
-						onImageChoiceOptionsChange={(options) =>
-							updateImageChoiceOptions(soundbite.id, options)}
-						onImageChoiceFilesChange={(files) => updateImageChoiceFiles(soundbite.id, files)}
-						onSequenceTracksChange={(tracks) => updateSequenceTracks(soundbite.id, tracks)}
-						onSequenceCorrectTrackIndexChange={(index) =>
-							updateSequenceCorrectTrackIndex(soundbite.id, index)}
-						onSequencePromptChange={(prompt) => updateSequencePrompt(soundbite.id, prompt)}
-						onSequenceFilesChange={(files) => updateSequenceFiles(soundbite.id, files)}
-						onRankItemsChange={(items) => updateRankItems(soundbite.id, items)}
-						onRankCorrectOrderChange={(order) => updateRankCorrectOrder(soundbite.id, order)}
-						onRankPromptChange={(prompt) => updateRankPrompt(soundbite.id, prompt)}
-						onRankFilesChange={(files) => updateRankFiles(soundbite.id, files)}
+						onChange={(updates) => updateSoundbite(Number(soundbite.id), updates)}
 					/>
 				</Card>
 			</div>

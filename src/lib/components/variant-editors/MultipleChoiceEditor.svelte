@@ -1,32 +1,35 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	import type { MultipleChoiceOption } from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 
-	type Props = {
-		options: MultipleChoiceOption[];
-		onchange: (options: MultipleChoiceOption[]) => void;
-		idPrefix?: string;
-	};
+	let { soundbite, onChange, editorId = 'mc-option' }: VariantEditorProps = $props();
 
-	let { options, onchange, idPrefix = 'mc-option' }: Props = $props();
+	const options = $derived(soundbite.multipleChoiceOptions);
 
 	function addOption() {
 		if (options.length >= 10) return;
-		onchange([...options, createEmptyOption()]);
+		onChange({ multipleChoiceOptions: [...options, createEmptyOption()] });
 	}
 
 	function removeOption(optionId: string) {
 		if (options.length <= 2) return;
-		onchange(options.filter((opt) => opt.id !== optionId));
+		onChange({ multipleChoiceOptions: options.filter((opt) => opt.id !== optionId) });
 	}
 
 	function updateOptionText(optionId: string, text: string) {
-		onchange(options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt)));
+		onChange({
+			multipleChoiceOptions: options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt))
+		});
 	}
 
 	function setCorrectOption(optionId: string) {
-		onchange(options.map((opt) => ({ ...opt, isCorrect: opt.id === optionId })));
+		onChange({
+			multipleChoiceOptions: options.map((opt) => ({
+				...opt,
+				isCorrect: opt.id === optionId
+			}))
+		});
 	}
 </script>
 
@@ -37,7 +40,7 @@
 			<div class="flex items-center gap-2">
 				<input
 					type="radio"
-					name={`${idPrefix}-correct`}
+					name={`${editorId}-correct`}
 					checked={option.isCorrect}
 					onchange={() => setCorrectOption(option.id)}
 					class="h-4 w-4 text-emerald-600"
@@ -45,7 +48,7 @@
 				/>
 				<input
 					type="text"
-					id={`${idPrefix}-${option.id}`}
+					id={`${editorId}-${option.id}`}
 					class="sm flex-1 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 					placeholder={`Option ${index + 1}`}
 					value={option.text}

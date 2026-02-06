@@ -10,9 +10,44 @@ import { eq, and, ne } from 'drizzle-orm';
  * Checks if an error is a PostgreSQL unique constraint violation
  */
 const isUniqueConstraintViolation = (error: unknown): boolean => {
-	if (error && typeof error === 'object' && 'code' in error) {
-		return error.code === '23505';
+	if (!error || typeof error !== 'object') {
+		return false;
 	}
+
+	// Check for PostgreSQL error code on the error itself
+	if ('code' in error && error.code === '23505') {
+		return true;
+	}
+
+	// Check the cause property (Drizzle wraps Neon errors in cause)
+	if ('cause' in error && error.cause && typeof error.cause === 'object') {
+		const cause = error.cause;
+
+		if ('code' in cause && cause.code === '23505') {
+			return true;
+		}
+
+		// Check cause message
+		if ('message' in cause && typeof cause.message === 'string') {
+			const causeMsg = cause.message.toLowerCase();
+			if (causeMsg.includes('unique constraint') || causeMsg.includes('duplicate key')) {
+				return true;
+			}
+		}
+	}
+
+	// Check error message for unique constraint violations
+	if ('message' in error && typeof error.message === 'string') {
+		const msg = error.message.toLowerCase();
+		if (
+			msg.includes('unique constraint') ||
+			msg.includes('duplicate key') ||
+			msg.includes('already exists')
+		) {
+			return true;
+		}
+	}
+
 	return false;
 };
 

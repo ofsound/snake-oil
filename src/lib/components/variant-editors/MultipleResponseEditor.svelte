@@ -1,34 +1,34 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	import type { MultipleResponseOption } from '$lib/variant-types';
 	import { createEmptyOption } from '$lib/variant-client-utils';
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 
-	type Props = {
-		options: MultipleResponseOption[];
-		onchange: (options: MultipleResponseOption[]) => void;
-		idPrefix?: string;
-	};
+	let { soundbite, onChange, editorId = 'mr-option' }: VariantEditorProps = $props();
 
-	let { options, onchange, idPrefix = 'mr-option' }: Props = $props();
+	const options = $derived(soundbite.multipleResponseOptions);
 
 	function addOption() {
 		if (options.length >= 10) return;
-		onchange([...options, createEmptyOption()]);
+		onChange({ multipleResponseOptions: [...options, createEmptyOption()] });
 	}
 
 	function removeOption(optionId: string) {
 		if (options.length <= 2) return;
-		onchange(options.filter((opt) => opt.id !== optionId));
+		onChange({ multipleResponseOptions: options.filter((opt) => opt.id !== optionId) });
 	}
 
 	function updateOptionText(optionId: string, text: string) {
-		onchange(options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt)));
+		onChange({
+			multipleResponseOptions: options.map((opt) => (opt.id === optionId ? { ...opt, text } : opt))
+		});
 	}
 
 	function toggleCorrectOption(optionId: string) {
-		onchange(
-			options.map((opt) => (opt.id === optionId ? { ...opt, isCorrect: !opt.isCorrect } : opt))
-		);
+		onChange({
+			multipleResponseOptions: options.map((opt) =>
+				opt.id === optionId ? { ...opt, isCorrect: !opt.isCorrect } : opt
+			)
+		});
 	}
 </script>
 
@@ -46,7 +46,7 @@
 				/>
 				<input
 					type="text"
-					id={`${idPrefix}-${option.id}`}
+					id={`${editorId}-${option.id}`}
 					class="sm flex-1 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 					placeholder={`Option ${index + 1}`}
 					value={option.text}

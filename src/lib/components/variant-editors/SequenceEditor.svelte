@@ -1,30 +1,12 @@
 <script lang="ts">
-	import FormField from './FormField.svelte';
-	import type { SequenceTrack } from '$lib/variant-types';
+	import FormField from '$lib/components/FormField.svelte';
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 
-	interface Props {
-		tracks: SequenceTrack[];
-		correctTrackIndex: number;
-		prompt: string;
-		onTracksChange: (tracks: SequenceTrack[]) => void;
-		onCorrectTrackIndexChange: (index: number) => void;
-		onPromptChange: (prompt: string) => void;
-		onFilesChange?: (files: File[]) => void;
-		id?: string;
-		soundbiteIndex?: number; // Index of this soundbite in the form
-	}
+	let { soundbite, onChange, editorId = 'sequence-editor' }: VariantEditorProps = $props();
 
-	let {
-		tracks,
-		correctTrackIndex,
-		prompt,
-		onTracksChange,
-		onCorrectTrackIndexChange,
-		onPromptChange,
-		onFilesChange,
-		id = 'sequence-editor',
-		soundbiteIndex = 0
-	}: Props = $props();
+	const tracks = $derived(soundbite.sequenceTracks);
+	const correctTrackIndex = $derived(soundbite.sequenceCorrectTrackIndex);
+	const prompt = $derived(soundbite.sequencePrompt);
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isUploading = $state(false);
@@ -32,10 +14,8 @@
 	let trackFiles = $state<Map<string, File>>(new Map());
 
 	// Update parent with files when they change
-	function updateParentFiles() {
-		if (onFilesChange) {
-			onFilesChange(Array.from(trackFiles.values()));
-		}
+	function notifyFilesChange() {
+		onChange({ sequenceFiles: Array.from(trackFiles.values()) });
 	}
 
 	function extractNameFromFilename(filename: string): string {
@@ -51,7 +31,7 @@
 		if (!files || files.length === 0) return;
 
 		isUploading = true;
-		const newTracks: SequenceTrack[] = [];
+		const newTracks: typeof tracks = [];
 
 		for (const file of Array.from(files)) {
 			if (file.type !== 'audio/mpeg' && !file.name.endsWith('.mp3')) {
@@ -73,10 +53,10 @@
 
 		// Merge with existing tracks
 		const updatedTracks = [...tracks, ...newTracks].slice(0, 10); // Max 10 tracks
-		onTracksChange(updatedTracks);
+		onChange({ sequenceTracks: updatedTracks });
 
 		// Notify parent of file changes
-		updateParentFiles();
+		notifyFilesChange();
 
 		// Reset file input
 		if (fileInput) {
@@ -93,16 +73,20 @@
 		}
 
 		const updatedTracks = tracks.filter((_, i) => i !== index);
-		onTracksChange(updatedTracks);
+		onChange({ sequenceTracks: updatedTracks });
 
 		// Notify parent of file changes
-		updateParentFiles();
+		notifyFilesChange();
 
 		// Adjust correctTrackIndex if needed
+		let newCorrectIndex = correctTrackIndex;
 		if (correctTrackIndex >= updatedTracks.length) {
-			onCorrectTrackIndexChange(Math.max(0, updatedTracks.length - 1));
+			newCorrectIndex = Math.max(0, updatedTracks.length - 1);
 		} else if (correctTrackIndex === index && updatedTracks.length > 0) {
-			onCorrectTrackIndexChange(0);
+			newCorrectIndex = 0;
+		}
+		if (newCorrectIndex !== correctTrackIndex) {
+			onChange({ sequenceCorrectTrackIndex: newCorrectIndex });
 		}
 	}
 
@@ -110,7 +94,7 @@
 		const updatedTracks = tracks.map((track, i) =>
 			i === index ? { ...track, name: newName } : track
 		);
-		onTracksChange(updatedTracks);
+		onChange({ sequenceTracks: updatedTracks });
 	}
 
 	function moveTrackUp(index: number) {
@@ -120,13 +104,17 @@
 			updatedTracks[index],
 			updatedTracks[index - 1]
 		];
-		onTracksChange(updatedTracks);
+		onChange({ sequenceTracks: updatedTracks });
 
 		// Adjust correctTrackIndex if needed
+		let newCorrectIndex = correctTrackIndex;
 		if (correctTrackIndex === index) {
-			onCorrectTrackIndexChange(index - 1);
+			newCorrectIndex = index - 1;
 		} else if (correctTrackIndex === index - 1) {
-			onCorrectTrackIndexChange(index);
+			newCorrectIndex = index;
+		}
+		if (newCorrectIndex !== correctTrackIndex) {
+			onChange({ sequenceCorrectTrackIndex: newCorrectIndex });
 		}
 	}
 
@@ -137,13 +125,17 @@
 			updatedTracks[index + 1],
 			updatedTracks[index]
 		];
-		onTracksChange(updatedTracks);
+		onChange({ sequenceTracks: updatedTracks });
 
 		// Adjust correctTrackIndex if needed
+		let newCorrectIndex = correctTrackIndex;
 		if (correctTrackIndex === index) {
-			onCorrectTrackIndexChange(index + 1);
+			newCorrectIndex = index + 1;
 		} else if (correctTrackIndex === index + 1) {
-			onCorrectTrackIndexChange(index);
+			newCorrectIndex = index;
+		}
+		if (newCorrectIndex !== correctTrackIndex) {
+			onChange({ sequenceCorrectTrackIndex: newCorrectIndex });
 		}
 	}
 
@@ -154,11 +146,11 @@
 <div class="flex flex-col gap-4">
 	<!-- File Upload -->
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`${id}-files`}>
+		<label class="text-sm font-medium text-gray-700" for={`${editorId}-files`}>
 			Upload MP3 Files (2-10 tracks)
 		</label>
 		<input
-			id={`${id}-files`}
+			id={`${editorId}-files`}
 			bind:this={fileInput}
 			type="file"
 			accept="audio/mpeg,.mp3"
@@ -241,10 +233,10 @@
 					>
 						<input
 							type="radio"
-							name={`${id}-correct-track`}
+							name={`${editorId}-correct-track`}
 							value={index}
 							checked={correctTrackIndex === index}
-							onchange={() => onCorrectTrackIndexChange(index)}
+							onchange={() => onChange({ sequenceCorrectTrackIndex: index })}
 							class="sr-only"
 						/>
 						<span class="text-sm">{index + 1}. {track.name}</span>
@@ -255,11 +247,11 @@
 	{/if}
 
 	<!-- Prompt -->
-	<FormField label="Prompt" id={`${id}-prompt`}>
+	<FormField label="Prompt" id={`${editorId}-prompt`}>
 		<textarea
-			id={`${id}-prompt`}
+			id={`${editorId}-prompt`}
 			value={prompt}
-			oninput={(e) => onPromptChange(e.currentTarget.value)}
+			oninput={(e) => onChange({ sequencePrompt: e.currentTarget.value })}
 			rows="2"
 			class="w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 			placeholder="e.g., Press the button when you hear the flute"

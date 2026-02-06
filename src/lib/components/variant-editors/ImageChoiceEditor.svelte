@@ -1,17 +1,12 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
-	import Button from './Button.svelte';
-	import type { ImageChoiceOption } from '$lib/variant-types';
+	import Button from '$lib/components/Button.svelte';
 	import { processImageToThumbnail, validateImageFile, getFileHash } from '$lib/image-processing';
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 
-	interface Props {
-		options: ImageChoiceOption[];
-		onchange: (options: ImageChoiceOption[]) => void;
-		onFilesChange?: (files: (File | null)[]) => void;
-		idPrefix?: string;
-	}
+	let { soundbite, onChange, editorId = 'ic-option' }: VariantEditorProps = $props();
 
-	let { options, onchange, onFilesChange, idPrefix = 'ic-option' }: Props = $props();
+	const options = $derived(soundbite.imageChoiceOptions);
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isProcessing = $state(false);
@@ -33,15 +28,13 @@
 	// Update parent with files when they change
 	// Files must be in the same order as options, with null for existing images
 	function notifyFilesChange(currentOptions = options) {
-		if (onFilesChange) {
-			// Create array in same order as options
-			const filesInOrder = currentOptions.map((opt) => {
-				// If this option has a new file in processedFiles, use it
-				// Otherwise return null (existing image, no new file)
-				return processedFiles.get(opt.id) || null;
-			});
-			onFilesChange(filesInOrder);
-		}
+		// Create array in same order as options
+		const filesInOrder = currentOptions.map((opt) => {
+			// If this option has a new file in processedFiles, use it
+			// Otherwise return null (existing image, no new file)
+			return processedFiles.get(opt.id) || null;
+		});
+		onChange({ imageChoiceFiles: filesInOrder });
 	}
 
 	async function handleFileUpload(event: Event) {
@@ -61,7 +54,7 @@
 		errorMessage = null;
 
 		const filesToProcess = Array.from(files).slice(0, remainingSlots);
-		const newOptions: ImageChoiceOption[] = [];
+		const newOptions: typeof options = [];
 		const newFiles: File[] = [];
 		const duplicateNames: string[] = [];
 
@@ -122,7 +115,7 @@
 				newOptions[0].isCorrect = true;
 			}
 			const updatedOptions = [...options, ...newOptions];
-			onchange(updatedOptions);
+			onChange({ imageChoiceOptions: updatedOptions });
 			notifyFilesChange(updatedOptions);
 		}
 
@@ -162,12 +155,14 @@
 			updatedOptions[0].isCorrect = true;
 		}
 
-		onchange(updatedOptions);
+		onChange({ imageChoiceOptions: updatedOptions });
 		notifyFilesChange(updatedOptions);
 	}
 
 	function setCorrectOption(optionId: string) {
-		onchange(options.map((opt) => ({ ...opt, isCorrect: opt.id === optionId })));
+		onChange({
+			imageChoiceOptions: options.map((opt) => ({ ...opt, isCorrect: opt.id === optionId }))
+		});
 	}
 
 	const canAddMore = $derived(options.length < 10);
@@ -186,11 +181,11 @@
 <div class="flex flex-col gap-4">
 	<!-- File Upload -->
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`${idPrefix}-files`}>
+		<label class="text-sm font-medium text-gray-700" for={`${editorId}-files`}>
 			Upload Images (2-10)
 		</label>
 		<input
-			id={`${idPrefix}-files`}
+			id={`${editorId}-files`}
 			bind:this={fileInput}
 			type="file"
 			accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif,.heic,.heif"
