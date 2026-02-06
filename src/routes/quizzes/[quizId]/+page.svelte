@@ -266,11 +266,14 @@
 		answers: AnswersPayload | null,
 		soundbiteId: string,
 		soundbite: PageData['soundbites'][number]
-	): { guess: string; isCorrect: boolean } {
+	): { guess: string; isCorrect: boolean; imageUrl?: string; correctImageUrl?: string } {
 		const detail = answers?.[soundbiteId];
 		if (!detail) return { guess: '(no answer)', isCorrect: false };
 
 		let guessText = detail.guess;
+		let imageUrl: string | undefined;
+		let correctImageUrl: string | undefined;
+
 		if (detail.variantType === 'multiple_choice' && detail.selectedOptionId) {
 			const config = soundbite.variantConfig;
 			if (config.type === 'multiple_choice') {
@@ -285,9 +288,38 @@
 					.filter(Boolean);
 				guessText = texts.join(', ');
 			}
+		} else if (detail.variantType === 'image_choice' && detail.selectedOptionId) {
+			const config = soundbite.variantConfig;
+			if (config.type === 'image_choice') {
+				const selectedOption = config.options.find((o) => o.id === detail.selectedOptionId);
+				const correctOption = config.options.find((o) => o.isCorrect);
+				guessText = selectedOption?.label ?? detail.guess;
+				imageUrl = selectedOption?.imageUrl;
+				correctImageUrl = correctOption?.imageUrl;
+			}
+		} else if (detail.variantType === 'sequence' && detail.selectedTrackIndex !== undefined) {
+			const config = soundbite.variantConfig;
+			if (config.type === 'sequence') {
+				const selectedTrack = config.tracks[detail.selectedTrackIndex];
+				guessText = selectedTrack?.name ?? `Track ${detail.selectedTrackIndex + 1}`;
+			}
+		} else if (detail.variantType === 'rank' && detail.userOrder) {
+			const config = soundbite.variantConfig;
+			if (config.type === 'rank') {
+				// Show user's ranked item names in their order
+				guessText = detail.userOrder
+					.map((idx) => config.items[idx]?.name ?? '')
+					.filter((name) => name.length > 0)
+					.join(', ');
+			}
 		}
 
-		return { guess: guessText || '(no answer)', isCorrect: detail.isCorrect };
+		return {
+			guess: guessText || '(no answer)',
+			isCorrect: detail.isCorrect,
+			imageUrl,
+			correctImageUrl
+		};
 	}
 </script>
 
@@ -641,18 +673,37 @@
 								>
 									<div class="flex items-center justify-between">
 										<span class="font-medium">{index + 1}. {soundbite.trackName}:</span>
-										<span class="hidden text-xs font-medium">
-											{answerInfo.isCorrect ? 'Correct' : 'Incorrect'}
-										</span>
+										<span class="text-xs text-gray-500"
+											>{soundbite.variantType.replace(/_/g, ' ')}</span
+										>
 									</div>
 									<div class="mt-1">
-										<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
-										{#if !answerInfo.isCorrect}
-											<span class="ml-3">
-												(Correct: <span class="font-medium"
-													>{getCorrectAnswerText(soundbite.variantConfig)}</span
-												>)
-											</span>
+										{#if soundbite.variantType === 'image_choice' && answerInfo.imageUrl}
+											<div class="flex items-center gap-2">
+												<span class="text-gray-500">Answer:</span>
+												<img
+													src={answerInfo.imageUrl}
+													alt={answerInfo.guess}
+													class="h-[70px] w-[70px] rounded border object-cover"
+												/>
+												{#if !answerInfo.isCorrect && answerInfo.correctImageUrl}
+													<span class="ml-2 text-gray-500">Correct:</span>
+													<img
+														src={answerInfo.correctImageUrl}
+														alt="Correct"
+														class="h-[70px] w-[70px] rounded border object-cover"
+													/>
+												{/if}
+											</div>
+										{:else}
+											<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
+											{#if !answerInfo.isCorrect}
+												<span class="ml-3">
+													(Correct: <span class="font-medium"
+														>{getCorrectAnswerText(soundbite.variantConfig)}</span
+													>)
+												</span>
+											{/if}
 										{/if}
 									</div>
 								</div>

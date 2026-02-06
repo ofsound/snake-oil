@@ -235,11 +235,11 @@ export const actions: Actions = {
 							if (sb.variantConfig.type === 'simple_guess') {
 								return [sb.id, sb.variantConfig.correctAnswer];
 							} else if (sb.variantConfig.type === 'multiple_choice') {
-								const correctOption = sb.variantConfig.options.find((opt) => opt.isCorrect);
-								return [sb.id, correctOption?.text ?? ''];
+								// Return the full multiple choice config with correct answer marked
+								return [sb.id, JSON.stringify(sb.variantConfig)];
 							} else if (sb.variantConfig.type === 'multiple_response') {
-								const correctOptions = sb.variantConfig.options.filter((opt) => opt.isCorrect);
-								return [sb.id, correctOptions.map((opt) => opt.text).join(', ')];
+								// Return the full multiple response config with correct answers marked
+								return [sb.id, JSON.stringify(sb.variantConfig)];
 							} else if (sb.variantConfig.type === 'sequence') {
 								const correctTrack = sb.variantConfig.tracks[sb.variantConfig.correctTrackIndex];
 								return [sb.id, correctTrack?.name ?? ''];

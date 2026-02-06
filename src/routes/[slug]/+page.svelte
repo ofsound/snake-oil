@@ -149,6 +149,14 @@
 						soundbite.variantType === 'image_choice' && correctAnswer
 							? (JSON.parse(correctAnswer) as ImageChoiceConfig)
 							: null}
+					{@const multipleResponseConfig =
+						soundbite.variantType === 'multiple_response' && correctAnswer
+							? (JSON.parse(correctAnswer) as MultipleResponseConfig)
+							: null}
+					{@const multipleChoiceConfig =
+						soundbite.variantType === 'multiple_choice' && correctAnswer
+							? (JSON.parse(correctAnswer) as MultipleChoiceConfig)
+							: null}
 					<div class="rounded-sm bg-neutral-50 p-4">
 						<div class="mb-3">
 							<div class="mb-2 text-base font-medium text-gray-700">{index + 1}.</div>
@@ -162,7 +170,9 @@
 						<AnswerResultCard
 							{answerDetail}
 							variantConfig={rankConfig ??
-								imageChoiceConfig ?? {
+								imageChoiceConfig ??
+								multipleResponseConfig ??
+								multipleChoiceConfig ?? {
 									...soundbite.variantConfig,
 									...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
 								}}

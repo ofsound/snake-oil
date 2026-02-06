@@ -30,7 +30,7 @@ export function createEmptyOption(): { id: string; text: string; isCorrect: bool
 	};
 }
 
-import type { VariantConfig } from '$lib/variant-types';
+import type { RankConfig, VariantConfig } from '$lib/variant-types';
 
 /**
  * Get the correct answer text for display
@@ -42,6 +42,21 @@ export function getCorrectAnswerText(config: VariantConfig): string {
 	} else if (config.type === 'multiple_choice') {
 		const correctOption = config.options.find((opt) => opt.isCorrect);
 		return correctOption?.text ?? '';
+	} else if (config.type === 'multiple_response') {
+		const correctOptions = config.options.filter((opt) => opt.isCorrect);
+		return correctOptions.map((opt) => opt.text).join(', ');
+	} else if (config.type === 'image_choice') {
+		const correctOption = config.options.find((opt) => opt.isCorrect);
+		return correctOption?.label ?? '';
+	} else if (config.type === 'sequence') {
+		const correctTrack = config.tracks[config.correctTrackIndex];
+		return correctTrack?.name ?? '';
+	} else if (config.type === 'rank') {
+		// Return the ranked item names in correct order
+		return config.correctOrder
+			.map((idx) => config.items[idx]?.name ?? '')
+			.filter((name) => name.length > 0)
+			.join(', ');
 	}
 	return '';
 }
