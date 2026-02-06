@@ -32,12 +32,16 @@
 	}: Props = $props();
 
 	const variantClasses: Record<string, string> = {
-		primary: 'bg-emerald-800 text-white hover:bg-emerald-700',
-		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700',
-		accent: 'bg-indigo-600 text-white hover:bg-indigo-700',
-		danger: 'bg-red-600 text-white hover:bg-red-700',
-		outline: 'bg-white border border-neutral-200 text-gray-700 hover:bg-gray-50',
-		ghost: 'bg-transparent text-gray-500 hover:text-gray-700'
+		primary:
+			'bg-emerald-800 text-white hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600',
+		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700 dark:bg-zinc-500 dark:hover:bg-zinc-600',
+		accent:
+			'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600',
+		danger: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-600',
+		outline:
+			'bg-white border border-neutral-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700',
+		ghost:
+			'bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
 	};
 
 	const sizeClasses: Record<string, string> = {
