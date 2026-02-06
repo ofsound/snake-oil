@@ -25,6 +25,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			description: true,
 			visibility: true,
 			createdAt: true
+		},
+		with: {
+			speedRun: {
+				columns: {
+					id: true
+				}
+			}
 		}
 	});
 

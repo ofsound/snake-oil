@@ -1,13 +1,46 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import QuizList from '$lib/components/QuizList.svelte';
+	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
+	let mode = $state(data.mode);
+
 	function getDefaultOrder(column: string): 'asc' | 'desc' {
 		return column === 'date' ? 'desc' : 'asc';
 	}
+
+	function handleModeChange(newMode: 'all' | 'quiz' | 'speedrun') {
+		mode = newMode;
+		const params = new URLSearchParams(page.url.searchParams);
+		if (newMode === 'all') {
+			params.delete('mode');
+		} else {
+			params.set('mode', newMode);
+		}
+		params.set('page', '1');
+		goto(`/quizzes?${params.toString()}`);
+	}
+
+	let title = $derived(
+		mode === 'speedrun' ? 'Speed Runs' : mode === 'quiz' ? 'Quizzes' : 'All Quizzes'
+	);
+
+	let description = $derived(
+		mode === 'speedrun'
+			? `${data.totalCount} speed run${data.totalCount === 1 ? '' : 's'} available`
+			: mode === 'quiz'
+				? `${data.totalCount} quiz${data.totalCount === 1 ? '' : 'zes'} available`
+				: `${data.totalCount} quiz${data.totalCount === 1 ? '' : 'zes'} and speed runs available`
+	);
 </script>
+
+<div class="mb-6">
+	<ModeToggle value={mode} onChange={handleModeChange} />
+</div>
 
 <QuizList
 	quizzes={data.quizzes}
@@ -16,8 +49,8 @@
 	totalPages={data.totalPages}
 	sort={data.sort}
 	order={data.order}
-	title="All Quizzes"
-	description="{data.totalCount} quiz{data.totalCount === 1 ? '' : 'zes'} available"
+	{title}
+	{description}
 	basePath="/quizzes"
 	sortOptions={[
 		{ value: 'title', label: 'Title' },
@@ -25,5 +58,12 @@
 		{ value: 'date', label: 'Date' }
 	]}
 	onSortDefaultOrder={getDefaultOrder}
-	emptyState={{ message: 'No quizzes available yet. Check back soon!' }}
+	emptyState={{
+		message:
+			mode === 'speedrun'
+				? 'No speed runs available yet. Check back soon!'
+				: mode === 'quiz'
+					? 'No quizzes available yet. Check back soon!'
+					: 'No quizzes available yet. Check back soon!'
+	}}
 />

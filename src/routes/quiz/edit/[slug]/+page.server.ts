@@ -30,7 +30,8 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 					track: true
 				},
 				orderBy: asc(soundbites.position)
-			}
+			},
+			speedRun: true
 		}
 	});
 
@@ -58,7 +59,16 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			visibility: quiz.visibility,
 			createdAt: quiz.createdAt
 		},
-		soundbites: soundbiteItems
+		soundbites: soundbiteItems,
+		isSpeedRun: !!quiz.speedRun,
+		speedRunConfig: quiz.speedRun
+			? {
+					defaultQuestionTimeLimit: quiz.speedRun.defaultQuestionTimeLimit?.toString() ?? '10',
+					revealDelayMs: quiz.speedRun.revealDelayMs.toString(),
+					audioLoopGapMs: quiz.speedRun.audioLoopGapMs.toString(),
+					enableStreakBonus: quiz.speedRun.enableStreakBonus
+				}
+			: null
 	};
 };
 
@@ -134,10 +144,17 @@ export const actions: Actions = {
 			return fail(500, { message: 'Blob storage not configured.' });
 		}
 
-		// First, find the quiz by slug to get its ID
+		// First, find the quiz by slug to get its ID and check if it's a speed run
 		const existingQuiz = await db.query.quizzes.findFirst({
 			where: and(eq(quizzes.slug, params.slug), eq(quizzes.ownerId, locals.user.id)),
-			columns: { id: true }
+			columns: { id: true },
+			with: {
+				speedRun: {
+					columns: {
+						id: true
+					}
+				}
+			}
 		});
 
 		if (!existingQuiz) {
@@ -145,6 +162,15 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
+
+		// If this is a speed run quiz, add the required fields for processing
+		if (existingQuiz.speedRun) {
+			formData.set('quizMode', 'speed_run');
+			// speedRunConfig should already be in the form data from the client
+			if (!formData.get('speedRunConfig')) {
+				return fail(400, { message: 'Speed run configuration is required.' });
+			}
+		}
 
 		const result = await processQuizSubmission({
 			formData,
@@ -155,6 +181,11 @@ export const actions: Actions = {
 
 		if (!result.success) {
 			return fail(400, { message: result.error || 'Failed to update quiz.' });
+		}
+
+		// If the slug changed, redirect to the new URL
+		if (result.slug && result.slug !== params.slug) {
+			redirect(302, `/quiz/edit/${result.slug}`);
 		}
 
 		return { success: true };

@@ -46,6 +46,13 @@ export const load: PageServerLoad = async ({ params }) => {
 			slug: true,
 			description: true,
 			createdAt: true
+		},
+		with: {
+			speedRun: {
+				columns: {
+					id: true
+				}
+			}
 		}
 	});
 

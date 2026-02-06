@@ -1,7 +1,7 @@
 import { db } from '$lib/server/db';
 import { quizzes, quizAnswers, soundbites } from '$lib/server/db/schema';
 import type { AnswersPayload, VariantConfig, RankConfig } from '$lib/server/db/schema';
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { asc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { buildAnswerDetail, calculateScore } from '$lib/server/variant-utils';
@@ -27,6 +27,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	if (!quiz) {
 		error(404, 'Quiz not found');
+	}
+
+	// Redirect non-owners to speed-run page if this is a speed run
+	const isOwner = locals.user?.id === quiz.owner.id;
+	if (quiz.speedRun && !isOwner) {
+		redirect(301, `/speed-run/${quiz.slug}`);
 	}
 
 	// Transform relational data to match frontend expectations

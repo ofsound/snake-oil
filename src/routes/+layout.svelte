@@ -41,7 +41,7 @@
 			<a
 				href="/"
 				class="text-xl font-bold transition-colors duration-200 text-shadow-sm text-shadow-zinc-400/20 dark:text-shadow-zinc-600/20"
-				>catchy-app-name.io</a
+				>snakeoil.app</a
 			>
 
 			<div class="flex gap-3">

@@ -1,13 +1,42 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import QuizList from '$lib/components/QuizList.svelte';
+	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
 
+	let mode = $state(data.mode);
+
 	function getDefaultOrder(column: string): 'asc' | 'desc' {
 		return column === 'date' || column === 'relevance' ? 'desc' : 'asc';
 	}
+
+	function handleModeChange(newMode: 'all' | 'quiz' | 'speedrun') {
+		mode = newMode;
+		const params = new URLSearchParams(page.url.searchParams);
+		if (newMode === 'all') {
+			params.delete('mode');
+		} else {
+			params.set('mode', newMode);
+		}
+		params.set('page', '1');
+		goto(`/results?${params.toString()}`);
+	}
+
+	let description = $derived(
+		mode === 'speedrun'
+			? `${data.totalCount} speed run${data.totalCount === 1 ? '' : 's'} for "${data.query}"`
+			: mode === 'quiz'
+				? `${data.totalCount} quiz${data.totalCount === 1 ? '' : 'zes'} for "${data.query}"`
+				: `${data.totalCount} result${data.totalCount === 1 ? '' : 's'} for "${data.query}"`
+	);
 </script>
+
+<div class="mb-6">
+	<ModeToggle value={mode} onChange={handleModeChange} />
+</div>
 
 <QuizList
 	quizzes={data.quizzes}
@@ -17,9 +46,7 @@
 	sort={data.sort}
 	order={data.order}
 	title="Search Results"
-	description="{data.totalCount} result{data.totalCount === 1
-		? ''
-		: 's'} for &quot;{data.query}&quot;"
+	{description}
 	basePath="/results"
 	searchValue={data.query}
 	sortOptions={[
@@ -30,7 +57,12 @@
 	]}
 	onSortDefaultOrder={getDefaultOrder}
 	emptyState={{
-		message: 'No quizzes found matching your search.',
+		message:
+			mode === 'speedrun'
+				? 'No speed runs found matching your search.'
+				: mode === 'quiz'
+					? 'No quizzes found matching your search.'
+					: 'No quizzes found matching your search.',
 		link: { text: 'View all quizzes', href: '/quizzes' }
 	}}
 />

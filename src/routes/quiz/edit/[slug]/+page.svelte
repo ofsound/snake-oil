@@ -29,12 +29,41 @@
 	// Track the quiz ID to prevent resetting form fields when updating the same quiz
 	let lastQuizId = $state<string>('');
 
-	// Local state for form fields - initialize from data once
-	let title = $state('');
-	let slug = $state('');
-	let description = $state('');
-	let isPublic = $state(true);
-	let existingSoundbiteState = $state<Record<string, SoundbiteState>>({});
+	// Local state for form fields - initialize from data immediately to prevent flash
+	let title = $state(data.quiz.title);
+	let slug = $state(data.quiz.slug);
+	let description = $state(data.quiz.description);
+	let isPublic = $state(data.quiz.visibility === 'public');
+	let existingSoundbiteState = $state<Record<string, SoundbiteState>>(
+		Object.fromEntries(
+			data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
+		)
+	);
+
+	// Speed run configuration state - initialize from server data immediately to prevent flash
+	let speedRunConfig = $state(
+		data.isSpeedRun && data.speedRunConfig
+			? {
+					defaultQuestionTimeLimit: data.speedRunConfig.defaultQuestionTimeLimit,
+					revealDelayMs: data.speedRunConfig.revealDelayMs,
+					audioLoopGapMs: data.speedRunConfig.audioLoopGapMs,
+					enableStreakBonus: data.speedRunConfig.enableStreakBonus
+				}
+			: {
+					defaultQuestionTimeLimit: '10',
+					revealDelayMs: '3000',
+					audioLoopGapMs: '2000',
+					enableStreakBonus: true
+				}
+	);
+
+	// Check if any soundbites are not multiple_choice (for validation display)
+	let nonMultipleChoiceCount = $derived(
+		data.isSpeedRun
+			? Object.values(existingSoundbiteState).filter((sb) => sb.variantType !== 'multiple_choice')
+					.length
+			: 0
+	);
 
 	// Helper to extract state from variant config
 	function extractSoundbiteState(config: VariantConfig, question: string | null): SoundbiteState {
@@ -101,11 +130,11 @@
 		return defaultState;
 	}
 
-	// Only update when navigating to a different quiz
-	// Use untrack to avoid creating reactive dependencies that cause infinite loops
+	// Only update when navigating to a different quiz via client-side navigation
+	// Initial values are set above to prevent flash on page load
 	$effect(() => {
 		const quizId = data.quiz.id;
-		if (lastQuizId !== quizId) {
+		if (lastQuizId && lastQuizId !== quizId) {
 			// Navigating to a different quiz - update all fields
 			untrack(() => {
 				title = data.quiz.title;
@@ -115,8 +144,21 @@
 				existingSoundbiteState = Object.fromEntries(
 					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
 				);
+				// Update speed run config from data
+				if (data.isSpeedRun && data.speedRunConfig) {
+					speedRunConfig = {
+						defaultQuestionTimeLimit: data.speedRunConfig.defaultQuestionTimeLimit,
+						revealDelayMs: data.speedRunConfig.revealDelayMs,
+						audioLoopGapMs: data.speedRunConfig.audioLoopGapMs,
+						enableStreakBonus: data.speedRunConfig.enableStreakBonus
+					};
+				}
 				lastQuizId = quizId;
 			});
+		} else if (!lastQuizId) {
+			// First load - just set the quiz ID without updating fields
+			// Fields are already initialized correctly above
+			lastQuizId = quizId;
 		}
 	});
 
@@ -240,6 +282,76 @@
 		};
 	}}
 >
+	{#if data.isSpeedRun}
+		<Card variant="flat" padding="md" class="mb-6 border-amber-200 bg-amber-50">
+			<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+				<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
+					<FormInput
+						id="questionTimeLimit"
+						name="questionTimeLimit"
+						type="number"
+						min="3"
+						max="60"
+						bind:value={speedRunConfig.defaultQuestionTimeLimit}
+					/>
+				</FormField>
+
+				<FormField label="Reveal Delay (ms)" id="revealDelayMs">
+					<FormInput
+						id="revealDelayMs"
+						name="revealDelayMs"
+						type="number"
+						min="1000"
+						max="10000"
+						step="500"
+						bind:value={speedRunConfig.revealDelayMs}
+					/>
+				</FormField>
+
+				<FormField label="Audio Loop Gap (ms)" id="audioLoopGapMs">
+					<FormInput
+						id="audioLoopGapMs"
+						name="audioLoopGapMs"
+						type="number"
+						min="0"
+						max="5000"
+						step="500"
+						bind:value={speedRunConfig.audioLoopGapMs}
+					/>
+				</FormField>
+			</div>
+
+			<div class="mt-4 flex items-center gap-2">
+				<input
+					type="checkbox"
+					id="enableStreakBonus"
+					name="enableStreakBonus"
+					bind:checked={speedRunConfig.enableStreakBonus}
+					class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+				/>
+				<label for="enableStreakBonus" class="text-sm text-amber-900">
+					Enable streak bonuses and notifications
+				</label>
+			</div>
+
+			{#if nonMultipleChoiceCount > 0}
+				<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
+					<p class="text-sm text-red-700">
+						<strong>Warning:</strong> You have {nonMultipleChoiceCount} question(s) that are not Multiple
+						Choice. Please change them to Multiple Choice or the quiz will not work correctly.
+					</p>
+				</div>
+			{/if}
+
+			<p class="mt-3 text-sm text-amber-700">
+				<strong>Note:</strong> Speed Run mode only supports Multiple Choice questions.
+			</p>
+
+			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfig)} />
+		</Card>
+	{/if}
+
 	<Card variant="flat" padding="md" class="flex flex-col gap-4">
 		<FormField label="Title" id="title">
 			<FormInput id="title" name="title" type="text" bind:value={title} required />

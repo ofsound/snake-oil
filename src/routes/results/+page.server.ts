@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { quizzes, user } from '$lib/server/db/schema';
+import { quizzes, user, speedRuns } from '$lib/server/db/schema';
 import { asc, desc, count, eq, or, ilike, sql, and } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
@@ -8,9 +8,11 @@ const PAGE_SIZE = 50;
 
 type SortOption = 'relevance' | 'date' | 'title' | 'username';
 type OrderOption = 'asc' | 'desc';
+type ModeOption = 'all' | 'quiz' | 'speedrun';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const searchQuery = url.searchParams.get('q')?.trim();
+	const modeParam = url.searchParams.get('mode');
 
 	// Redirect to /quizzes if no search query
 	if (!searchQuery) {
@@ -26,6 +28,9 @@ export const load: PageServerLoad = async ({ url }) => {
 		? (sortParam as SortOption)
 		: 'relevance';
 	const order: OrderOption = orderParam === 'asc' ? 'asc' : 'desc';
+	const mode: ModeOption = ['all', 'quiz', 'speedrun'].includes(modeParam ?? '')
+		? (modeParam as ModeOption)
+		: 'all';
 
 	const searchPattern = `%${searchQuery}%`;
 
@@ -42,13 +47,27 @@ export const load: PageServerLoad = async ({ url }) => {
 		ilike(quizzes.description, searchPattern),
 		ilike(user.name, searchPattern)
 	);
-	const whereClause = and(searchWhereClause, eq(quizzes.visibility, 'public'));
+
+	// Build mode filter
+	let modeFilter;
+	if (mode === 'quiz') {
+		modeFilter = sql`${speedRuns.id} IS NULL`;
+	} else if (mode === 'speedrun') {
+		modeFilter = sql`${speedRuns.id} IS NOT NULL`;
+	} else {
+		modeFilter = undefined;
+	}
+
+	const whereClause = modeFilter
+		? and(searchWhereClause, eq(quizzes.visibility, 'public'), modeFilter)
+		: and(searchWhereClause, eq(quizzes.visibility, 'public'));
 
 	// Get total count for pagination
 	const [{ value: totalCount }] = await db
 		.select({ value: count() })
 		.from(quizzes)
 		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause);
 
 	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
@@ -82,10 +101,12 @@ export const load: PageServerLoad = async ({ url }) => {
 			createdAt: quizzes.createdAt,
 			ownerName: user.name,
 			ownerSlug: user.slug,
+			speedRunId: speedRuns.id,
 			relevanceScore
 		})
 		.from(quizzes)
 		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
 		.orderBy(orderByClause, desc(quizzes.createdAt))
 		.limit(PAGE_SIZE)
@@ -100,7 +121,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		owner: {
 			name: row.ownerName,
 			slug: row.ownerSlug
-		}
+		},
+		speedRun: row.speedRunId ? { id: row.speedRunId } : null
 	}));
 
 	return {
@@ -110,6 +132,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		totalPages,
 		totalCount,
 		sort,
-		order
+		order,
+		mode
 	};
 };

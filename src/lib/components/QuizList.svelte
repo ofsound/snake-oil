@@ -88,8 +88,8 @@
 </script>
 
 <div class="mb-8">
-	<Heading level={1}>{title}</Heading>
-	<div class="mt-1 text-sm text-gray-600">{description}</div>
+	<!-- <Heading level={1}>{title}</Heading> -->
+	<div class="text-center text-sm text-gray-600">{description}</div>
 </div>
 
 <form method="get" action="/results" class="mb-6">
