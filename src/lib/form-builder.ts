@@ -11,9 +11,9 @@ export interface QuizFormOptions {
 	slug?: string;
 	quizMode: 'standard' | 'speed_run';
 	speedRunConfig?: {
-		defaultQuestionTimeLimit: number;
-		revealDelayMs: number;
-		audioLoopGapMs: number;
+		defaultQuestionTimeLimit: string;
+		revealDelayMs: string;
+		audioLoopGapMs: string;
 		enableStreakBonus: boolean;
 	};
 	soundbites: Array<{
@@ -40,7 +40,16 @@ export function buildQuizFormData(options: QuizFormOptions): FormData {
 	formData.append('quizMode', options.quizMode);
 
 	if (options.speedRunConfig && options.quizMode === 'speed_run') {
-		formData.append('speedRunConfig', JSON.stringify(options.speedRunConfig));
+		formData.append(
+			'speedRunConfig',
+			JSON.stringify({
+				defaultQuestionTimeLimit:
+					parseInt(options.speedRunConfig.defaultQuestionTimeLimit, 10) || 10,
+				revealDelayMs: parseInt(options.speedRunConfig.revealDelayMs, 10) || 3000,
+				audioLoopGapMs: parseInt(options.speedRunConfig.audioLoopGapMs, 10) || 2000,
+				enableStreakBonus: options.speedRunConfig.enableStreakBonus
+			})
+		);
 	}
 
 	// Process soundbites

@@ -26,6 +26,7 @@ export interface ProcessQuizResult {
 	success: boolean;
 	quizId?: string;
 	slug?: string;
+	speedRunSlug?: string;
 	error?: string;
 }
 
@@ -198,7 +199,8 @@ export async function processQuizSubmission(
 		return {
 			success: true,
 			quizId: quizIdToUse,
-			slug: finalSlug
+			slug: finalSlug,
+			speedRunSlug: quizMode === 'speed_run' ? finalSlug : undefined
 		};
 	} catch (error) {
 		// Cleanup everything on any failure

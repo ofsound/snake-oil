@@ -32,6 +32,7 @@ export function handleCreateQuizResult(result: CreateQuizResult) {
 	return {
 		success: true,
 		quizId: result.quizId,
-		slug: result.slug
+		slug: result.slug,
+		speedRunSlug: result.speedRunSlug
 	};
 }

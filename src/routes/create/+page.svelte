@@ -1,19 +1,22 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+
+	import { buildQuizFormData } from '$lib/form-builder';
 	import { slugify } from '$lib/utils';
-	import Card from '$lib/components/Card.svelte';
-	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
+	import { createEmptyOption } from '$lib/variant-client-utils';
+
 	import Button from '$lib/components/Button.svelte';
+	import Card from '$lib/components/Card.svelte';
 	import FormField from '$lib/components/FormField.svelte';
 	import FormInput from '$lib/components/FormInput.svelte';
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
-	import type { ActionData } from './$types';
-	import type { VariantType } from '$lib/variant-types';
-	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
-	import { buildQuizFormData } from '$lib/form-builder';
-	import type { SoundbiteState } from '$lib/types/soundbite';
+	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
+
+	import type { ActionData } from './$types';
+	import type { SoundbiteState } from '$lib/types/soundbite';
+	import type { VariantType } from '$lib/variant-types';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
@@ -29,11 +32,11 @@
 	// Quiz mode selection
 	let quizMode = $state<'standard' | 'speed_run'>('standard');
 
-	// Speed run configuration
+	// Speed run configuration (stored as strings for HTML form inputs)
 	let speedRunConfig = $state({
-		defaultQuestionTimeLimit: 10, // seconds per question
-		revealDelayMs: 3000, // ms to show answer before advancing
-		audioLoopGapMs: 2000, // ms gap between loops for short audio
+		defaultQuestionTimeLimit: '10', // seconds per question
+		revealDelayMs: '3000', // ms to show answer before advancing
+		audioLoopGapMs: '2000', // ms gap between loops for short audio
 		enableStreakBonus: true
 	});
 
@@ -131,7 +134,7 @@
 
 		// Merge into the formData that enhance provides
 		// Only skip basic fields that are already in the form HTML
-		const skipKeys = ['title', 'description', 'slug', 'quizMode', 'speedRunConfig'];
+		const skipKeys = ['title', 'description', 'slug', 'visibility', 'quizMode', 'speedRunConfig'];
 		completeFormData.forEach((value, key) => {
 			if (!skipKeys.includes(key)) {
 				formData.append(key, value);
@@ -334,6 +337,10 @@
 		</FormField>
 
 		<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
+		<input type="hidden" name="quizMode" value={quizMode} />
+		{#if quizMode === 'speed_run'}
+			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfig)} />
+		{/if}
 		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
 	</Card>
 

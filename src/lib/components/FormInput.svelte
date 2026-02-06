@@ -10,6 +10,9 @@
 		required?: boolean;
 		class?: string;
 		oninput?: (e: Event) => void;
+		min?: string | number;
+		max?: string | number;
+		step?: string | number;
 	};
 
 	let {
@@ -20,10 +23,25 @@
 		placeholder,
 		required = false,
 		class: className = '',
-		oninput
+		oninput,
+		min,
+		max,
+		step
 	}: Props = $props();
 
 	const fullClass = $derived(`${baseClass} ${className}`.trim());
 </script>
 
-<input {id} {name} {type} bind:value {placeholder} {required} class={fullClass} {oninput} />
+<input
+	{id}
+	{name}
+	{type}
+	bind:value
+	{placeholder}
+	{required}
+	class={fullClass}
+	{oninput}
+	{min}
+	{max}
+	{step}
+/>

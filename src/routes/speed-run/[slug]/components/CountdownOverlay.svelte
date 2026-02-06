@@ -6,20 +6,24 @@
 	let { onComplete }: Props = $props();
 
 	let count = $state(3);
-	let isVisible = $state(true);
+	let showGo = $state(false);
+	let isFadingOut = $state(false);
 
 	$effect(() => {
 		const interval = setInterval(() => {
 			if (count > 1) {
 				count--;
 			} else {
-				// Show "1" for a full second, then transition
+				// Show "1" for a full second, then show "GO"
 				clearInterval(interval);
-				// Wait 1 second to show "1", then fade out and complete
 				setTimeout(() => {
-					isVisible = false;
-					// Small delay after fade out before starting the game
-					setTimeout(onComplete, 300);
+					showGo = true;
+					// Show GO for a moment, then fade out
+					setTimeout(() => {
+						isFadingOut = true;
+						// Wait for fade animation to complete before calling onComplete
+						setTimeout(onComplete, 300);
+					}, 600);
 				}, 1000);
 			}
 		}, 1000);
@@ -38,35 +42,42 @@
 	);
 </script>
 
-{#if isVisible}
-	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/90"
-		class:animate-fade-out={count === 1}
-	>
-		<div class="relative">
-			<!-- Background glow effect -->
-			<div class="absolute inset-0 rounded-full blur-3xl {bgColorClass}"></div>
+<div
+	class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 transition-opacity duration-300"
+	class:opacity-0={isFadingOut}
+	class:pointer-events-none={isFadingOut}
+>
+	<div class="relative">
+		<!-- Background glow effect -->
+		<div class="absolute inset-0 rounded-full blur-3xl {bgColorClass}"></div>
 
-			<!-- Count number -->
+		<!-- Count number or GO -->
+		{#if showGo}
+			<div class="animate-pulse-scale relative text-[15rem] leading-none font-black text-white">
+				GO!
+			</div>
+		{:else}
 			<div
 				class="relative text-[20rem] leading-none font-black {textColorClass} animate-pulse-scale"
 			>
 				{count}
 			</div>
+		{/if}
 
-			<!-- Label -->
-			<div class="mt-4 text-center text-2xl font-bold text-white/80">
-				{#if count === 3}
-					Get Ready...
-				{:else if count === 2}
-					Set...
-				{:else}
-					1
-				{/if}
-			</div>
+		<!-- Label -->
+		<div class="mt-4 text-center text-2xl font-bold text-white/80">
+			{#if showGo}
+				<!-- Empty for GO -->
+			{:else if count === 3}
+				Get Ready...
+			{:else if count === 2}
+				Set...
+			{:else}
+				GO!
+			{/if}
 		</div>
 	</div>
-{/if}
+</div>
 
 <style>
 	@keyframes pulse-scale {

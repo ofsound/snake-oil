@@ -1,13 +1,71 @@
 <script lang="ts">
 	import type { GamePhase, SpeedRunQuestion, SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
 	import type { SpeedRun, User } from '$lib/server/db/schema';
-	import { calculateSpeedRunScore, formatTimeMs } from '$lib/speed-run/scoring';
+	import { calculateSpeedRunScore, calculateMaxStreak, formatTimeMs } from '$lib/speed-run/scoring';
 	import StartScreen from './StartScreen.svelte';
 	import CountdownOverlay from './CountdownOverlay.svelte';
 	import QuestionCard from './QuestionCard.svelte';
 	import AnswerReveal from './AnswerReveal.svelte';
 	import ResultsScreen from './ResultsScreen.svelte';
 	import GameHUD from './GameHUD.svelte';
+
+	/**
+	 * Resolves SvelteKit's devalue serialization format
+	 * Format: Array where index 0 is the root object.
+	 * Property values can be:
+	 * - primitives: used directly
+	 * - numbers: references to other indices in the array (for deduplication)
+	 * - objects/arrays: contain a mix of primitives and references
+	 */
+	function resolveDevalue(parsed: unknown[]): Record<string, unknown> {
+		if (!Array.isArray(parsed) || parsed.length === 0) {
+			return {};
+		}
+
+		const resolved = new Map<number, unknown>();
+
+		function resolveValue(value: unknown, path: string = ''): unknown {
+			// Direct primitive value
+			if (value === null || (typeof value !== 'object' && typeof value !== 'number')) {
+				return value;
+			}
+
+			// Handle reference indices
+			if (typeof value === 'number') {
+				// This is a reference - resolve it from the parsed array
+				if (value >= 0 && value < parsed.length) {
+					// Check for circular reference
+					if (resolved.has(value)) {
+						return resolved.get(value);
+					}
+					// Mark as resolving to prevent infinite loops
+					resolved.set(value, parsed[value]);
+					const dereferenced = resolveValue(parsed[value], `${path}[${value}]`);
+					resolved.set(value, dereferenced);
+					return dereferenced;
+				}
+				return value;
+			}
+
+			// Handle arrays
+			if (Array.isArray(value)) {
+				return value.map((item, i) => resolveValue(item, `${path}[${i}]`));
+			}
+
+			// Handle objects
+			if (typeof value === 'object' && value !== null) {
+				const obj: Record<string, unknown> = {};
+				for (const [key, val] of Object.entries(value)) {
+					obj[key] = resolveValue(val, `${path}.${key}`);
+				}
+				return obj;
+			}
+
+			return value;
+		}
+
+		return resolveValue(parsed[0]) as Record<string, unknown>;
+	}
 
 	interface Props {
 		quiz: {
@@ -155,40 +213,29 @@
 				body: formData
 			});
 			const responseData = await response.json();
-			console.log('Check answer raw response:', responseData);
+			console.log('Check answer raw response:', JSON.stringify(responseData, null, 2));
 
-			// SvelteKit returns {type: 'success', status: 200, data: '<json-string>'}
-			// The data string uses reference indices that need to be resolved
-			let result;
-			if (responseData.data && typeof responseData.data === 'string') {
-				// Parse the data string and resolve references
-				const parsedArray = JSON.parse(responseData.data);
-				console.log('Check answer parsed array:', parsedArray);
+			// Parse SvelteKit form action response using devalue format
+			let result: Record<string, unknown> = {};
+			if (responseData.type === 'success' && responseData.data) {
+				const parsed = JSON.parse(responseData.data);
+				console.log('Check answer parsed:', parsed);
 
-				// The first element is an object with reference indices
-				// e.g., {success: 1, isCorrect: 2, correctAnswer: 3}
-				// where the numbers are indices into the parsedArray
-				if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-					const refs = parsedArray[0];
-					result = {};
-					for (const [key, value] of Object.entries(refs)) {
-						// If value is a number, it's a reference to parsedArray[value]
-						if (typeof value === 'number') {
-							result[key] = parsedArray[value];
-						} else {
-							result[key] = value;
-						}
-					}
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					result = resolveDevalue(parsed);
+				} else {
+					result = parsed as Record<string, unknown>;
 				}
-			} else {
-				result = responseData;
+			} else if (responseData.success) {
+				result = responseData as Record<string, unknown>;
 			}
 
-			console.log('Check answer resolved result:', result);
+			console.log('Check answer resolved result:', JSON.stringify(result, null, 2));
 
 			if (result && result.success) {
 				isCorrect = result.isCorrect === true;
-				correctAnswer = result.correctAnswer || '';
+				correctAnswer = String(result.correctAnswer || '');
+				console.log('Answer validation:', { isCorrect, correctAnswer });
 			}
 		} catch (e) {
 			console.error('Failed to validate answer:', e);
@@ -227,21 +274,36 @@
 
 		phase = 'revealing';
 
-		// Auto-advance after reveal delay
-		setTimeout(() => {
-			if (currentQuestionIndex < questions.length - 1) {
+		// If last question, stop timer immediately and capture end time
+		// Don't wait for the reveal delay to calculate final time
+		if (isLastQuestion) {
+			stopGlobalTimer();
+			const finalEndTime = Date.now();
+			console.log('Last question answered, timer stopped at:', finalEndTime);
+
+			// Auto-advance after reveal delay, but use pre-captured end time
+			setTimeout(() => {
+				finishGame(finalEndTime);
+			}, speedRun.revealDelayMs);
+		} else {
+			// Auto-advance after reveal delay for non-last questions
+			setTimeout(() => {
 				currentQuestionIndex++;
 				phase = 'question';
 				startQuestionTimer();
-			} else {
-				finishGame();
-			}
-		}, speedRun.revealDelayMs);
+			}, speedRun.revealDelayMs);
+		}
 	}
 
-	async function finishGame() {
-		stopGlobalTimer();
-		const endTime = Date.now();
+	async function finishGame(capturedEndTime?: number) {
+		// Use pre-captured end time if provided (for last question), otherwise stop timer now
+		const endTime = capturedEndTime ?? Date.now();
+
+		if (!capturedEndTime) {
+			stopGlobalTimer();
+		}
+
+		console.log('Finishing game with end time:', endTime, '(captured:', !!capturedEndTime, ')');
 
 		console.log('Submitting answers:', JSON.stringify(answers, null, 2));
 
@@ -260,116 +322,138 @@
 			});
 
 			const responseData = await response.json();
-			console.log('Raw response:', responseData);
+			console.log('Raw response:', JSON.stringify(responseData, null, 2));
 
-			// SvelteKit returns {type: 'success', status: 200, data: '<json-string>'}
-			// The data string uses reference indices that need to be resolved
-			let result;
-			if (responseData.data && typeof responseData.data === 'string') {
-				// Parse the data string and resolve references
-				const parsedArray = JSON.parse(responseData.data);
-				console.log('Parsed array:', parsedArray);
+			// Parse SvelteKit form action response
+			// Format: {type: 'success', status: 200, data: '<devalue-serialized-string>'}
+			let result: Record<string, unknown> = {};
 
-				// The first element is an object with reference indices
-				// e.g., {success: 1, result: 2, rank: 3, top10: 4}
-				// where the numbers are indices into the parsedArray
-				if (Array.isArray(parsedArray) && parsedArray.length > 0) {
-					const refs = parsedArray[0];
+			if (responseData.type === 'success' && responseData.data) {
+				try {
+					// The data is devalue-serialized, we need to parse it
+					const parsed = JSON.parse(responseData.data);
+					console.log('Parsed devalue data:', parsed);
+
+					// Check if it's the array format with references
+					if (Array.isArray(parsed) && parsed.length > 0) {
+						result = resolveDevalue(parsed);
+					} else {
+						result = parsed as Record<string, unknown>;
+					}
+				} catch (e) {
+					console.error('Failed to parse response data:', e);
 					result = {};
-					for (const [key, value] of Object.entries(refs)) {
-						// If value is a number, it's a reference to parsedArray[value]
-						if (typeof value === 'number') {
-							result[key] = parsedArray[value];
-						} else {
-							result[key] = value;
-						}
-					}
-
-					// Also resolve references in nested result object
-					if (result.result && typeof result.result === 'object') {
-						const resolvedResult: Record<string, unknown> = {};
-						for (const [key, value] of Object.entries(result.result)) {
-							if (typeof value === 'number' && value < parsedArray.length) {
-								resolvedResult[key] = parsedArray[value];
-							} else {
-								resolvedResult[key] = value;
-							}
-						}
-						result.result = resolvedResult;
-					}
-
-					// Resolve references in top10 array
-					if (result.top10 && Array.isArray(result.top10)) {
-						result.top10 = result.top10.map((entry: unknown) => {
-							if (entry && typeof entry === 'object') {
-								const resolvedEntry: Record<string, unknown> = {};
-								for (const [key, value] of Object.entries(entry)) {
-									if (typeof value === 'number' && value < parsedArray.length) {
-										resolvedEntry[key] = parsedArray[value];
-									} else {
-										resolvedEntry[key] = value;
-									}
-								}
-								return resolvedEntry;
-							}
-							return entry;
-						});
-					}
 				}
-			} else {
-				result = responseData;
+			} else if (responseData.success) {
+				// Already parsed
+				result = responseData as Record<string, unknown>;
 			}
 
-			console.log('Resolved result:', result);
-			console.log('Result.result:', result?.result);
-			console.log('Result.top10:', result?.top10);
+			console.log('Resolved result:', JSON.stringify(result, null, 2));
 
 			if (result && result.success && result.result) {
-				const resultData = result.result;
+				const resultData = result.result as Record<string, unknown>;
 				console.log('resultData:', resultData);
-				console.log(
-					'correctCount:',
-					resultData.correctCount,
-					'type:',
-					typeof resultData.correctCount
-				);
-				console.log('totalTimeMs:', resultData.totalTimeMs, 'type:', typeof resultData.totalTimeMs);
-				console.log('score:', resultData.score, 'type:', typeof resultData.score);
-				console.log('streakMax:', resultData.streakMax, 'type:', typeof resultData.streakMax);
+
+				// Calculate client-side values from answers array as fallback
+				const clientCorrectCount = answers.filter((a) => a.isCorrect).length;
+				const clientTotalTimeMs = endTime - globalStartTime;
+				const clientStreakMax = calculateMaxStreak(answers);
+				const clientScore = calculateSpeedRunScore(clientCorrectCount, clientTotalTimeMs);
+
+				console.log('Client-side calculated values:', {
+					clientCorrectCount,
+					clientTotalTimeMs,
+					clientScore,
+					clientStreakMax
+				});
+
+				// Validate and extract numeric values from server, with client-side fallback
+				const correctCount =
+					typeof resultData.correctCount === 'number' && resultData.correctCount > 0
+						? resultData.correctCount
+						: clientCorrectCount;
+				const totalTimeMs =
+					typeof resultData.totalTimeMs === 'number' && resultData.totalTimeMs > 0
+						? resultData.totalTimeMs
+						: clientTotalTimeMs;
+				const score =
+					typeof resultData.score === 'number' && resultData.score > 0
+						? resultData.score
+						: clientScore;
+				const streakMax =
+					typeof resultData.streakMax === 'number' && resultData.streakMax > 0
+						? resultData.streakMax
+						: clientStreakMax;
+
+				console.log('Final values (server with fallback):', {
+					correctCount,
+					totalTimeMs,
+					score,
+					streakMax
+				});
 
 				finalResult = {
-					rank: result.rank ?? 0,
-					correctCount: resultData.correctCount ?? 0,
-					totalTimeMs: resultData.totalTimeMs ?? 0,
-					score: resultData.score ?? 0,
-					maxStreak: resultData.streakMax ?? 0
+					rank: typeof result.rank === 'number' && result.rank > 0 ? result.rank : 1,
+					correctCount,
+					totalTimeMs,
+					score,
+					maxStreak: streakMax
 				};
 
-				// Handle top10 which might be an array of reference objects
-				let top10 = result.top10 || [];
-				console.log('Raw top10:', JSON.stringify(top10, null, 2));
+				// Handle top10 leaderboard - use client-side values for current user
+				// to avoid devalue parsing issues
+				const rawTop10 = result.top10;
+				let top10: SpeedRunLeaderboardEntry[] = [];
 
-				// Deep resolve any remaining references in top10 entries
-				function deepResolve(obj: unknown): unknown {
-					if (obj === null || obj === undefined) return obj;
-					if (typeof obj === 'number' && obj < parsedArray.length) {
-						return parsedArray[obj];
-					}
-					if (Array.isArray(obj)) {
-						return obj.map(deepResolve);
-					}
-					if (typeof obj === 'object') {
-						const resolved: Record<string, unknown> = {};
-						for (const [key, value] of Object.entries(obj)) {
-							resolved[key] = deepResolve(value);
-						}
-						return resolved;
-					}
-					return obj;
+				// Create current user entry with client-side calculated values
+				const currentUserEntry: SpeedRunLeaderboardEntry = {
+					id: String(resultData.id ?? 'current'),
+					displayName: displayName || 'You',
+					correctCount,
+					totalTimeMs,
+					streakMax,
+					score,
+					createdAt: new Date(),
+					isCurrentUser: true
+				};
+
+				if (Array.isArray(rawTop10) && rawTop10.length > 0) {
+					// Try to use server data for other players, but use client data for current user
+					top10 = rawTop10
+						.filter((entry: unknown) => typeof entry === 'object' && entry !== null)
+						.map((entry: unknown) => {
+							const e = entry as Record<string, unknown>;
+							const isCurrent = Boolean(e.isCurrentUser);
+
+							// If this is the current user, use our client-side calculated values
+							if (isCurrent) {
+								return currentUserEntry;
+							}
+
+							// For other users, try to use server values
+							return {
+								id: String(e.id ?? ''),
+								displayName: String(e.displayName ?? 'Anonymous'),
+								correctCount: typeof e.correctCount === 'number' ? e.correctCount : 0,
+								totalTimeMs: typeof e.totalTimeMs === 'number' ? e.totalTimeMs : 0,
+								streakMax: typeof e.streakMax === 'number' ? e.streakMax : 0,
+								score: typeof e.score === 'number' ? e.score : 0,
+								createdAt:
+									e.createdAt instanceof Date
+										? e.createdAt
+										: new Date(String(e.createdAt ?? Date.now())),
+								isCurrentUser: false
+							};
+						});
 				}
 
-				top10 = deepResolve(top10) as Array<Record<string, unknown>>;
-				console.log('Deep resolved top10:', JSON.stringify(top10, null, 2));
+				// If parsing failed or no entries, use just the current user
+				if (top10.length === 0) {
+					top10 = [currentUserEntry];
+				}
+
+				console.log('Processed leaderboard:', JSON.stringify(top10, null, 2));
 
 				leaderboard = top10;
 				console.log('finalResult set:', finalResult);

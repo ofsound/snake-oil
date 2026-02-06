@@ -33,7 +33,7 @@
 <!-- ModeWatcher handles the dark mode class toggling -->
 <ModeWatcher defaultMode="system" />
 
-<div class="flex min-h-svh flex-col">
+<div class="flex min-h-svh w-full flex-col">
 	<header
 		class="border-b border-gray-200 bg-slate-200/80 py-4 transition-colors duration-200 dark:border-gray-700 dark:bg-slate-800/80"
 	>
@@ -59,7 +59,7 @@
 		</div>
 	</header>
 
-	<div class="mx-auto max-w-5xl grow p-8 transition-colors duration-200">
+	<div class="mx-auto w-full max-w-5xl grow p-8 transition-colors duration-200">
 		{@render children()}
 	</div>
 
