@@ -10,7 +10,7 @@ import {
 	getSoundbiteValues,
 	validateFiles,
 	uploadToBlob,
-	uploadBufferToBlob
+
 } from '$lib/server/quiz-utils';
 import type { SequenceConfig, RankConfig, ImageChoiceConfig } from '$lib/variant-types';
 
