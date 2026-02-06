@@ -11,8 +11,10 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
 	}
 
-	// Return empty data for now since the page will be blank
-	return {};
+	// Return user data so the page can build correct URLs
+	return {
+		user: locals.user
+	};
 };
 
 export const actions: Actions = {

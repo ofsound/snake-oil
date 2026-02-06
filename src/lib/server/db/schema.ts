@@ -104,7 +104,7 @@ export const quizzes = pgTable(
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [
-		uniqueIndex('quizzes_slug_unique').on(table.slug),
+		uniqueIndex('quizzes_owner_slug_unique').on(table.ownerId, table.slug),
 		index('quizzes_owner_idx').on(table.ownerId),
 		index('quizzes_visibility_idx').on(table.visibility)
 	]

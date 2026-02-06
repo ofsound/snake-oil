@@ -22,16 +22,14 @@
 
 	let { quiz, showOwner = false, linkToManage = false }: Props = $props();
 
-	// Primary link: speed runs link to /speed-run, quizzes link to /quiz
-	// Unless linkToManage is true, then go to edit page
+	// New URL format: /[owner]/[quiz_slug]
+	// Owner slug is required for the new URL structure
+	const ownerSlug = $derived(quiz.owner?.slug ?? '');
+
 	const rowHref = $derived(
-		linkToManage
-			? `/quiz/edit/${quiz.slug}`
-			: quiz.speedRun
-				? `/speed-run/${quiz.slug}`
-				: `/quiz/${quiz.slug}`
+		linkToManage ? `/${ownerSlug}/${quiz.slug}/edit` : `/${ownerSlug}/${quiz.slug}`
 	);
-	const manageHref = $derived(`/quiz/edit/${quiz.slug}`);
+	const manageHref = $derived(`/${ownerSlug}/${quiz.slug}/edit`);
 
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
@@ -102,7 +100,7 @@
 		{#if showOwner && quiz.owner && quiz.owner.name}
 			<a
 				data-owner-link
-				href="/users/{quiz.owner.slug}"
+				href="/user/{quiz.owner.slug}"
 				onclick={handleOwnerClick}
 				class="text-sm font-medium hover:text-indigo-800"
 			>

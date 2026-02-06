@@ -177,9 +177,10 @@
 <header class="mb-6 flex items-baseline gap-1">
 	<Heading level={1}>Edit Quiz</Heading>
 	<div class="text-gray-500">
-		(<a class="text-sm hover:underline" href={`/quiz/${slug}`}>view quiz</a>) (<a
-			class="text-sm hover:underline"
-			href={`/quiz/submissions/${slug}`}>view submissions</a
+		<!-- Updated links to new URL format -->
+		(<a class="text-sm hover:underline" href="/{data.quiz.owner?.slug ?? ''}/{slug}">view quiz</a>)
+		(<a class="text-sm hover:underline" href="/{data.quiz.owner?.slug ?? ''}/{slug}/submissions"
+			>view submissions</a
 		>)
 	</div>
 </header>

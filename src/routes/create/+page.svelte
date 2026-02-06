@@ -14,11 +14,11 @@
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 
-	import type { ActionData } from './$types';
+	import type { ActionData, PageData } from './$types';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
 
-	let { form }: { form: ActionData | undefined } = $props();
+	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let title = $state('');
 	let manualSlug = $state('');
@@ -360,14 +360,11 @@
 	{#if successMessage}
 		<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
 			{successMessage}
-			{#if form?.slug}
-				<a class="ml-2 underline" href={`/quiz/${form.slug}`}>View quiz</a>
+			{#if form?.slug && data.user?.slug}
+				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}`}>View quiz</a>
 			{/if}
-			{#if form?.slug}
-				<a class="ml-2 underline" href={`/quiz/edit/${form.slug}`}>Manage quiz</a>
-			{/if}
-			{#if form?.speedRunSlug}
-				<a class="ml-2 underline" href={`/speed-run/${form.speedRunSlug}`}>Play Speed Run</a>
+			{#if form?.slug && data.user?.slug}
+				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}/edit`}>Edit quiz</a>
 			{/if}
 		</div>
 	{/if}

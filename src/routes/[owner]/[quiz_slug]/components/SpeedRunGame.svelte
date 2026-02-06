@@ -316,7 +316,7 @@
 		formData.append('displayName', displayName);
 
 		try {
-			const response = await fetch('?/submit', {
+			const response = await fetch('?/submitSpeedRun', {
 				method: 'POST',
 				body: formData
 			});

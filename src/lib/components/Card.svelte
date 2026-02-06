@@ -35,5 +35,5 @@
 </script>
 
 <div class={classes}>
-	≈ {@render children()}
+	{@render children()}
 </div>

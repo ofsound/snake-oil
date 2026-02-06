@@ -4,7 +4,8 @@ import {
 	quizzes,
 	soundbites,
 	speedRuns,
-	speedRunResults
+	speedRunResults,
+	user
 } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
@@ -12,13 +13,28 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
-		// Capture the current URL and pass it to login for redirect after authentication
 		const returnUrl = url.pathname + url.search;
 		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
 	}
 
+	const { owner, quiz_slug: quizSlug } = params;
+
+	// Find owner
+	const ownerRecord = await db.query.user.findFirst({
+		where: eq(user.slug, owner)
+	});
+
+	if (!ownerRecord) {
+		error(404, 'User not found');
+	}
+
+	// Only allow viewing submissions if current user is the owner
+	if (ownerRecord.id !== locals.user.id) {
+		error(403, 'You can only view submissions for your own quizzes');
+	}
+
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.slug, params.slug), eq(quizzes.ownerId, locals.user.id)),
+		where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
 		with: {
 			soundbites: {
 				with: {
@@ -49,7 +65,6 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		error(404, 'Quiz not found');
 	}
 
-	// Transform relational data to match frontend expectations
 	const soundbiteItems = quiz.soundbites.map((soundbite) => ({
 		id: soundbite.id,
 		position: soundbite.position,
@@ -94,7 +109,12 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			slug: quiz.slug,
 			description: quiz.description,
 			visibility: quiz.visibility,
-			createdAt: quiz.createdAt
+			createdAt: quiz.createdAt,
+			owner: {
+				id: ownerRecord.id,
+				name: ownerRecord.name,
+				slug: ownerRecord.slug
+			}
 		},
 		soundbites: soundbiteItems,
 		answers: answerRows,

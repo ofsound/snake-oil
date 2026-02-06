@@ -41,6 +41,24 @@
 			return;
 		}
 
+		// Check for reserved usernames
+		const reservedSlugs = [
+			'user',
+			'login',
+			'signup',
+			'profile',
+			'create',
+			'quizzes',
+			'results',
+			'api',
+			'auth'
+		];
+		if (reservedSlugs.includes(slug.toLowerCase())) {
+			error = `"${slug}" is a reserved username. Please choose a different one.`;
+			loading = false;
+			return;
+		}
+
 		try {
 			const result = await signUpWithSlug({
 				email,
@@ -106,7 +124,7 @@
 			/>
 			{#if slug}
 				<p class="mt-1 text-sm text-gray-600">
-					Your profile URL: <span class="font-mono">/users/{slug}</span>
+					Your profile URL: <span class="font-mono">/user/{slug}</span>
 				</p>
 			{/if}
 		</div>

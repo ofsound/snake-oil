@@ -156,8 +156,8 @@ export async function processQuizSubmission(
 				return { success: false, error: 'Quiz not found or access denied' };
 			}
 
-			// Find unique slug excluding current quiz
-			finalSlug = await findUniqueSlug(baseSlug, quizId);
+			// Find unique slug excluding current quiz (unique per owner)
+			finalSlug = await findUniqueSlug(baseSlug, userId, quizId);
 			await db
 				.update(quizzes)
 				.set({ title, slug: finalSlug, description, visibility })

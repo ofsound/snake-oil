@@ -54,7 +54,6 @@
 		} else if (detail.variantType === 'rank' && detail.userOrder) {
 			const config = soundbite.variantConfig;
 			if (config.type === 'rank') {
-				// Show user's ranked item names in their order
 				guessText = detail.userOrder
 					.map((idx) => config.items[idx]?.name ?? '')
 					.filter((name) => name.length > 0)
@@ -72,93 +71,94 @@
 </script>
 
 <header class="mb-6 flex items-baseline gap-1">
-	<Heading level={1}>Quiz Submissions</Heading>
+	<Heading level={1}>{data.hasSpeedRun ? 'Speed Run' : 'Quiz'} Submissions</Heading>
 	<div class="text-gray-500">
-		(<a class="text-sm hover:underline" href={`/quiz/edit/${data.quiz.slug}`}>edit quiz</a>)
+		<!-- Updated link to new URL format -->
+		(<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
+			>edit quiz</a
+		>)
 	</div>
 </header>
 
-<section class="mb-10">
-	<h2 class="mb-4 text-xl font-semibold">Quiz Answers</h2>
-	{#if data.answers.length === 0}
-		<p class="text-sm text-gray-500">No submissions yet.</p>
-	{:else}
-		<div class="flex flex-col gap-4">
-			{#each data.answers as submission, index (submission.id)}
-				<Card variant="flat" padding="sm" class="flex flex-col gap-3">
-					<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-						<div class="flex gap-1">
-							<span class="font-medium">{getSubmitterLabel(submission)}</span> on
-							<span>
-								{submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}
-							</span>
-						</div>
+{#if !data.hasSpeedRun}
+	<section class="mb-10">
+		{#if data.answers.length === 0}
+			<p class="text-sm text-gray-500">No submissions yet.</p>
+		{:else}
+			<div class="flex flex-col gap-4">
+				{#each data.answers as submission, index (submission.id)}
+					<Card variant="flat" padding="sm" class="flex flex-col gap-3">
+						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+							<div class="flex gap-1">
+								<span class="font-medium">{getSubmitterLabel(submission)}</span> on
+								<span>
+									{submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}
+								</span>
+							</div>
 
-						<div class="flex items-center gap-3">
-							Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
+							<div class="flex items-center gap-3">
+								Score: {submission.totalCorrect}/{submission.totalQuestions} ({submission.score}%)
+							</div>
 						</div>
-					</div>
-					<div class="flex flex-col gap-2">
-						{#each data.soundbites as soundbite (soundbite.id)}
-							{@const answerInfo = getAnswerDisplay(
-								submission.answers as AnswersPayload,
-								soundbite.id,
-								soundbite
-							)}
-							<div
-								class="rounded-sm border px-3 py-2 text-sm"
-								class:border-green-200={answerInfo.isCorrect}
-								class:bg-green-50={answerInfo.isCorrect}
-								class:border-red-100={!answerInfo.isCorrect}
-								class:bg-red-50={!answerInfo.isCorrect}
-							>
-								<div class="flex items-center justify-between">
-									<span class="font-medium">{index + 1}. {soundbite.trackName}:</span>
-									<span class="text-xs text-gray-500"
-										>{soundbite.variantType.replace(/_/g, ' ')}</span
-									>
-								</div>
-								<div class="mt-1">
-									{#if soundbite.variantType === 'image_choice' && answerInfo.imageUrl}
-										<div class="flex items-center gap-2">
-											<span class="text-gray-500">Answer:</span>
-											<img
-												src={answerInfo.imageUrl}
-												alt={answerInfo.guess}
-												class="h-[70px] w-[70px] rounded border object-cover"
-											/>
-											{#if !answerInfo.isCorrect && answerInfo.correctImageUrl}
-												<span class="ml-2 text-gray-500">Correct:</span>
+						<div class="flex flex-col gap-2">
+							{#each data.soundbites as soundbite (soundbite.id)}
+								{@const answerInfo = getAnswerDisplay(
+									submission.answers as AnswersPayload,
+									soundbite.id,
+									soundbite
+								)}
+								<div
+									class="rounded-sm border px-3 py-2 text-sm"
+									class:border-green-200={answerInfo.isCorrect}
+									class:bg-green-50={answerInfo.isCorrect}
+									class:border-red-100={!answerInfo.isCorrect}
+									class:bg-red-50={!answerInfo.isCorrect}
+								>
+									<div class="flex items-center justify-between">
+										<span class="font-medium">{index + 1}. {soundbite.trackName}:</span>
+										<span class="text-xs text-gray-500"
+											>{soundbite.variantType.replace(/_/g, ' ')}</span
+										>
+									</div>
+									<div class="mt-1">
+										{#if soundbite.variantType === 'image_choice' && answerInfo.imageUrl}
+											<div class="flex items-center gap-2">
+												<span class="text-gray-500">Answer:</span>
 												<img
-													src={answerInfo.correctImageUrl}
-													alt="Correct"
+													src={answerInfo.imageUrl}
+													alt={answerInfo.guess}
 													class="h-[70px] w-[70px] rounded border object-cover"
 												/>
+												{#if !answerInfo.isCorrect && answerInfo.correctImageUrl}
+													<span class="ml-2 text-gray-500">Correct:</span>
+													<img
+														src={answerInfo.correctImageUrl}
+														alt="Correct"
+														class="h-[70px] w-[70px] rounded border object-cover"
+													/>
+												{/if}
+											</div>
+										{:else}
+											<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
+											{#if !answerInfo.isCorrect}
+												<span class="ml-3">
+													(Correct: <span class="font-medium"
+														>{getCorrectAnswerText(soundbite.variantConfig)}</span
+													>)
+												</span>
 											{/if}
-										</div>
-									{:else}
-										<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
-										{#if !answerInfo.isCorrect}
-											<span class="ml-3">
-												(Correct: <span class="font-medium"
-													>{getCorrectAnswerText(soundbite.variantConfig)}</span
-												>)
-											</span>
 										{/if}
-									{/if}
+									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-				</Card>
-			{/each}
-		</div>
-	{/if}
-</section>
-
-{#if data.hasSpeedRun}
+							{/each}
+						</div>
+					</Card>
+				{/each}
+			</div>
+		{/if}
+	</section>
+{:else}
 	<section class="flex flex-col gap-4">
-		<h2 class="mb-4 text-xl font-semibold">Speed Run Results</h2>
 		{#if data.speedRunResults.length === 0}
 			<p class="text-sm text-gray-500">No speed run submissions yet.</p>
 		{:else}

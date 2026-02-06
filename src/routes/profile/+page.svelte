@@ -29,8 +29,8 @@
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">URL:</div>
 				<a
-					href="/users/{profile.slug}"
-					class="text-sm font-medium text-indigo-600 hover:text-indigo-700">/users/{profile.slug}</a
+					href="/user/{profile.slug}"
+					class="text-sm font-medium text-indigo-600 hover:text-indigo-700">/user/{profile.slug}</a
 				>
 			</div>
 
