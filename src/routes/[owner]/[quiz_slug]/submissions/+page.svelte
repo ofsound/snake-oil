@@ -72,10 +72,12 @@
 </script>
 
 <header class="mb-6 flex items-baseline gap-1">
-	<Heading level={1}>{data.hasSpeedRun ? 'Speed Run' : 'Quiz'} Submissions</Heading>
+	<Heading level={1}>{data.quiz.title} Submissions</Heading>
 	<div class="text-gray-500">
 		<!-- Updated link to new URL format -->
-		(<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
+		(<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}">
+			{data.hasSpeedRun ? 'view speed run' : 'view quiz'}
+		</a>) (<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
 			>edit quiz</a
 		>)
 	</div>

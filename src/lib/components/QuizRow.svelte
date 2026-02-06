@@ -30,10 +30,13 @@
 		linkToManage ? `/${ownerSlug}/${quiz.slug}/edit` : `/${ownerSlug}/${quiz.slug}`
 	);
 	const manageHref = $derived(`/${ownerSlug}/${quiz.slug}/edit`);
+	const viewHref = $derived(`/${ownerSlug}/${quiz.slug}`);
+	const viewLabel = $derived(quiz.speedRun ? 'View Speed Run' : 'View Quiz');
 
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-view-link]')) return;
 		if (target.closest('[data-manage-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
@@ -51,6 +54,7 @@
 		event.preventDefault();
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-view-link]')) return;
 		if (target.closest('[data-manage-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
@@ -84,6 +88,14 @@
 	<div class="flex flex-col items-end gap-1">
 		<div class="flex items-center gap-2">
 			{#if linkToManage}
+				<a
+					data-view-link
+					href={viewHref}
+					class="rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600"
+					onclick={(e) => e.stopPropagation()}
+				>
+					{viewLabel}
+				</a>
 				<a
 					data-manage-link
 					href={manageHref}

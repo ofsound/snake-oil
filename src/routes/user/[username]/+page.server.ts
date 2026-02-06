@@ -52,6 +52,12 @@ export const load: PageServerLoad = async ({ params }) => {
 				columns: {
 					id: true
 				}
+			},
+			owner: {
+				columns: {
+					slug: true,
+					name: true
+				}
 			}
 		}
 	});
