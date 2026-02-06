@@ -15,6 +15,7 @@
 	import Heading from '$lib/components/Heading.svelte';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import { buildQuizFormData } from '$lib/form-builder';
+	import Toggle from '$lib/components/Toggle.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
@@ -33,6 +34,7 @@
 	let title = $state('');
 	let slug = $state('');
 	let description = $state('');
+	let isPublic = $state(true);
 	let existingSoundbiteState = $state<Record<string, SoundbiteState>>({});
 
 	// Helper to extract state from variant config
@@ -110,6 +112,7 @@
 				title = data.quiz.title;
 				slug = data.quiz.slug;
 				description = data.quiz.description;
+				isPublic = data.quiz.visibility === 'public';
 				existingSoundbiteState = Object.fromEntries(
 					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
 				);
@@ -353,6 +356,9 @@
 					required
 				/>
 			</FormField>
+
+			<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
+			<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
 		</Card>
 
 		<section class="flex flex-col gap-4">

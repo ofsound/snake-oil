@@ -100,11 +100,13 @@ export const quizzes = pgTable(
 		title: text('title').notNull(),
 		slug: text('slug').notNull(),
 		description: text('description').notNull(),
+		visibility: text('visibility').notNull().default('public'),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [
 		uniqueIndex('quizzes_slug_unique').on(table.slug),
-		index('quizzes_owner_idx').on(table.ownerId)
+		index('quizzes_owner_idx').on(table.ownerId),
+		index('quizzes_visibility_idx').on(table.visibility)
 	]
 );
 

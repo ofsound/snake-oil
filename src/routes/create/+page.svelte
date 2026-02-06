@@ -13,12 +13,14 @@
 	import Heading from '$lib/components/Heading.svelte';
 	import { buildQuizFormData } from '$lib/form-builder';
 	import type { SoundbiteState } from '$lib/types/soundbite';
+	import Toggle from '$lib/components/Toggle.svelte';
 
 	let { form }: { form: ActionData | undefined } = $props();
 
 	let title = $state('');
 	let manualSlug = $state('');
 	let description = $state('');
+	let isPublic = $state(true); // Default to public
 	let slugEdited = $state(false);
 	let submitting = $state(false);
 	let successMessage = $derived(form?.success ? 'Quiz created successfully.' : null);
@@ -170,7 +172,7 @@
 						</div>
 						<div>
 							<div class="font-semibold text-gray-900">Standard Quiz</div>
-							<div class="text-sm text-gray-600">Answer all questions, then submit</div>
+							<div class="text-sm text-gray-600">Answer all questions, then submit.</div>
 						</div>
 					</div>
 					{#if quizMode === 'standard'}
@@ -330,6 +332,9 @@
 				required
 			/>
 		</FormField>
+
+		<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
+		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
 	</Card>
 
 	<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>

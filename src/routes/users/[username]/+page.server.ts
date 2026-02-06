@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, and } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { quizzes, user } from '$lib/server/db/schema';
@@ -36,9 +36,9 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	const foundUser = userProfile[0];
 
-	// Fetch all quizzes owned by this user, ordered by creation date (newest first)
+	// Fetch public quizzes owned by this user, ordered by creation date (newest first)
 	const userQuizzes = await db.query.quizzes.findMany({
-		where: eq(quizzes.ownerId, foundUser.id),
+		where: and(eq(quizzes.ownerId, foundUser.id), eq(quizzes.visibility, 'public')),
 		orderBy: desc(quizzes.createdAt),
 		columns: {
 			id: true,

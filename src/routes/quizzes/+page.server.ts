@@ -19,8 +19,11 @@ export const load: PageServerLoad = async ({ url }) => {
 		: 'date';
 	const order: OrderOption = orderParam === 'asc' ? 'asc' : 'desc';
 
-	// Get total count for pagination
-	const [{ value: totalCount }] = await db.select({ value: count() }).from(quizzes);
+	// Get total count for pagination (only public quizzes)
+	const [{ value: totalCount }] = await db
+		.select({ value: count() })
+		.from(quizzes)
+		.where(eq(quizzes.visibility, 'public'));
 	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
 	// Clamp page to valid range
@@ -58,6 +61,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			})
 			.from(quizzes)
 			.innerJoin(user, eq(quizzes.ownerId, user.id))
+			.where(eq(quizzes.visibility, 'public'))
 			.orderBy(orderByClause)
 			.limit(PAGE_SIZE)
 			.offset(offset);
@@ -76,6 +80,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	} else {
 		// Use relational query for date and title sorting
 		quizzesList = await db.query.quizzes.findMany({
+			where: eq(quizzes.visibility, 'public'),
 			orderBy: orderByClause,
 			limit: PAGE_SIZE,
 			offset,

@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { quizzes, user } from '$lib/server/db/schema';
-import { asc, desc, count, eq, or, ilike, sql } from 'drizzle-orm';
+import { asc, desc, count, eq, or, ilike, sql, and } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -36,12 +36,13 @@ export const load: PageServerLoad = async ({ url }) => {
 		CASE WHEN ${user.name} ILIKE ${searchPattern} THEN 1 ELSE 0 END
 	)`.as('relevance_score');
 
-	// Build WHERE clause for search
-	const whereClause = or(
+	// Build WHERE clause for search (only public quizzes)
+	const searchWhereClause = or(
 		ilike(quizzes.title, searchPattern),
 		ilike(quizzes.description, searchPattern),
 		ilike(user.name, searchPattern)
 	);
+	const whereClause = and(searchWhereClause, eq(quizzes.visibility, 'public'));
 
 	// Get total count for pagination
 	const [{ value: totalCount }] = await db

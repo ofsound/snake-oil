@@ -133,6 +133,7 @@ export async function processQuizSubmission(
 	const rawSlug = String(formData.get('slug') ?? '').trim();
 	const quizMode = String(formData.get('quizMode') ?? 'standard') as 'standard' | 'speed_run';
 	const speedRunConfigJson = String(formData.get('speedRunConfig') ?? '{}');
+	const visibility = String(formData.get('visibility') ?? 'public') as 'public' | 'unlisted';
 	const baseSlug = slugify(rawSlug || title);
 
 	if (!title || !description) {
@@ -158,7 +159,7 @@ export async function processQuizSubmission(
 			finalSlug = await findUniqueSlug(baseSlug, quizId);
 			await db
 				.update(quizzes)
-				.set({ title, slug: finalSlug, description })
+				.set({ title, slug: finalSlug, description, visibility })
 				.where(eq(quizzes.id, quizId));
 
 			quizIdToUse = quizId;
@@ -174,7 +175,8 @@ export async function processQuizSubmission(
 						ownerId: userId,
 						title,
 						slug: candidateSlug,
-						description
+						description,
+						visibility
 					})
 					.returning({ id: quizzes.id, slug: quizzes.slug });
 				return quiz;

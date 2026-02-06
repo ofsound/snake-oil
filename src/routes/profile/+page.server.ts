@@ -23,6 +23,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			title: true,
 			slug: true,
 			description: true,
+			visibility: true,
 			createdAt: true
 		}
 	});

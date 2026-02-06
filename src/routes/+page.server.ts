@@ -1,10 +1,11 @@
 import { db } from '$lib/server/db';
 import { quizzes } from '$lib/server/db/schema';
-import { desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async () => {
 	const recentQuizzes = await db.query.quizzes.findMany({
+		where: eq(quizzes.visibility, 'public'),
 		orderBy: desc(quizzes.createdAt),
 		limit: 5,
 		columns: {

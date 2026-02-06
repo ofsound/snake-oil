@@ -98,6 +98,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			title: quiz.title,
 			slug: quiz.slug,
 			description: quiz.description,
+			visibility: quiz.visibility,
 			createdAt: quiz.createdAt
 		},
 		soundbites: soundbiteItems,
