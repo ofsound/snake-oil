@@ -1,6 +1,5 @@
 <script lang="ts">
 	import PersistentPlayer from '$lib/components/audio/PersistentPlayer.svelte';
-
 	interface Track {
 		id: string;
 		name: string;

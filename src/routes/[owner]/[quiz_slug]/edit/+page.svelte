@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import SoundbiteEditor from '$lib/components/SoundbiteEditor.svelte';
@@ -9,14 +10,15 @@
 	import FormField from '$lib/components/FormField.svelte';
 	import FormInput from '$lib/components/FormInput.svelte';
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
-	import type { ActionData, PageData } from './$types';
-	import type { VariantConfig } from '$lib/variant-types';
-	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
-	import type { SoundbiteState } from '$lib/types/soundbite';
-	import { buildQuizFormData } from '$lib/form-builder';
 	import Toggle from '$lib/components/Toggle.svelte';
 
+	import { createEmptyOption } from '$lib/variant-client-utils';
+	import { buildQuizFormData } from '$lib/form-builder';
+
+	import type { ActionData, PageData } from './$types';
+	import type { VariantConfig } from '$lib/variant-types';
+	import type { SoundbiteState } from '$lib/types/soundbite';
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let nextNewSoundbiteId = $state(0);

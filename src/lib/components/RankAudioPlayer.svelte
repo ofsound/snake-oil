@@ -1,9 +1,11 @@
 <script lang="ts">
-	import type { RankItem } from '$lib/variant-types';
-	import QuizAudioPlayer from './audio/QuizAudioPlayer.svelte';
 	import { flip } from 'svelte/animate';
+
 	import { dndzone } from 'svelte-dnd-action';
 
+	import QuizAudioPlayer from './audio/QuizAudioPlayer.svelte';
+
+	import type { RankItem } from '$lib/variant-types';
 	interface Props {
 		items: RankItem[];
 		soundbiteId: string;

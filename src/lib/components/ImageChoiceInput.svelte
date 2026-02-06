@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { ImageChoiceOption } from '$lib/variant-types';
-	import { shuffleOptions } from '$lib/variant-client-utils';
 	import AnswerPrompt from './AnswerPrompt.svelte';
 
+	import { shuffleOptions } from '$lib/variant-client-utils';
+
+	import type { ImageChoiceOption } from '$lib/variant-types';
 	interface Props {
 		soundbiteId: string;
 		options: ImageChoiceOption[];

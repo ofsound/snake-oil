@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'outline' | 'ghost';
 		size?: 'xs' | 'sm' | 'md' | 'lg';

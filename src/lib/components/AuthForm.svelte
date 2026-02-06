@@ -1,9 +1,8 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
-
 	import Card from './Card.svelte';
 	import Heading from './Heading.svelte';
 
+	import type { Snippet } from 'svelte';
 	interface Props {
 		title: string;
 		loading: boolean;

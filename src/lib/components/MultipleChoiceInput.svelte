@@ -1,7 +1,7 @@
 <script lang="ts" module>
-	import type { MultipleChoiceOption } from '$lib/variant-types';
 	import { shuffleOptions } from '$lib/variant-client-utils';
 
+	import type { MultipleChoiceOption } from '$lib/variant-types';
 	// Module-level cache to maintain consistent shuffle order per soundbite
 	const shuffleCache = new Map<string, MultipleChoiceOption[]>();
 

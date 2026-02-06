@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { STREAK_MILESTONES } from '$lib/speed-run/types';
-
 	interface Props {
 		isCorrect: boolean;
 		guess: string;

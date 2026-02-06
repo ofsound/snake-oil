@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { SpeedRunQuestion } from '$lib/speed-run/types';
-
 	interface Props {
 		question: SpeedRunQuestion;
 		gapMs: number;

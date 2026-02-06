@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 	import Heading from './Heading.svelte';
-
 	interface Quiz {
 		id: string;
 		title: string;

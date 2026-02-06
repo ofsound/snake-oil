@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+
 	import QuizList from '$lib/components/QuizList.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
-	import type { PageProps } from './$types';
 
+	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 
 	let mode = $state(data.mode);

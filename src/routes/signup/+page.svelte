@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { authClient, signUpWithSlug } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { validateRedirectUrl, slugify } from '$lib/utils';
+
 	import AuthForm from '$lib/components/AuthForm.svelte';
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
+	import { authClient, signUpWithSlug } from '$lib/auth-client';
+	import { validateRedirectUrl, slugify } from '$lib/utils';
 	let email = $state('');
 	let password = $state('');
 	let name = $state('');
@@ -85,7 +86,6 @@
 
 			// Success - redirect to the return URL or home page
 			if (data) {
-				console.log('Sign up successful:', data.user);
 				email = '';
 				password = '';
 				name = '';

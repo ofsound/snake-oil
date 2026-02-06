@@ -1,9 +1,11 @@
 <script lang="ts">
-	import FormField from '$lib/components/FormField.svelte';
 	import { flip } from 'svelte/animate';
-	import { dndzone } from 'svelte-dnd-action';
-	import type { VariantEditorProps } from '$lib/types/soundbite';
 
+	import { dndzone } from 'svelte-dnd-action';
+
+	import FormField from '$lib/components/FormField.svelte';
+
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'rank-editor' }: VariantEditorProps = $props();
 
 	const items = $derived(soundbite.rankItems);

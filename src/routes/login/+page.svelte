@@ -1,11 +1,12 @@
 <script lang="ts">
-	import { authClient } from '$lib/auth-client';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { validateRedirectUrl } from '$lib/utils';
+
 	import AuthForm from '$lib/components/AuthForm.svelte';
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
+	import { authClient } from '$lib/auth-client';
+	import { validateRedirectUrl } from '$lib/utils';
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);

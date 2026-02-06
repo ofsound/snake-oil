@@ -1,9 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
-	import { formatTime } from '$lib/audio/format-time';
-	import type { SequenceTrack } from '$lib/variant-types';
 
+	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
+
+	import { formatTime } from '$lib/audio/format-time';
+
+	import type { SequenceTrack } from '$lib/variant-types';
 	interface Props {
 		tracks: SequenceTrack[];
 		onBuzzer: (trackIndex: number) => void;

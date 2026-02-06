@@ -1,10 +1,11 @@
 <script lang="ts">
 	import Card from '$lib/components/Card.svelte';
-	import type { PageData } from './$types';
-	import type { AnswersPayload } from '$lib/variant-types';
-	import { getCorrectAnswerText } from '$lib/variant-client-utils';
 	import Heading from '$lib/components/Heading.svelte';
 
+	import { getCorrectAnswerText } from '$lib/variant-client-utils';
+
+	import type { PageData } from './$types';
+	import type { AnswersPayload } from '$lib/variant-types';
 	let { data }: { data: PageData } = $props();
 
 	const getSubmitterLabel = (entry: PageData['answers'][number]) =>

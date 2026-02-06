@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
-	import type { PageProps } from './$types';
 
+	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 
 	let quizzes = $derived(data.quizzes ?? []);

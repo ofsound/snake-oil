@@ -21,15 +21,6 @@ export type SpeedRunAnswer = {
 	guess: string; // User's answer
 } & Partial<AnswerDetail>;
 
-// Complete speed run session data
-export type SpeedRunSession = {
-	answers: SpeedRunAnswer[];
-	startTime: number;
-	endTime?: number;
-	currentStreak: number;
-	maxStreak: number;
-};
-
 // Question with client-safe data (no correct answers)
 export type SpeedRunQuestion = {
 	id: string;
@@ -50,24 +41,6 @@ export type SpeedRunQuestion = {
 		name: string;
 		url: string;
 	};
-};
-
-// Game state for the speed run
-export type SpeedRunGameState = {
-	phase: GamePhase;
-	currentQuestionIndex: number;
-	globalTimer: {
-		startTime: number;
-		elapsedMs: number;
-	};
-	questionTimer: {
-		startTime: number;
-		timeLimitMs: number;
-		remainingMs: number;
-	} | null;
-	streak: number;
-	maxStreak: number;
-	session: SpeedRunSession;
 };
 
 // Speed run configuration from database
@@ -103,29 +76,6 @@ export type SpeedRunLeaderboardEntry = {
 	score: number;
 	createdAt: Date;
 	isCurrentUser?: boolean;
-};
-
-// Timer state
-export type TimerState = {
-	isRunning: boolean;
-	elapsedMs: number;
-	startTime: number;
-};
-
-// Circular timer props
-export type CircularTimerProps = {
-	durationMs: number;
-	remainingMs: number;
-	size?: number;
-	strokeWidth?: number;
-};
-
-// Audio loop player props
-export type AudioLoopPlayerProps = {
-	src: string;
-	gapMs: number;
-	isPlaying: boolean;
-	onEnded?: () => void;
 };
 
 // Streak notification

@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { authClient } from '$lib/auth-client';
+
 	import { ModeWatcher } from 'mode-watcher';
+
 	import Button from '$lib/components/Button.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
-	import type { LayoutProps } from './$types';
-	import favicon from '$lib/assets/favicon.svg';
-	import './layout.css';
 
+	import { authClient } from '$lib/auth-client';
+
+	import type { LayoutProps } from './$types';
+
+	import favicon from '$lib/assets/favicon.svg';
+
+	import './layout.css';
 	let { data, children }: LayoutProps = $props();
 
 	let loading = $state(false);

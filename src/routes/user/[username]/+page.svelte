@@ -2,8 +2,8 @@
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
-	import type { PageProps } from './$types';
 
+	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 	let user = $derived(data.user);
 	let quizzes = $derived(data.quizzes ?? []);

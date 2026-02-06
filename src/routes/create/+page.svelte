@@ -1,10 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
-	import { buildQuizFormData } from '$lib/form-builder';
-	import { slugify } from '$lib/utils';
-	import { createEmptyOption } from '$lib/variant-client-utils';
-
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import FormField from '$lib/components/FormField.svelte';
@@ -14,10 +10,13 @@
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 
+	import { buildQuizFormData } from '$lib/form-builder';
+	import { slugify } from '$lib/utils';
+	import { createEmptyOption } from '$lib/variant-client-utils';
+
 	import type { ActionData, PageData } from './$types';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
-
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let title = $state('');

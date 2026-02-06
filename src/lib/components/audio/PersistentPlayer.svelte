@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Component } from 'svelte';
+
 	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
-	import { formatTime } from '$lib/audio/format-time';
 	import PlayerTransport from './PlayerTransport.svelte';
 	import SinglePlaylist from './SinglePlaylist.svelte';
+
+	import { formatTime } from '$lib/audio/format-time';
+
+	import type { Component } from 'svelte';
 	import type { tracks as tracksTable } from '$lib/server/db/schema';
 	import type { InferSelectModel } from 'drizzle-orm';
-
 	interface VisualizerProps {
 		analyser: AnalyserNode | null;
 		isPlaying?: boolean;

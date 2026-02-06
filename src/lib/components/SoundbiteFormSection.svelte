@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { createEmptyOption } from '$lib/variant-client-utils';
 	import Card from './Card.svelte';
 	import Button from './Button.svelte';
 	import SoundbiteEditor from './SoundbiteEditor.svelte';
-	import type { SoundbiteState } from '$lib/types/soundbite';
-	import type { VariantType } from '$lib/variant-types';
 	import Heading from './Heading.svelte';
 
+	import { createEmptyOption } from '$lib/variant-client-utils';
+
+	import type { SoundbiteState } from '$lib/types/soundbite';
+	import type { VariantType } from '$lib/variant-types';
 	interface Props {
 		soundbites: SoundbiteState[];
 		variantTypeName: string;

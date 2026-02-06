@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-
 	interface Props {
 		level?: 1 | 2 | 3;
 		class?: string;

@@ -119,3 +119,17 @@ This is non-negotiable. See AGENTS.md for full MCP tool usage guidelines.
 - Always use Tailwind CSS for styling instead of a style tag with vanilla css
 - Neon Postgres Database
 - Neon Auth
+
+## Svelte/TypeScript import order
+
+When adding or editing imports in any `.svelte` or `src` `.ts` file, enforce this order. Use **one blank line between groups**; no blank line between imports within a group.
+
+1. **Svelte / SvelteKit** — `svelte`, `svelte/*` (e.g. `svelte/animate`), `$app/*`
+2. **External packages** — e.g. `mode-watcher`, `gsap`, `svelte-dnd-action`, `drizzle-orm`
+3. **Project components** — `$lib/components/...` first, then route-local `./...` (e.g. `./Something.svelte`)
+4. **Project utils / lib** — `$lib/utils`, `$lib/auth-client`, `$lib/form-builder`, `$lib/variant-*`, `$lib/speed-run/*`, `$lib/audio/*`, `$lib/image-processing`, etc. (non-component `$lib` imports)
+5. **Types** — all `import type { ... }` (route types like `./$types`, then `$lib/...`, then externals if any)
+6. **Assets** — `$lib/assets/*` (e.g. images, SVGs), only when present
+7. **Side-effect** — e.g. `import './layout.css'`; must be last when present
+
+If a module is imported for both type and value, keep one import line and place it by its primary use (e.g. `$lib/variant-types` in utils with `import { X, type Y } from '...'` there). When saving or finalizing a file, reorder the import block to match this order.

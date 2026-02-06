@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
-	import { createEmptyOption } from '$lib/variant-client-utils';
-	import type { VariantEditorProps } from '$lib/types/soundbite';
 
+	import { createEmptyOption } from '$lib/variant-client-utils';
+
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'mc-option' }: VariantEditorProps = $props();
 
 	const options = $derived(soundbite.multipleChoiceOptions);

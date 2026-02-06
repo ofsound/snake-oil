@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
 	import VariantSelector from './VariantSelector.svelte';
 	import SimpleGuessEditor from './variant-editors/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './variant-editors/MultipleChoiceEditor.svelte';
@@ -7,9 +6,10 @@
 	import ImageChoiceEditor from './variant-editors/ImageChoiceEditor.svelte';
 	import SequenceEditor from './variant-editors/SequenceEditor.svelte';
 	import RankEditor from './variant-editors/RankEditor.svelte';
+
+	import type { Component } from 'svelte';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
-
 	interface Props {
 		soundbite: SoundbiteState;
 		variantTypeName: string;
@@ -97,13 +97,6 @@
 		}
 		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
 	}
-
-	// Debug logging
-	$effect(() => {
-		console.log(
-			`[SoundbiteEditor ${soundbite.id}] variantType=${soundbite.variantType}, fileInputName=${fileInputName}, shouldShowFileInput=${fileInputName && soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}`
-		);
-	});
 </script>
 
 <div class="flex flex-col gap-4">

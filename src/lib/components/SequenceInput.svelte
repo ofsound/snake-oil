@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { AnswerDetail } from '$lib/variant-types';
-
 	interface Props {
 		soundbiteId: string;
 		result?: AnswerDetail | null;

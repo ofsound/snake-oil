@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FormField from '../FormField.svelte';
-	import type { VariantEditorProps } from '$lib/types/soundbite';
 
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'correct-answer' }: VariantEditorProps = $props();
 </script>
 

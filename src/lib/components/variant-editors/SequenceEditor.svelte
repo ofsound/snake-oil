@@ -1,7 +1,7 @@
 <script lang="ts">
 	import FormField from '$lib/components/FormField.svelte';
-	import type { VariantEditorProps } from '$lib/types/soundbite';
 
+	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'sequence-editor' }: VariantEditorProps = $props();
 
 	const tracks = $derived(soundbite.sequenceTracks);

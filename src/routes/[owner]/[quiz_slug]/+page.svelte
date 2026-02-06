@@ -1,17 +1,21 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
 	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
 	import AnswerResultCard from '$lib/components/AnswerResultCard.svelte';
 	import FormField from '$lib/components/FormField.svelte';
-	import type { ActionData, PageData } from './$types';
 	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
 	import ImageChoiceInput from '$lib/components/ImageChoiceInput.svelte';
 	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
 	import SequenceInput from '$lib/components/SequenceInput.svelte';
 	import RankAudioPlayer from '$lib/components/RankAudioPlayer.svelte';
+	import Heading from '$lib/components/Heading.svelte';
+	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
+	import SpeedRunGame from './components/SpeedRunGame.svelte';
+
 	import {
 		type AnswersPayload,
 		type MultipleChoiceConfig,
@@ -24,26 +28,14 @@
 		isMultipleResponseConfig,
 		isMultipleChoiceConfig
 	} from '$lib/variant-types';
-	import Heading from '$lib/components/Heading.svelte';
-	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
-	import SpeedRunGame from './components/SpeedRunGame.svelte';
 
+	import type { ActionData, PageData } from './$types';
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let submitting = $state(false);
 	let displayName = $state('');
 	let errorMessage = $derived(form?.message ?? null);
 	let hasResults = $derived(form?.success === true && form?.results != null);
-
-	// Debug logging
-	$effect(() => {
-		if (form) {
-			console.log('[Quiz Page] Form received:', form);
-			console.log('[Quiz Page] form.success:', form.success);
-			console.log('[Quiz Page] form.results:', form.results);
-			console.log('[Quiz Page] hasResults:', hasResults);
-		}
-	});
 
 	// Track user answers for each soundbite
 	let userAnswers = $state<Record<string, string>>({});

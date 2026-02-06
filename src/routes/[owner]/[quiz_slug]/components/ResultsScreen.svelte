@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
 	import { formatTimeMs } from '$lib/speed-run/scoring';
 
+	import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
 	interface Props {
 		quizTitle: string;
 		correctCount: number;

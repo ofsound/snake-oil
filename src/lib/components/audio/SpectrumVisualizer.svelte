@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import gsap from 'gsap';
 
+	import gsap from 'gsap';
 	// Props
 	interface Props {
 		analyser: AnalyserNode | null;

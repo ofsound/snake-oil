@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { AudioTrack } from '$lib/audio/playback-state.svelte';
-
 	interface Props {
 		tracks: AudioTrack[];
 		currentTrackIndex: number;

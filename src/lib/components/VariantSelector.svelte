@@ -1,8 +1,9 @@
 <script lang="ts">
-	import type { VariantType } from '$lib/variant-types';
-	import { VARIANT_LABELS } from '$lib/variant-types';
 	import FormField from './FormField.svelte';
 
+	import { VARIANT_LABELS } from '$lib/variant-types';
+
+	import type { VariantType } from '$lib/variant-types';
 	type Props = {
 		value: VariantType;
 		onchange: (value: VariantType) => void;

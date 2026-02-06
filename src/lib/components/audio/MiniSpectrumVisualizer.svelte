@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-
 	interface Props {
 		analyser: AnalyserNode | null;
 		isPlaying: boolean;

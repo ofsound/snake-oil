@@ -8,7 +8,6 @@
 		SequenceConfig,
 		RankConfig
 	} from '$lib/variant-types';
-
 	type Props = {
 		answerDetail: AnswerDetail;
 		variantConfig: VariantConfig;

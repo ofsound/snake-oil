@@ -1,6 +1,5 @@
 <script lang="ts">
 	import AnswerPrompt from './AnswerPrompt.svelte';
-
 	type Props = {
 		soundbiteId: string;
 		value: string;
