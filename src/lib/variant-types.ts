@@ -110,51 +110,103 @@ export type AnswerDetail = {
 
 export type AnswersPayload = Record<string, AnswerDetail>;
 
-// Type guard functions for safe parsing
+import { z } from 'zod';
+
+// Zod schemas for runtime validation (shared between client and server)
+
+export const MultipleChoiceOptionSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	isCorrect: z.boolean()
+});
+
+export const MultipleResponseOptionSchema = z.object({
+	id: z.string(),
+	text: z.string(),
+	isCorrect: z.boolean()
+});
+
+export const ImageChoiceOptionSchema = z.object({
+	id: z.string(),
+	imageUrl: z.string(),
+	pathname: z.string(),
+	label: z.string(),
+	isCorrect: z.boolean()
+});
+
+export const SequenceTrackSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	url: z.string()
+});
+
+export const RankItemSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	url: z.string()
+});
+
+export const SimpleGuessConfigSchema = z.object({
+	type: z.literal('simple_guess'),
+	correctAnswer: z.string()
+});
+
+export const MultipleChoiceConfigSchema = z.object({
+	type: z.literal('multiple_choice'),
+	options: z.array(MultipleChoiceOptionSchema),
+	questionTimeLimit: z.number().optional()
+});
+
+export const MultipleResponseConfigSchema = z.object({
+	type: z.literal('multiple_response'),
+	options: z.array(MultipleResponseOptionSchema)
+});
+
+export const ImageChoiceConfigSchema = z.object({
+	type: z.literal('image_choice'),
+	options: z.array(ImageChoiceOptionSchema)
+});
+
+export const SequenceConfigSchema = z.object({
+	type: z.literal('sequence'),
+	tracks: z.array(SequenceTrackSchema),
+	correctTrackIndex: z.number(),
+	prompt: z.string()
+});
+
+export const RankConfigSchema = z.object({
+	type: z.literal('rank'),
+	items: z.array(RankItemSchema),
+	correctOrder: z.array(z.number()),
+	prompt: z.string()
+});
+
+export const VariantConfigSchema = z.discriminatedUnion('type', [
+	SimpleGuessConfigSchema,
+	MultipleChoiceConfigSchema,
+	MultipleResponseConfigSchema,
+	ImageChoiceConfigSchema,
+	SequenceConfigSchema,
+	RankConfigSchema
+]);
+
+// Type guards using Zod for runtime validation
 export function isRankConfig(value: unknown): value is RankConfig {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		'type' in value &&
-		(value as Record<string, unknown>).type === 'rank' &&
-		'items' in value &&
-		Array.isArray((value as Record<string, unknown>).items) &&
-		'correctOrder' in value &&
-		Array.isArray((value as Record<string, unknown>).correctOrder) &&
-		'prompt' in value &&
-		typeof (value as Record<string, unknown>).prompt === 'string'
-	);
+	return RankConfigSchema.safeParse(value).success;
 }
 
 export function isImageChoiceConfig(value: unknown): value is ImageChoiceConfig {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		'type' in value &&
-		(value as Record<string, unknown>).type === 'image_choice' &&
-		'options' in value &&
-		Array.isArray((value as Record<string, unknown>).options)
-	);
+	return ImageChoiceConfigSchema.safeParse(value).success;
 }
 
 export function isMultipleResponseConfig(value: unknown): value is MultipleResponseConfig {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		'type' in value &&
-		(value as Record<string, unknown>).type === 'multiple_response' &&
-		'options' in value &&
-		Array.isArray((value as Record<string, unknown>).options)
-	);
+	return MultipleResponseConfigSchema.safeParse(value).success;
 }
 
 export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceConfig {
-	return (
-		typeof value === 'object' &&
-		value !== null &&
-		'type' in value &&
-		(value as Record<string, unknown>).type === 'multiple_choice' &&
-		'options' in value &&
-		Array.isArray((value as Record<string, unknown>).options)
-	);
+	return MultipleChoiceConfigSchema.safeParse(value).success;
+}
+
+export function validateVariantConfig(value: unknown): value is VariantConfig {
+	return VariantConfigSchema.safeParse(value).success;
 }

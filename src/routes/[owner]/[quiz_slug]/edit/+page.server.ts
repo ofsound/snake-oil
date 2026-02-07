@@ -76,11 +76,11 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		isSpeedRun: !!quiz.speedRun,
 		speedRunConfig: quiz.speedRun
 			? {
-				defaultQuestionTimeLimit: quiz.speedRun.defaultQuestionTimeLimit?.toString() ?? '10',
-				revealDelayMs: quiz.speedRun.revealDelayMs.toString(),
-				audioLoopGapMs: quiz.speedRun.audioLoopGapMs.toString(),
-				enableStreakBonus: quiz.speedRun.enableStreakBonus
-			}
+					defaultQuestionTimeLimit: quiz.speedRun.defaultQuestionTimeLimit?.toString() ?? '10',
+					revealDelayMs: quiz.speedRun.revealDelayMs.toString(),
+					audioLoopGapMs: quiz.speedRun.audioLoopGapMs.toString(),
+					enableStreakBonus: quiz.speedRun.enableStreakBonus
+				}
 			: null
 	};
 };

@@ -333,7 +333,6 @@
 					class="mt-6 ml-auto block w-full max-w-60 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
 					placeholder="Include your name (optional)"
 					bind:value={displayName}
-					required
 				/>
 			{/if}
 

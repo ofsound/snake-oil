@@ -10,6 +10,12 @@ import type {
 	AnswerDetail
 } from './db/schema';
 
+// Import display utilities from shared module
+import {
+	getCorrectAnswerText as getCorrectAnswerTextImpl,
+	calculateKendallTauScore as calculateKendallTauScoreImpl
+} from '$lib/variant-display';
+
 /**
  * Validate a SimpleGuess config
  */
@@ -129,60 +135,36 @@ export function validateRank(config: RankConfig): boolean {
  * - Exactly one option must be marked correct
  */
 export function validateImageChoice(config: ImageChoiceConfig): boolean {
-	console.log('[validateImageChoice] Validating config:', JSON.stringify(config, null, 2));
-
 	if (config.type !== 'image_choice') {
-		console.log('[validateImageChoice] FAILED: type is not image_choice');
 		return false;
 	}
 	if (!Array.isArray(config.options)) {
-		console.log('[validateImageChoice] FAILED: options is not an array');
 		return false;
 	}
 	if (config.options.length < 2 || config.options.length > 10) {
-		console.log(
-			`[validateImageChoice] FAILED: options length ${config.options.length} is not between 2-10`
-		);
 		return false;
 	}
 
 	const correctCount = config.options.filter((opt) => opt.isCorrect).length;
 	if (correctCount !== 1) {
-		console.log(
-			`[validateImageChoice] FAILED: ${correctCount} options marked correct (expected 1)`
-		);
 		return false;
 	}
 
-	for (let i = 0; i < config.options.length; i++) {
-		const option = config.options[i];
-		console.log(`[validateImageChoice] Checking option ${i}:`, {
-			id: option.id,
-			imageUrl: option.imageUrl?.substring(0, 30),
-			pathname: option.pathname?.substring(0, 30),
-			label: option.label,
-			isCorrect: option.isCorrect
-		});
-
+	for (const option of config.options) {
 		if (typeof option.id !== 'string' || option.id.trim().length === 0) {
-			console.log(`[validateImageChoice] FAILED: option ${i} has invalid id`);
 			return false;
 		}
 		if (typeof option.imageUrl !== 'string' || option.imageUrl.trim().length === 0) {
-			console.log(`[validateImageChoice] FAILED: option ${i} has invalid imageUrl`);
 			return false;
 		}
 		if (typeof option.pathname !== 'string' || option.pathname.trim().length === 0) {
-			console.log(`[validateImageChoice] FAILED: option ${i} has invalid pathname`);
 			return false;
 		}
 		if (typeof option.label !== 'string') {
-			console.log(`[validateImageChoice] FAILED: option ${i} has invalid label`);
 			return false;
 		}
 	}
 
-	console.log('[validateImageChoice] SUCCESS: config is valid');
 	return true;
 }
 
@@ -257,50 +239,11 @@ export function checkSequenceCorrect(selectedTrackIndex: number, config: Sequenc
 }
 
 /**
- * Calculate Kendall Tau distance between two permutations
- * Returns normalized score (0-1) where 1 = perfect match, 0 = completely reversed
- * Based on counting discordant pairs (inversions)
- */
-export function calculateKendallTauScore(userOrder: number[], correctOrder: number[]): number {
-	if (userOrder.length !== correctOrder.length) return 0;
-	if (userOrder.length === 0) return 0;
-
-	// Create position maps: for each item index, what position is it in?
-	const userPos = new Map<number, number>();
-	const correctPos = new Map<number, number>();
-
-	userOrder.forEach((itemIdx, pos) => userPos.set(itemIdx, pos));
-	correctOrder.forEach((itemIdx, pos) => correctPos.set(itemIdx, pos));
-
-	// Count discordant pairs
-	let discordant = 0;
-	const n = userOrder.length;
-
-	for (let i = 0; i < n; i++) {
-		for (let j = i + 1; j < n; j++) {
-			const item1 = userOrder[i];
-			const item2 = userOrder[j];
-
-			const userDiff = userPos.get(item1)! - userPos.get(item2)!;
-			const correctDiff = correctPos.get(item1)! - correctPos.get(item2)!;
-
-			// If signs differ, they're discordant (inverted relative to correct order)
-			if (userDiff * correctDiff < 0) {
-				discordant++;
-			}
-		}
-	}
-
-	const maxPairs = (n * (n - 1)) / 2;
-	return maxPairs > 0 ? 1 - discordant / maxPairs : 1;
-}
-
-/**
  * Check if a rank answer is correct
  * Uses Kendall Tau distance - 100% match required for "correct" status
  */
 export function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
-	const score = calculateKendallTauScore(userOrder, config.correctOrder);
+	const score = calculateKendallTauScoreImpl(userOrder, config.correctOrder);
 	return score === 1; // Must be 100% to be considered "correct"
 }
 
@@ -396,37 +339,6 @@ export function buildAnswerDetail(
 	};
 }
 
-/**
- * Get the correct answer text for display
- */
-export function getCorrectAnswerText(config: VariantConfig): string {
-	switch (config.type) {
-		case 'simple_guess':
-			return config.correctAnswer;
-		case 'multiple_choice': {
-			const correctOption = config.options.find((opt) => opt.isCorrect);
-			return correctOption?.text ?? '';
-		}
-		case 'multiple_response': {
-			const correctOptions = config.options.filter((opt) => opt.isCorrect);
-			return correctOptions.map((opt) => opt.text).join(', ');
-		}
-		case 'sequence': {
-			const correctTrack = config.tracks[config.correctTrackIndex];
-			return correctTrack?.name ?? '';
-		}
-		case 'rank': {
-			// Return the ranked item names in correct order
-			return config.correctOrder
-				.map((idx) => config.items[idx]?.name ?? '')
-				.filter((name) => name.length > 0)
-				.join(' → ');
-		}
-		case 'image_choice': {
-			const correctOption = config.options.find((opt) => opt.isCorrect);
-			return correctOption?.label ?? '';
-		}
-		default:
-			return '';
-	}
-}
+// Re-export display utilities for backward compatibility
+export { getCorrectAnswerTextImpl as getCorrectAnswerText };
+export { calculateKendallTauScoreImpl as calculateKendallTauScore };

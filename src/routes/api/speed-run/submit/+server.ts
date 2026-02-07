@@ -2,8 +2,10 @@ import { error, json, type RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { speedRuns, speedRunResults, soundbites } from '$lib/server/db/schema';
 import { eq, desc, asc, sql } from 'drizzle-orm';
+import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
 import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 import type { SpeedRunSubmitRequest, SpeedRunSubmitResponse } from '$lib/speed-run/types';
+import type { MultipleChoiceConfig } from '$lib/variant-types';
 
 /**
  * POST /api/speed-run/submit
@@ -52,9 +54,8 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 			let isCorrect = false;
 			if (soundbite.variantType === 'multiple_choice') {
-				const config = soundbite.variantConfig as { options: { id: string; isCorrect: boolean }[] };
-				const correctOption = config.options.find((opt) => opt.isCorrect);
-				isCorrect = correctOption?.id === answer.guess;
+				const config = soundbite.variantConfig as MultipleChoiceConfig;
+				isCorrect = checkMultipleChoiceCorrect(answer.guess, config);
 			}
 
 			return {

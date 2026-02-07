@@ -8,6 +8,8 @@
 		SequenceConfig,
 		RankConfig
 	} from '$lib/variant-types';
+	import { getCorrectAnswerText, calculateKendallTauPercentage } from '$lib/variant-display';
+
 	type Props = {
 		answerDetail: AnswerDetail;
 		variantConfig: VariantConfig;
@@ -15,28 +17,6 @@
 	};
 
 	let { answerDetail, variantConfig, index }: Props = $props();
-
-	function getCorrectAnswerText(): string {
-		if (variantConfig.type === 'simple_guess') {
-			return variantConfig.correctAnswer;
-		} else if (variantConfig.type === 'multiple_choice') {
-			const correctOption = variantConfig.options.find((opt) => opt.isCorrect);
-			return correctOption?.text ?? '';
-		} else if (variantConfig.type === 'multiple_response') {
-			const correctOptions = variantConfig.options.filter((opt) => opt.isCorrect);
-			return correctOptions.map((opt) => opt.text).join(', ');
-		} else if (variantConfig.type === 'sequence') {
-			const correctTrack = variantConfig.tracks[variantConfig.correctTrackIndex];
-			return correctTrack?.name ?? '';
-		} else if (variantConfig.type === 'rank') {
-			// Return the ranked item names in correct order
-			return variantConfig.correctOrder
-				.map((idx) => variantConfig.items[idx]?.name ?? '')
-				.filter((name) => name.length > 0)
-				.join(' → ');
-		}
-		return '';
-	}
 
 	function getUserAnswerText(): string {
 		if (answerDetail.variantType === 'simple_guess') {
@@ -78,45 +58,13 @@
 		return answerDetail.userOrder[position] === variantConfig.correctOrder[position];
 	}
 
-	// Calculate Kendall Tau score for display
-	function getKendallTauScore(): number {
-		if (variantConfig.type !== 'rank' || !answerDetail.userOrder) return 0;
-
-		const userOrder = answerDetail.userOrder;
-		const correctOrder = variantConfig.correctOrder;
-
-		// Create position maps
-		const userPos = new Map<number, number>();
-		const correctPos = new Map<number, number>();
-
-		userOrder.forEach((itemIdx, pos) => userPos.set(itemIdx, pos));
-		correctOrder.forEach((itemIdx, pos) => correctPos.set(itemIdx, pos));
-
-		// Count discordant pairs
-		let discordant = 0;
-		const n = userOrder.length;
-
-		for (let i = 0; i < n; i++) {
-			for (let j = i + 1; j < n; j++) {
-				const item1 = userOrder[i];
-				const item2 = userOrder[j];
-
-				const userDiff = (userPos.get(item1) ?? 0) - (userPos.get(item2) ?? 0);
-				const correctDiff = (correctPos.get(item1) ?? 0) - (correctPos.get(item2) ?? 0);
-
-				if (userDiff * correctDiff < 0) {
-					discordant++;
-				}
-			}
-		}
-
-		const maxPairs = (n * (n - 1)) / 2;
-		return maxPairs > 0 ? Math.round((1 - discordant / maxPairs) * 100) : 100;
-	}
-
-	let correctAnswerText = $derived(getCorrectAnswerText());
+	let correctAnswerText = $derived(getCorrectAnswerText(variantConfig));
 	let userAnswerText = $derived(getUserAnswerText());
-	let kendallTauScore = $derived(getKendallTauScore());
+	let kendallTauScore = $derived(
+		variantConfig.type === 'rank' && answerDetail.userOrder
+			? calculateKendallTauPercentage(answerDetail.userOrder, variantConfig.correctOrder)
+			: 0
+	);
 </script>
 
 <div

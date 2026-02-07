@@ -361,8 +361,6 @@
 			{successMessage}
 			{#if form?.slug && data.user?.slug}
 				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}`}>View quiz</a>
-			{/if}
-			{#if form?.slug && data.user?.slug}
 				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}/edit`}>Edit quiz</a>
 			{/if}
 		</div>

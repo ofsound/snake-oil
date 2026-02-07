@@ -223,10 +223,6 @@ export const actions: Actions = {
 			.getAll('soundbiteId')
 			.map((value: FormDataEntryValue) => String(value));
 
-		if (!locals.user && !displayName) {
-			return fail(400, { message: 'Please enter a display name.' });
-		}
-
 		if (soundbiteIds.length === 0) {
 			return fail(400, { message: 'No answers submitted.' });
 		}
