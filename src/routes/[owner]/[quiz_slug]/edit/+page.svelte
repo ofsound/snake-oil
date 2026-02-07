@@ -146,6 +146,8 @@
 	// Initial values are set above to prevent flash on page load
 	$effect(() => {
 		const quizId = data.quiz.id;
+		const soundbiteCount = data.soundbites.length;
+
 		if (lastQuizId && lastQuizId !== quizId) {
 			// Navigating to a different quiz - update all fields
 			untrack(() => {
@@ -171,6 +173,14 @@
 			// First load - just set the quiz ID without updating fields
 			// Fields are already initialized correctly above
 			lastQuizId = quizId;
+		} else if (lastQuizId === quizId && newSoundbites.length === 0) {
+			// Same quiz, but new soundbites were just saved - refresh existingSoundbiteState
+			// This happens after successful form submission when newSoundbites is cleared
+			untrack(() => {
+				existingSoundbiteState = Object.fromEntries(
+					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
+				);
+			});
 		}
 	});
 
