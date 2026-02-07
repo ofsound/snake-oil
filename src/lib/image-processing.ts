@@ -1,4 +1,6 @@
-export interface ProcessedImage {
+import { MAX_IMAGE_SIZE_BYTES, MAX_IMAGE_SIZE_MB } from '$lib/constants/uploads';
+
+interface ProcessedImage {
 	blob: Blob;
 	label: string;
 	originalName: string;
@@ -18,7 +20,7 @@ export async function getFileHash(file: File): Promise<string> {
 /**
  * Check if file is HEIC format
  */
-export function isHeicFile(file: File): boolean {
+function isHeicFile(file: File): boolean {
 	return (
 		file.type === 'image/heic' ||
 		file.type === 'image/heif' ||
@@ -155,9 +157,8 @@ export function validateImageFile(file: File): string | null {
 		return `Invalid file type: ${file.name}. Please upload JPG, PNG, WebP, or HEIC images.`;
 	}
 
-	const maxSize = 10 * 1024 * 1024; // 10MB
-	if (file.size > maxSize) {
-		return `File too large: ${file.name}. Maximum size is 10MB.`;
+	if (file.size > MAX_IMAGE_SIZE_BYTES) {
+		return `File too large: ${file.name}. Maximum size is ${MAX_IMAGE_SIZE_MB}MB.`;
 	}
 
 	return null;

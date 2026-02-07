@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { quizzes } from '$lib/server/db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { getLoginUrl } from '$lib/constants/routes';
 
 import type { PageServerLoad } from './$types';
 
@@ -11,7 +12,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.user) {
 		// Capture the current URL and pass it to login for redirect after authentication
 		const returnUrl = url.pathname + url.search;
-		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
+		redirect(302, getLoginUrl(returnUrl));
 	}
 
 	// Fetch all quizzes owned by the current user, ordered by creation date (newest first)

@@ -114,19 +114,19 @@ import { z } from 'zod';
 
 // Zod schemas for runtime validation (shared between client and server)
 
-export const MultipleChoiceOptionSchema = z.object({
+const MultipleChoiceOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
 	isCorrect: z.boolean()
 });
 
-export const MultipleResponseOptionSchema = z.object({
+const MultipleResponseOptionSchema = z.object({
 	id: z.string(),
 	text: z.string(),
 	isCorrect: z.boolean()
 });
 
-export const ImageChoiceOptionSchema = z.object({
+const ImageChoiceOptionSchema = z.object({
 	id: z.string(),
 	imageUrl: z.string(),
 	pathname: z.string(),
@@ -134,47 +134,47 @@ export const ImageChoiceOptionSchema = z.object({
 	isCorrect: z.boolean()
 });
 
-export const SequenceTrackSchema = z.object({
+const SequenceTrackSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	url: z.string()
 });
 
-export const RankItemSchema = z.object({
+const RankItemSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	url: z.string()
 });
 
-export const SimpleGuessConfigSchema = z.object({
+const SimpleGuessConfigSchema = z.object({
 	type: z.literal('simple_guess'),
 	correctAnswer: z.string()
 });
 
-export const MultipleChoiceConfigSchema = z.object({
+const MultipleChoiceConfigSchema = z.object({
 	type: z.literal('multiple_choice'),
 	options: z.array(MultipleChoiceOptionSchema),
 	questionTimeLimit: z.number().optional()
 });
 
-export const MultipleResponseConfigSchema = z.object({
+const MultipleResponseConfigSchema = z.object({
 	type: z.literal('multiple_response'),
 	options: z.array(MultipleResponseOptionSchema)
 });
 
-export const ImageChoiceConfigSchema = z.object({
+const ImageChoiceConfigSchema = z.object({
 	type: z.literal('image_choice'),
 	options: z.array(ImageChoiceOptionSchema)
 });
 
-export const SequenceConfigSchema = z.object({
+const SequenceConfigSchema = z.object({
 	type: z.literal('sequence'),
 	tracks: z.array(SequenceTrackSchema),
 	correctTrackIndex: z.number(),
 	prompt: z.string()
 });
 
-export const RankConfigSchema = z.object({
+const RankConfigSchema = z.object({
 	type: z.literal('rank'),
 	items: z.array(RankItemSchema),
 	correctOrder: z.array(z.number()),
@@ -205,16 +205,4 @@ export function isMultipleResponseConfig(value: unknown): value is MultipleRespo
 
 export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceConfig {
 	return MultipleChoiceConfigSchema.safeParse(value).success;
-}
-
-export function isSequenceConfig(value: unknown): value is SequenceConfig {
-	return SequenceConfigSchema.safeParse(value).success;
-}
-
-export function isSimpleGuessConfig(value: unknown): value is SimpleGuessConfig {
-	return SimpleGuessConfigSchema.safeParse(value).success;
-}
-
-export function validateVariantConfig(value: unknown): value is VariantConfig {
-	return VariantConfigSchema.safeParse(value).success;
 }

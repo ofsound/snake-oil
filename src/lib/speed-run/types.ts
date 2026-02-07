@@ -2,7 +2,6 @@
 // Types for the speed run quiz game mode
 
 import type { AnswerDetail } from '$lib/variant-types';
-import type { SpeedRun, SpeedRunResult } from '$lib/server/db/schema';
 
 // Game phases
 export type GamePhase =
@@ -43,29 +42,6 @@ export type SpeedRunQuestion = {
 	};
 };
 
-// Speed run configuration from database
-export type SpeedRunConfig = Pick<
-	SpeedRun,
-	'id' | 'defaultQuestionTimeLimit' | 'revealDelayMs' | 'audioLoopGapMs' | 'enableStreakBonus'
->;
-
-// Submission data sent to server
-export type SpeedRunSubmission = {
-	speedRunId: string;
-	answers: SpeedRunAnswer[];
-	startTime: number;
-	endTime: number;
-	displayName: string;
-};
-
-// Result returned from server after submission
-export type SpeedRunSubmissionResult = {
-	success: boolean;
-	result?: SpeedRunResult;
-	rank?: number;
-	top10?: SpeedRunLeaderboardEntry[];
-};
-
 // Leaderboard entry
 export type SpeedRunLeaderboardEntry = {
 	id: string;
@@ -79,7 +55,7 @@ export type SpeedRunLeaderboardEntry = {
 };
 
 // Streak notification
-export type StreakMilestone = {
+type StreakMilestone = {
 	count: number;
 	message: string;
 	emoji: string;
@@ -103,8 +79,6 @@ export const SpeedRunCheckAnswerRequestSchema = z.object({
 	guess: z.string() // Empty string allowed for timeouts
 });
 
-export type SpeedRunCheckAnswerRequest = z.infer<typeof SpeedRunCheckAnswerRequestSchema>;
-
 export type SpeedRunCheckAnswerResponse =
 	| {
 			success: true;
@@ -117,7 +91,7 @@ export type SpeedRunCheckAnswerResponse =
 	  };
 
 // POST /api/speed-run/submit
-export const SpeedRunAnswerSchema = z.object({
+const SpeedRunAnswerSchema = z.object({
 	soundbiteId: z.string().min(1, 'Soundbite ID is required'),
 	guess: z.string(),
 	timeSpentMs: z.number().min(0, 'Time spent must be positive'),
@@ -132,8 +106,6 @@ export const SpeedRunSubmitRequestSchema = z.object({
 	endTime: z.number().min(0, 'End time must be positive'),
 	displayName: z.string().min(1, 'Display name is required').max(50, 'Display name too long')
 });
-
-export type SpeedRunSubmitRequest = z.infer<typeof SpeedRunSubmitRequestSchema>;
 
 export type SpeedRunSubmitResponse =
 	| {

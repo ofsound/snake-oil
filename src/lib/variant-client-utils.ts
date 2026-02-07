@@ -15,7 +15,7 @@ export function shuffleOptions<T>(options: T[]): T[] {
  * Generate a unique ID for multiple choice options
  * Uses a simple random string approach
  */
-export function generateOptionId(): string {
+function generateOptionId(): string {
 	return Math.random().toString(36).substring(2, 11);
 }
 

@@ -2,13 +2,14 @@ import { redirect, fail } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { env } from '$env/dynamic/private';
 import { createQuiz, handleCreateQuizResult } from '$lib/server/create-quiz';
+import { getLoginUrl } from '$lib/constants/routes';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Check for active user session
 	if (!locals.user) {
 		// Capture the current URL and pass it to login for redirect after authentication
 		const returnUrl = url.pathname + url.search;
-		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
+		redirect(302, getLoginUrl(returnUrl));
 	}
 
 	// Return user data so the page can build correct URLs

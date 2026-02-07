@@ -16,7 +16,7 @@ import { uploadToBlob, deleteFromBlob } from './quiz-utils.js';
 import type { SoundbiteFormData } from './form-parser.js';
 import type { VariantConfig, VariantType } from '$lib/variant-types';
 
-export interface ProcessQuizOptions {
+interface ProcessQuizOptions {
 	formData: FormData;
 	userId: string;
 	blobToken: string;
@@ -31,7 +31,6 @@ export interface ProcessQuizResult {
 	error?: string;
 }
 
-// Backward compatibility exports
 export interface CreateQuizInput {
 	request: Request;
 	userId: string;

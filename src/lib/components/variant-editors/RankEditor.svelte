@@ -4,6 +4,7 @@
 	import { dndzone } from 'svelte-dnd-action';
 
 	import FormField from '$lib/components/FormField.svelte';
+	import { MAX_ITEMS_PER_VARIANT } from '$lib/constants/variants';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'rank-editor' }: VariantEditorProps = $props();
@@ -105,7 +106,7 @@
 		}
 
 		// Merge with existing items
-		const updatedItems = [...items, ...newItems].slice(0, 10); // Max 10 items
+		const updatedItems = [...items, ...newItems].slice(0, MAX_ITEMS_PER_VARIANT);
 		onChange({ rankItems: updatedItems });
 
 		// If this is the first upload, set correctOrder to identity
@@ -231,7 +232,7 @@
 			</div>
 		{/if}
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum 10 tracks reached</p>
+			<p class="text-xs text-amber-600">Maximum {MAX_ITEMS_PER_VARIANT} tracks reached</p>
 		{/if}
 	</div>
 

@@ -10,16 +10,12 @@ import type {
 	AnswerDetail
 } from './db/schema';
 
-// Import display utilities from shared module
-import {
-	getCorrectAnswerText as getCorrectAnswerTextImpl,
-	calculateKendallTauScore as calculateKendallTauScoreImpl
-} from '$lib/variant-display';
+import { calculateKendallTauScore } from '$lib/variant-display';
 
 /**
  * Validate a SimpleGuess config
  */
-export function validateSimpleGuess(config: SimpleGuessConfig): boolean {
+function validateSimpleGuess(config: SimpleGuessConfig): boolean {
 	return (
 		config.type === 'simple_guess' &&
 		typeof config.correctAnswer === 'string' &&
@@ -33,7 +29,7 @@ export function validateSimpleGuess(config: SimpleGuessConfig): boolean {
  * - Each option must have id, text
  * - Exactly one option must be marked correct
  */
-export function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
+function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
 	if (config.type !== 'multiple_choice') return false;
 	if (!Array.isArray(config.options)) return false;
 	if (config.options.length < 2 || config.options.length > 10) return false;
@@ -55,7 +51,7 @@ export function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
  * - Each option must have id, text
  * - At least one option must be marked correct (can have multiple correct)
  */
-export function validateMultipleResponse(config: MultipleResponseConfig): boolean {
+function validateMultipleResponse(config: MultipleResponseConfig): boolean {
 	if (config.type !== 'multiple_response') return false;
 	if (!Array.isArray(config.options)) return false;
 	if (config.options.length < 2 || config.options.length > 10) return false;
@@ -78,7 +74,7 @@ export function validateMultipleResponse(config: MultipleResponseConfig): boolea
  * - correctTrackIndex must be valid (0 to tracks.length - 1)
  * - Prompt is required
  */
-export function validateSequence(config: SequenceConfig): boolean {
+function validateSequence(config: SequenceConfig): boolean {
 	if (config.type !== 'sequence') return false;
 	if (!Array.isArray(config.tracks)) return false;
 	if (config.tracks.length < 2 || config.tracks.length > 10) return false;
@@ -103,7 +99,7 @@ export function validateSequence(config: SequenceConfig): boolean {
  * - correctOrder must be a valid permutation of item indices
  * - Prompt is required
  */
-export function validateRank(config: RankConfig): boolean {
+function validateRank(config: RankConfig): boolean {
 	if (config.type !== 'rank') return false;
 	if (!Array.isArray(config.items)) return false;
 	if (config.items.length < 2 || config.items.length > 10) return false;
@@ -134,7 +130,7 @@ export function validateRank(config: RankConfig): boolean {
  * - Each option must have id, imageUrl, pathname, label
  * - Exactly one option must be marked correct
  */
-export function validateImageChoice(config: ImageChoiceConfig): boolean {
+function validateImageChoice(config: ImageChoiceConfig): boolean {
 	if (config.type !== 'image_choice') {
 		return false;
 	}
@@ -194,7 +190,7 @@ export function validateVariantConfig(config: VariantConfig): boolean {
  * Check if a simple guess answer is correct
  * Uses flexible matching: case-insensitive, trimmed whitespace
  */
-export function checkSimpleGuessCorrect(guess: string, correctAnswer: string): boolean {
+function checkSimpleGuessCorrect(guess: string, correctAnswer: string): boolean {
 	const normalizedGuess = guess.trim().toLowerCase();
 	const normalizedCorrect = correctAnswer.trim().toLowerCase();
 	return normalizedGuess === normalizedCorrect;
@@ -215,7 +211,7 @@ export function checkMultipleChoiceCorrect(
  * Check if a multiple response answer is correct
  * All correct options must be selected, and no incorrect options can be selected
  */
-export function checkMultipleResponseCorrect(
+function checkMultipleResponseCorrect(
 	selectedOptionIds: string[],
 	config: MultipleResponseConfig
 ): boolean {
@@ -234,7 +230,7 @@ export function checkMultipleResponseCorrect(
  * Check if a sequence answer is correct
  * The selected track index must match the correctTrackIndex
  */
-export function checkSequenceCorrect(selectedTrackIndex: number, config: SequenceConfig): boolean {
+function checkSequenceCorrect(selectedTrackIndex: number, config: SequenceConfig): boolean {
 	return selectedTrackIndex === config.correctTrackIndex;
 }
 
@@ -242,18 +238,15 @@ export function checkSequenceCorrect(selectedTrackIndex: number, config: Sequenc
  * Check if a rank answer is correct
  * Uses Kendall Tau distance - 100% match required for "correct" status
  */
-export function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
-	const score = calculateKendallTauScoreImpl(userOrder, config.correctOrder);
+function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
+	const score = calculateKendallTauScore(userOrder, config.correctOrder);
 	return score === 1; // Must be 100% to be considered "correct"
 }
 
 /**
  * Check if an image choice answer is correct
  */
-export function checkImageChoiceCorrect(
-	selectedOptionId: string,
-	config: ImageChoiceConfig
-): boolean {
+function checkImageChoiceCorrect(selectedOptionId: string, config: ImageChoiceConfig): boolean {
 	const correctOption = config.options.find((opt) => opt.isCorrect);
 	return correctOption?.id === selectedOptionId;
 }
@@ -261,7 +254,7 @@ export function checkImageChoiceCorrect(
 /**
  * Check if an answer is correct based on variant type
  */
-export function checkAnswerCorrect(
+function checkAnswerCorrect(
 	guess: string,
 	config: VariantConfig,
 	selectedOptionId?: string,
@@ -338,7 +331,3 @@ export function buildAnswerDetail(
 		...(config.type === 'rank' && userOrder ? { userOrder } : {})
 	};
 }
-
-// Re-export display utilities for backward compatibility
-export { getCorrectAnswerTextImpl as getCorrectAnswerText };
-export { calculateKendallTauScoreImpl as calculateKendallTauScore };

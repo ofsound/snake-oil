@@ -1,6 +1,6 @@
 import type { SoundbiteState } from './types/soundbite';
 
-export interface QuizFormOptions {
+interface QuizFormOptions {
 	title: string;
 	description: string;
 	slug?: string;

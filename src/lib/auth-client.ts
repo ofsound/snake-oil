@@ -27,7 +27,7 @@ export const authClient = createAuthClient({
 
 // Type for signup with custom fields (slug)
 // Now properly typed through inferAdditionalFields plugin
-export interface SignUpWithSlug {
+interface SignUpWithSlug {
 	email: string;
 	password: string;
 	name: string;

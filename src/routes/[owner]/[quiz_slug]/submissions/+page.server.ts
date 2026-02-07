@@ -2,12 +2,13 @@ import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, speedRunResults, user } from '$lib/server/db/schema';
 import { error, redirect } from '@sveltejs/kit';
 import { and, asc, eq } from 'drizzle-orm';
+import { getLoginUrl } from '$lib/constants/routes';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
 		const returnUrl = url.pathname + url.search;
-		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
+		redirect(302, getLoginUrl(returnUrl));
 	}
 
 	const { owner, quiz_slug: quizSlug } = params;

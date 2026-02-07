@@ -2,8 +2,6 @@ import { fail } from '@sveltejs/kit';
 import { processQuizSubmission } from './quiz-processor';
 import type { CreateQuizInput, CreateQuizResult } from './quiz-processor';
 
-export type { CreateQuizInput, CreateQuizResult };
-
 /**
  * Creates a new quiz using the unified processor
  */

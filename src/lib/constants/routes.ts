@@ -3,7 +3,7 @@
  * Centralized to prevent typos and make redirects easier to maintain
  */
 
-export const ROUTES = {
+const ROUTES = {
 	HOME: '/',
 	LOGIN: '/login',
 	SIGNUP: '/signup',

@@ -5,7 +5,7 @@ import { VariantConfigSchema, VARIANT_TYPES } from '$lib/variant-types';
  * Schema for speed run configuration
  * Validates the JSON blob stored in the form
  */
-export const SpeedRunConfigSchema = z.object({
+const SpeedRunConfigSchema = z.object({
 	defaultQuestionTimeLimit: z.number().nullable().default(null),
 	revealDelayMs: z.number().default(3000),
 	audioLoopGapMs: z.number().default(2000),
@@ -50,7 +50,7 @@ export const SoundbiteFormSchema = z.object({
 /**
  * Schema for complete quiz form data
  */
-export const QuizFormSchema = z.object({
+const QuizFormSchema = z.object({
 	title: z.string().min(1, 'Title is required'),
 	description: z.string().min(1, 'Description is required'),
 	slug: z.string().min(1, 'Slug is required'),
@@ -87,13 +87,12 @@ export const QuizFormSchema = z.object({
  * Inferred types from schemas
  */
 export type SoundbiteFormData = z.infer<typeof SoundbiteFormSchema>;
-export type QuizFormData = z.infer<typeof QuizFormSchema>;
-export type SpeedRunConfigData = z.infer<typeof SpeedRunConfigSchema>;
+type QuizFormData = z.infer<typeof QuizFormSchema>;
 
 /**
  * Result type for parsing operations
  */
-export type ParseResult<T> =
+type ParseResult<T> =
 	| { success: true; data: T }
 	| { success: false; errors: Array<{ field: string; message: string }> };
 

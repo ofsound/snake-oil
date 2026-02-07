@@ -9,7 +9,7 @@ import type {
 	VariantConfig
 } from '$lib/variant-types';
 
-export interface ProcessingContext {
+interface ProcessingContext {
 	formData: FormData;
 	blobToken: string;
 	soundbiteIndex: number;

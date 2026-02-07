@@ -2,6 +2,8 @@
 	import { onDestroy } from 'svelte';
 
 	import { processImageToThumbnail, validateImageFile, getFileHash } from '$lib/image-processing';
+	import { MAX_ITEMS_PER_VARIANT } from '$lib/constants/variants';
+	import { MAX_IMAGE_SIZE_MB } from '$lib/constants/uploads';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'ic-option' }: VariantEditorProps = $props();
@@ -43,9 +45,9 @@
 		if (!files || files.length === 0) return;
 
 		// Check if adding these would exceed the limit
-		const remainingSlots = 10 - options.length;
+		const remainingSlots = MAX_ITEMS_PER_VARIANT - options.length;
 		if (remainingSlots <= 0) {
-			errorMessage = 'Maximum 10 images allowed';
+			errorMessage = `Maximum ${MAX_ITEMS_PER_VARIANT} images allowed`;
 			return;
 		}
 
@@ -194,7 +196,9 @@
 			onchange={handleFileUpload}
 			class="w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border file:border-neutral-200 file:bg-white file:px-2 file:py-1.5 file:font-medium disabled:opacity-50"
 		/>
-		<p class="text-xs text-gray-500">JPG, PNG, WebP, or HEIC. Max 10MB per image.</p>
+		<p class="text-xs text-gray-500">
+			JPG, PNG, WebP, or HEIC. Max {MAX_IMAGE_SIZE_MB}MB per image.
+		</p>
 
 		{#if isProcessing}
 			<div class="flex items-center gap-2 text-sm text-gray-600">
@@ -210,7 +214,7 @@
 		{/if}
 
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum 10 images reached</p>
+			<p class="text-xs text-amber-600">Maximum {MAX_ITEMS_PER_VARIANT} images reached</p>
 		{/if}
 	</div>
 

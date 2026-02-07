@@ -8,11 +8,12 @@ import { deleteFromBlob } from '$lib/server/quiz-utils';
 import { processQuizSubmission } from '$lib/server/quiz-processor';
 import { user } from '$lib/server/db/schema';
 import type { ImageChoiceConfig } from '$lib/server/db/schema';
+import { getLoginUrl } from '$lib/constants/routes';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {
 		const returnUrl = url.pathname + url.search;
-		redirect(302, `/login?redirect=${encodeURIComponent(returnUrl)}`);
+		redirect(302, getLoginUrl(returnUrl));
 	}
 
 	const { owner, quiz_slug: quizSlug } = params;
