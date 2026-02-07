@@ -1,10 +1,11 @@
-import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { speedRuns, speedRunResults, soundbites } from '$lib/server/db/schema';
 import { eq, desc, asc, sql } from 'drizzle-orm';
 import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
 import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
-import type { SpeedRunSubmitRequest, SpeedRunSubmitResponse } from '$lib/speed-run/types';
+import { SpeedRunSubmitRequestSchema } from '$lib/speed-run/types';
+import type { SpeedRunSubmitResponse } from '$lib/speed-run/types';
 import type { MultipleChoiceConfig } from '$lib/variant-types';
 
 /**
@@ -14,14 +15,21 @@ import type { MultipleChoiceConfig } from '$lib/variant-types';
  */
 export const POST: RequestHandler = async ({ request, locals }) => {
 	try {
-		const body: SpeedRunSubmitRequest = await request.json();
-		const { speedRunId, answers, startTime, endTime, displayName } = body;
+		// Parse and validate request body with Zod
+		const rawBody = await request.json();
+		const parseResult = SpeedRunSubmitRequestSchema.safeParse(rawBody);
 
-		if (!speedRunId || !answers || !Array.isArray(answers)) {
-			return json({ success: false, error: 'Invalid request format' } as SpeedRunSubmitResponse, {
-				status: 400
-			});
+		if (!parseResult.success) {
+			const errorMessage = parseResult.error.issues.map((issue) => issue.message).join(', ');
+			return json(
+				{ success: false, error: `Invalid request: ${errorMessage}` } as SpeedRunSubmitResponse,
+				{
+					status: 400
+				}
+			);
 		}
+
+		const { speedRunId, answers, startTime, endTime, displayName } = parseResult.data;
 
 		// Validate speed run exists
 		const speedRun = await db.query.speedRuns.findFirst({
@@ -90,7 +98,6 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			.returning();
 
 		// Get user's rank using COUNT query - O(1) instead of O(n)
-		// Count how many results are BETTER than this one (higher correct, or same correct but faster, or tiebreaker)
 		const rankResult = await db
 			.select({
 				count: sql<number>`COUNT(*) + 1`.as('rank')
@@ -113,7 +120,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		const rank = rankResult[0]?.count ?? 1;
 
-		// Get updated top 10 (LIMIT 10 query - always efficient)
+		// Get updated top 10
 		const top10Results = await db.query.speedRunResults.findMany({
 			where: eq(speedRunResults.speedRunId, speedRunId),
 			orderBy: [

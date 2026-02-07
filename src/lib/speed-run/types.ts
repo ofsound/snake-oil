@@ -92,14 +92,18 @@ export const STREAK_MILESTONES: StreakMilestone[] = [
 	{ count: 15, message: 'LEGENDARY!', emoji: '👑' }
 ];
 
+import { z } from 'zod';
+
 // API Request/Response Types
 // Used for type-safe API communication
 
 // POST /api/speed-run/check-answer
-export type SpeedRunCheckAnswerRequest = {
-	soundbiteId: string;
-	guess: string;
-};
+export const SpeedRunCheckAnswerRequestSchema = z.object({
+	soundbiteId: z.string().min(1, 'Soundbite ID is required'),
+	guess: z.string() // Empty string allowed for timeouts
+});
+
+export type SpeedRunCheckAnswerRequest = z.infer<typeof SpeedRunCheckAnswerRequestSchema>;
 
 export type SpeedRunCheckAnswerResponse =
 	| {
@@ -113,13 +117,23 @@ export type SpeedRunCheckAnswerResponse =
 	  };
 
 // POST /api/speed-run/submit
-export type SpeedRunSubmitRequest = {
-	speedRunId: string;
-	answers: SpeedRunAnswer[];
-	startTime: number;
-	endTime: number;
-	displayName: string;
-};
+export const SpeedRunAnswerSchema = z.object({
+	soundbiteId: z.string().min(1, 'Soundbite ID is required'),
+	guess: z.string(),
+	timeSpentMs: z.number().min(0, 'Time spent must be positive'),
+	answeredAt: z.number().min(0, 'Answered at must be positive'),
+	isCorrect: z.boolean().optional()
+});
+
+export const SpeedRunSubmitRequestSchema = z.object({
+	speedRunId: z.string().uuid('Invalid speed run ID'),
+	answers: z.array(SpeedRunAnswerSchema).min(1, 'At least one answer is required'),
+	startTime: z.number().min(0, 'Start time must be positive'),
+	endTime: z.number().min(0, 'End time must be positive'),
+	displayName: z.string().min(1, 'Display name is required').max(50, 'Display name too long')
+});
+
+export type SpeedRunSubmitRequest = z.infer<typeof SpeedRunSubmitRequestSchema>;
 
 export type SpeedRunSubmitResponse =
 	| {

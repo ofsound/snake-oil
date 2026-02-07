@@ -220,47 +220,32 @@
 	use:enhance={({ formData }) => {
 		submitting = true;
 
-		// Build complete form data using centralized utility
-		// Note: For edit page, we need to handle existing and new soundbites separately
+		// Use centralized form builder for new soundbites
 		// Existing soundbites are already in the form via SoundbiteEditor's hidden inputs
-		// We only need to add files for new soundbites
-
-		// Add sequence/rank/image files for new soundbites
-		newSoundbites.forEach((sb, index) => {
-			if (sb.variantType === 'sequence' && sb.sequenceFiles?.length > 0) {
-				sb.sequenceFiles.forEach((file) => {
-					formData.append(`sequenceFiles-${index}`, file);
-				});
-			}
-			if (sb.variantType === 'rank' && sb.rankFiles?.length > 0) {
-				sb.rankFiles.forEach((file) => {
-					formData.append(`rankFiles-${index}`, file);
-				});
-			}
-			if (sb.variantType === 'image_choice' && sb.imageChoiceFiles?.length > 0) {
-				sb.imageChoiceFiles.forEach((file) => {
-					if (file && file.size > 0) {
-						formData.append(`imageChoiceFiles-${index}`, file);
-					} else {
-						const placeholder = new Blob([], { type: 'application/octet-stream' });
-						formData.append(`imageChoiceFiles-${index}`, placeholder);
-					}
-				});
-			}
+		const newSoundbitesFormData = buildQuizFormData({
+			title,
+			description,
+			slug,
+			quizMode: data.isSpeedRun ? 'speed_run' : 'standard',
+			speedRunConfig: data.isSpeedRun ? speedRunConfig : undefined,
+			soundbites: newSoundbites.map((sb, idx) => ({
+				id: sb.id,
+				state: sb,
+				type: 'new' as const
+			}))
 		});
 
-		// Add image files for existing soundbites
-		data.soundbites.forEach((soundbite, index) => {
-			const state = existingSoundbiteState[soundbite.id];
-			if (state?.variantType === 'image_choice' && state.imageChoiceFiles?.length > 0) {
-				state.imageChoiceFiles.forEach((file) => {
-					if (file && file.size > 0) {
-						formData.append(`imageChoiceFiles-${index}`, file);
-					} else {
-						const placeholder = new Blob([], { type: 'application/octet-stream' });
-						formData.append(`imageChoiceFiles-${index}`, placeholder);
-					}
+		// Merge new soundbite data into the main formData
+		// Skip basic fields that are already in the form HTML
+		const skipKeys = ['title', 'description', 'slug', 'visibility', 'quizMode', 'speedRunConfig'];
+		newSoundbitesFormData.forEach((value, key) => {
+			if (!skipKeys.includes(key)) {
+				// Adjust indices to account for existing soundbites
+				const adjustedKey = key.replace(/soundbite\[(\d+)\]/, (_, idx) => {
+					const newIdx = parseInt(idx, 10) + data.soundbites.length;
+					return `soundbite[${newIdx}]`;
 				});
+				formData.append(adjustedKey, value);
 			}
 		});
 
@@ -385,24 +370,20 @@
 					<div class="flex">
 						<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
 						<Card variant="neutral" padding="md" class="relative flex-1">
-							<input type="hidden" name="existingSoundbiteId" value={soundbite.id} />
 							<div class="flex items-center justify-between">
 								<p class="text mb-4 font-medium">{soundbite.trackName}</p>
 								<label class="flex items-center gap-2 text-xs font-medium">
-									<input type="checkbox" name="existingSoundbiteRemove" value={soundbite.id} />
+									<input type="checkbox" name={`soundbite[${index}].removed`} value="true" />
 									Remove
 								</label>
 							</div>
 
 							<SoundbiteEditor
 								soundbite={{ ...state, id: soundbite.id }}
-								variantTypeName="existingSoundbiteVariantType"
-								variantConfigName="existingSoundbiteVariantConfig"
-								questionName="existingSoundbiteQuestion"
-								fileInputName="existingSoundbiteFile"
+								{index}
+								id={soundbite.id}
 								fileInputRequired={false}
 								fileInputLabel="Replace MP3 (optional)"
-								fileInputId={`existing-file-${soundbite.id}`}
 								onChange={(updates) => updateExistingSoundbite(soundbite.id, updates)}
 							/>
 						</Card>
@@ -416,12 +397,8 @@
 		bind:soundbites={newSoundbites}
 		headerTitle="Add New Audio Clips"
 		addButtonText="Add Audio Clip"
-		cardTitle={() => 'New SoundBite'}
-		variantTypeName="newSoundbiteVariantType"
-		variantConfigName="newSoundbiteVariantConfig"
-		questionName="newSoundbiteQuestion"
-		fileInputName="newSoundbiteFile"
-		fileInputRequired={true}
+		cardTitle={(idx) => `New SoundBite #${idx + 1}`}
+		startIndex={data.soundbites.length}
 		onChange={handleNewSoundbitesChange}
 	/>
 

@@ -10,31 +10,37 @@
 	import type { Component } from 'svelte';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
+
 	interface Props {
 		soundbite: SoundbiteState;
-		variantTypeName: string;
-		variantConfigName: string;
-		questionName: string;
-		fileInputName?: string;
+		index: number;
+		id?: string;
+		removed?: boolean;
 		fileInputRequired?: boolean;
 		fileInputLabel?: string;
-		fileInputId?: string;
 		disabledVariantType?: boolean;
 		onChange: (updates: Partial<SoundbiteState>) => void;
 	}
 
 	let {
 		soundbite,
-		variantTypeName,
-		variantConfigName,
-		questionName,
-		fileInputName,
+		index,
+		id,
+		removed = false,
 		fileInputRequired = false,
 		fileInputLabel = 'MP3 file',
-		fileInputId,
 		disabledVariantType = false,
 		onChange
 	}: Props = $props();
+
+	// Generate bracket notation field names
+	const fieldPrefix = $derived(`soundbite[${index}]`);
+	const variantTypeName = $derived(`${fieldPrefix}.variantType`);
+	const variantConfigName = $derived(`${fieldPrefix}.variantConfig`);
+	const questionName = $derived(`${fieldPrefix}.question`);
+	const fileInputName = $derived(`${fieldPrefix}.file`);
+	const idName = $derived(`${fieldPrefix}.id`);
+	const removedName = $derived(`${fieldPrefix}.removed`);
 
 	// Registry of variant editors
 	const editorRegistry: Record<
@@ -100,6 +106,14 @@
 </script>
 
 <div class="flex flex-col gap-4">
+	{#if id}
+		<input type="hidden" name={idName} value={id} />
+	{/if}
+
+	{#if removed}
+		<input type="hidden" name={removedName} value="true" />
+	{/if}
+
 	<VariantSelector
 		id={`variant-type-${soundbite.id}`}
 		value={soundbite.variantType}
@@ -107,13 +121,13 @@
 		disabled={disabledVariantType}
 	/>
 
-	{#if fileInputName && soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
+	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 		<div class="flex flex-col gap-2">
-			<label class="text-sm font-medium text-gray-700" for={fileInputId}>
+			<label class="text-sm font-medium text-gray-700" for={`file-${soundbite.id}`}>
 				{fileInputLabel}
 			</label>
 			<input
-				id={fileInputId}
+				id={`file-${soundbite.id}`}
 				name={fileInputName}
 				type="file"
 				accept="audio/mpeg,.mp3"

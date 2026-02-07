@@ -8,36 +8,31 @@
 
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
+
 	interface Props {
 		soundbites: SoundbiteState[];
-		variantTypeName: string;
-		variantConfigName: string;
-		questionName: string;
-		fileInputName: string;
-		fileInputRequired?: boolean;
-		fileInputLabel?: string;
 		onChange: (soundbites: SoundbiteState[]) => void;
 		showHeader?: boolean;
 		headerTitle?: string;
 		addButtonText?: string;
 		cardTitle?: (index: number) => string;
-		forceVariantType?: VariantType; // If set, all soundbites will use this variant type
+		forceVariantType?: VariantType;
+		// For edit mode: map of soundbite ID to whether it's been removed
+		removedIds?: Set<string>;
+		// Starting index for bracket notation (0 for create, existing count for edit)
+		startIndex?: number;
 	}
 
 	let {
 		soundbites = $bindable(),
-		variantTypeName,
-		variantConfigName,
-		questionName,
-		fileInputName,
-		fileInputRequired = true,
-		fileInputLabel = 'MP3 file',
 		onChange,
 		showHeader = true,
 		headerTitle = 'Audio Clips',
 		addButtonText = 'Add Audio Clip',
 		cardTitle = (index) => `SoundBite #${index + 1}`,
-		forceVariantType
+		forceVariantType,
+		removedIds = new Set(),
+		startIndex = 0
 	}: Props = $props();
 
 	let nextId = $state(
@@ -45,7 +40,6 @@
 	);
 
 	function addSoundbite() {
-		// Default to forced variant type if set, otherwise simple_guess
 		const defaultVariantType = forceVariantType || 'simple_guess';
 		const newSoundbite: SoundbiteState = {
 			id: nextId,
@@ -88,9 +82,10 @@
 	{/if}
 
 	<div class="flex flex-col gap-6">
-		{#each soundbites as soundbite, index (soundbite.id)}
+		{#each soundbites as soundbite, localIndex (soundbite.id)}
+			{@const globalIndex = startIndex + localIndex}
 			<div class="flex">
-				<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+				<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{globalIndex + 1}.</div>
 				<Card variant="neutral" padding="md" class="relative flex-1">
 					<button
 						type="button"
@@ -105,13 +100,8 @@
 						soundbite={forceVariantType
 							? { ...soundbite, variantType: forceVariantType }
 							: soundbite}
-						{variantTypeName}
-						{variantConfigName}
-						{questionName}
-						{fileInputName}
-						{fileInputRequired}
-						{fileInputLabel}
-						fileInputId={`soundbite-file-${String(soundbite.id)}`}
+						index={globalIndex}
+						fileInputRequired={true}
 						disabledVariantType={!!forceVariantType}
 						onChange={(updates) => updateSoundbite(Number(soundbite.id), updates)}
 					/>

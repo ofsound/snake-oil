@@ -1,7 +1,7 @@
-import { db } from './db';
-import { quizzes, soundbites, tracks, speedRuns } from './db/schema';
+import { db } from './db/index.js';
+import { quizzes, soundbites, tracks, speedRuns } from './db/schema.js';
 import { eq, and } from 'drizzle-orm';
-import { findUniqueSlug, generateUniqueSlug } from './db/slug-utils';
+import { findUniqueSlug } from './db/slug-utils.js';
 import { slugify } from '$lib/utils';
 import {
 	processSequenceVariant,
@@ -9,17 +9,19 @@ import {
 	processImageChoiceVariant,
 	processSimpleVariant,
 	isError,
-	type ProcessingContext
-} from './soundbite-processors';
-import type { VariantConfig } from './db/schema';
-import { uploadToBlob, deleteFromBlob } from './quiz-utils';
+	type ProcessingOutcome
+} from './soundbite-processors.js';
+import { parseQuizFormData, isSoundbiteRemoved, isNewSoundbite } from './form-parser.js';
+import { uploadToBlob, deleteFromBlob } from './quiz-utils.js';
+import type { Db } from './db-operations.js';
+import type { SoundbiteFormData } from './form-parser.js';
+import type { VariantConfig, VariantType } from '$lib/variant-types';
 
 export interface ProcessQuizOptions {
 	formData: FormData;
 	userId: string;
 	blobToken: string;
-	quizId?: string; // If provided, we're editing
-	existingSoundbiteIds?: string[]; // For edit: which soundbites exist
+	quizId?: string;
 }
 
 export interface ProcessQuizResult {
@@ -40,7 +42,6 @@ export type CreateQuizResult = ProcessQuizResult;
 
 /**
  * Tracks created resources for cleanup on failure
- * (Neon HTTP driver doesn't support transactions, so we do manual rollback)
  */
 class ResourceTracker {
 	private quizId?: string;
@@ -69,16 +70,13 @@ class ResourceTracker {
 		this.uploadedBlobs.push(pathname);
 	}
 
-	async cleanup() {
-		console.log('[Resource Cleanup] Starting cleanup due to error...');
-
+	async cleanup(db: Db) {
 		// Delete soundbites
 		for (const id of this.soundbiteIds) {
 			try {
 				await db.delete(soundbites).where(eq(soundbites.id, id));
-				console.log(`[Resource Cleanup] Deleted soundbite: ${id}`);
-			} catch (err) {
-				console.error(`[Resource Cleanup] Failed to delete soundbite ${id}:`, err);
+			} catch {
+				// Ignore cleanup errors
 			}
 		}
 
@@ -86,9 +84,8 @@ class ResourceTracker {
 		for (const id of this.trackIds) {
 			try {
 				await db.delete(tracks).where(eq(tracks.id, id));
-				console.log(`[Resource Cleanup] Deleted track: ${id}`);
-			} catch (err) {
-				console.error(`[Resource Cleanup] Failed to delete track ${id}:`, err);
+			} catch {
+				// Ignore cleanup errors
 			}
 		}
 
@@ -96,9 +93,8 @@ class ResourceTracker {
 		if (this.quizId) {
 			try {
 				await db.delete(quizzes).where(eq(quizzes.id, this.quizId));
-				console.log(`[Resource Cleanup] Deleted quiz: ${this.quizId}`);
-			} catch (err) {
-				console.error(`[Resource Cleanup] Failed to delete quiz ${this.quizId}:`, err);
+			} catch {
+				// Ignore cleanup errors
 			}
 		}
 
@@ -106,40 +102,33 @@ class ResourceTracker {
 		for (const pathname of this.uploadedBlobs) {
 			try {
 				await deleteFromBlob(pathname, this.blobToken);
-				console.log(`[Resource Cleanup] Deleted blob: ${pathname}`);
-			} catch (err) {
-				console.error(`[Resource Cleanup] Failed to delete blob ${pathname}:`, err);
+			} catch {
+				// Ignore cleanup errors
 			}
 		}
-
-		console.log('[Resource Cleanup] Cleanup complete');
 	}
 }
 
 /**
  * Unified quiz processor - handles both create and edit operations
- * Note: Neon HTTP driver doesn't support transactions, so we implement manual rollback
- * - If one soundbite fails, we manually delete everything that was created
- * - Cleans up uploaded blobs on failure
  */
 export async function processQuizSubmission(
 	options: ProcessQuizOptions
 ): Promise<ProcessQuizResult> {
 	const { formData, userId, blobToken, quizId } = options;
-	const tracker = new ResourceTracker(blobToken);
 
-	// Extract basic fields
-	const title = String(formData.get('title') ?? '').trim();
-	const description = String(formData.get('description') ?? '').trim();
-	const rawSlug = String(formData.get('slug') ?? '').trim();
-	const quizMode = String(formData.get('quizMode') ?? 'standard') as 'standard' | 'speed_run';
-	const speedRunConfigJson = String(formData.get('speedRunConfig') ?? '{}');
-	const visibility = String(formData.get('visibility') ?? 'public') as 'public' | 'unlisted';
-	const baseSlug = slugify(rawSlug || title);
+	// Parse and validate form data with Zod
+	const parseResult = parseQuizFormData(formData);
 
-	if (!title || !description) {
-		return { success: false, error: 'Title and description are required.' };
+	if (!parseResult.success) {
+		return {
+			success: false,
+			error: `Validation failed: ${parseResult.errors.map((e) => `${e.field}: ${e.message}`).join(', ')}`
+		};
 	}
+
+	const data = parseResult.data;
+	const tracker = new ResourceTracker(blobToken);
 
 	try {
 		let quizIdToUse: string;
@@ -156,55 +145,59 @@ export async function processQuizSubmission(
 				return { success: false, error: 'Quiz not found or access denied' };
 			}
 
-			// Find unique slug excluding current quiz (unique per owner)
-			finalSlug = await findUniqueSlug(baseSlug, userId, quizId);
+			// Find unique slug excluding current quiz
+			finalSlug = await findUniqueSlug(data.slug, userId, quizId);
 			await db
 				.update(quizzes)
-				.set({ title, slug: finalSlug, description, visibility })
+				.set({
+					title: data.title,
+					slug: finalSlug,
+					description: data.description,
+					visibility: data.visibility
+				})
 				.where(eq(quizzes.id, quizId));
 
 			quizIdToUse = quizId;
 
 			// Process existing soundbites
-			await processExistingSoundbites(db, formData, quizIdToUse, blobToken, tracker);
+			await processExistingSoundbites(db, data.soundbites, quizIdToUse, blobToken, tracker);
 		} else {
 			// CREATE MODE: Insert new quiz
-			const result = await generateUniqueSlug(baseSlug, async (candidateSlug) => {
-				const [quiz] = await db
-					.insert(quizzes)
-					.values({
-						ownerId: userId,
-						title,
-						slug: candidateSlug,
-						description,
-						visibility
-					})
-					.returning({ id: quizzes.id, slug: quizzes.slug });
-				return quiz;
-			});
+			const baseSlug = slugify(data.slug || data.title);
+			finalSlug = await findUniqueSlug(baseSlug, userId);
 
-			quizIdToUse = result.id;
-			finalSlug = result.slug;
+			const [quiz] = await db
+				.insert(quizzes)
+				.values({
+					ownerId: userId,
+					title: data.title,
+					slug: finalSlug,
+					description: data.description,
+					visibility: data.visibility
+				})
+				.returning({ id: quizzes.id, slug: quizzes.slug });
+
+			quizIdToUse = quiz.id;
 			tracker.trackQuiz(quizIdToUse);
 		}
 
-		// Process new soundbites (for both create and edit)
-		await processNewSoundbites(db, formData, quizIdToUse, blobToken, tracker);
+		// Process all soundbites
+		await processAllSoundbites(db, data.soundbites, quizIdToUse, blobToken, tracker);
 
 		// Handle speed run config if applicable
-		if (quizMode === 'speed_run') {
-			await createOrUpdateSpeedRunConfig(db, quizIdToUse, speedRunConfigJson);
+		if (data.quizMode === 'speed_run' && data.speedRunConfig) {
+			await createOrUpdateSpeedRunConfig(db, quizIdToUse, data.speedRunConfig);
 		}
 
 		return {
 			success: true,
 			quizId: quizIdToUse,
 			slug: finalSlug,
-			speedRunSlug: quizMode === 'speed_run' ? finalSlug : undefined
+			speedRunSlug: data.quizMode === 'speed_run' ? finalSlug : undefined
 		};
 	} catch (error) {
 		// Cleanup everything on any failure
-		await tracker.cleanup();
+		await tracker.cleanup(db);
 
 		console.error('[Process Quiz] Error:', error);
 		const errorMessage = error instanceof Error ? error.message : 'Failed to save quiz.';
@@ -216,68 +209,48 @@ export async function processQuizSubmission(
  * Process existing soundbites during edit
  */
 async function processExistingSoundbites(
-	db: any,
-	formData: FormData,
+	db: Db,
+	soundbiteData: SoundbiteFormData[],
 	quizId: string,
 	blobToken: string,
 	tracker: ResourceTracker
 ): Promise<void> {
-	// Extract existing soundbite data from form
-	const ids = formData.getAll('existingSoundbiteId').map((v) => String(v));
-	const removed = new Set(formData.getAll('existingSoundbiteRemove').map((v) => String(v)));
-	const questions = formData
-		.getAll('existingSoundbiteQuestion')
-		.map((v) => String(v).trim() || null);
-	const variantTypes = formData.getAll('existingSoundbiteVariantType').map((v) => String(v));
-	const variantConfigs = formData.getAll('existingSoundbiteVariantConfig').map((value) => {
-		try {
-			return JSON.parse(String(value)) as VariantConfig;
-		} catch {
-			return null;
+	for (const soundbite of soundbiteData) {
+		// Skip new soundbites
+		if (isNewSoundbite(soundbite)) {
+			continue;
 		}
-	});
-	const files = formData.getAll('existingSoundbiteFile') as File[];
 
-	for (let index = 0; index < ids.length; index++) {
-		const id = ids[index];
+		const id = soundbite.id!;
 
 		// Handle removed soundbites
-		if (removed.has(id)) {
+		if (isSoundbiteRemoved(soundbite)) {
 			// Get track info for potential cleanup
-			const soundbite = await db.query.soundbites.findFirst({
+			const existingSoundbite = await db.query.soundbites.findFirst({
 				where: eq(soundbites.id, id),
 				with: { track: true }
 			});
 
-			if (soundbite?.track?.pathname) {
-				tracker.trackBlob(soundbite.track.pathname);
+			if (existingSoundbite?.track?.pathname) {
+				tracker.trackBlob(existingSoundbite.track.pathname);
 			}
 
 			await db.delete(soundbites).where(eq(soundbites.id, id));
 			continue;
 		}
 
-		const question = questions[index];
-		const variantType = variantTypes[index];
-		let variantConfig = variantConfigs[index];
-		const file = files[index];
-
-		if (!variantConfig) {
-			throw new Error(`Invalid configuration for existing SoundBite ${index + 1}`);
-		}
-
 		let trackId: string | undefined;
 
 		// Handle file upload for non-sequence/rank variants
-		if (variantType !== 'sequence' && variantType !== 'rank') {
-			if (file && file.size > 0) {
-				const blob = await uploadToBlob(file, blobToken);
+		if (soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank') {
+			if (soundbite.file && soundbite.file.size > 0) {
+				const blob = await uploadToBlob(soundbite.file, blobToken);
 				tracker.trackBlob(blob.pathname);
 
 				const [track] = await db
 					.insert(tracks)
 					.values({
-						name: file.name,
+						name: soundbite.file.name,
 						url: blob.url,
 						pathname: blob.pathname
 					})
@@ -288,11 +261,17 @@ async function processExistingSoundbites(
 		}
 
 		// Update soundbite
-		const updateData: any = {
-			question,
-			variantType: variantType as any,
-			variantConfig
+		const updateData: {
+			question: string | undefined;
+			variantType: VariantType;
+			variantConfig: VariantConfig;
+			trackId?: string;
+		} = {
+			question: soundbite.question,
+			variantType: soundbite.variantType,
+			variantConfig: soundbite.variantConfig
 		};
+
 		if (trackId) {
 			updateData.trackId = trackId;
 		}
@@ -302,87 +281,69 @@ async function processExistingSoundbites(
 }
 
 /**
- * Process new soundbites (for both create and edit)
+ * Process all soundbites (new ones that need full processing)
  */
-async function processNewSoundbites(
-	db: any,
-	formData: FormData,
+async function processAllSoundbites(
+	db: Db,
+	soundbiteData: SoundbiteFormData[],
 	quizId: string,
 	blobToken: string,
 	tracker: ResourceTracker
 ): Promise<void> {
-	// Extract new soundbite data
-	// Try 'newSoundbite' prefix first (edit page), then 'soundbite' prefix (create page)
-	const questions = (
-		formData.getAll('newSoundbiteQuestion').length > 0
-			? formData.getAll('newSoundbiteQuestion')
-			: formData.getAll('soundbiteQuestion')
-	).map((v) => String(v).trim() || null);
-
-	const variantTypes = (
-		formData.getAll('newSoundbiteVariantType').length > 0
-			? formData.getAll('newSoundbiteVariantType')
-			: formData.getAll('soundbiteVariantType')
-	).map((v) => String(v));
-
-	const variantConfigs = (
-		formData.getAll('newSoundbiteVariantConfig').length > 0
-			? formData.getAll('newSoundbiteVariantConfig')
-			: formData.getAll('soundbiteVariantConfig')
-	).map((value) => {
-		try {
-			return JSON.parse(String(value)) as VariantConfig;
-		} catch {
-			return null;
-		}
-	});
-
-	const files = (
-		formData.getAll('newSoundbiteFile').length > 0
-			? formData.getAll('newSoundbiteFile')
-			: formData.getAll('soundbiteFile')
-	) as File[];
-
-	if (variantTypes.length === 0) {
-		return; // No new soundbites to process
-	}
-
 	// Get current max position
-	const existingSoundbites = await db.query.soundbites.findMany({
+	const existingSoundbiteList = await db.query.soundbites.findMany({
 		where: eq(soundbites.quizId, quizId),
-		orderBy: (soundbites: any, { desc }: any) => [desc(soundbites.position)],
+		orderBy: (sb, { desc }) => [desc(sb.position)],
 		limit: 1
 	});
-	const currentMaxPosition = existingSoundbites.length > 0 ? existingSoundbites[0].position : -1;
+	const currentMaxPosition =
+		existingSoundbiteList.length > 0 ? existingSoundbiteList[0].position : -1;
 
-	let fileIndex = 0;
+	// Filter to only new soundbites that need processing
+	const newSoundbiteList = soundbiteData.filter((sb) => isNewSoundbite(sb));
 
-	for (let index = 0; index < variantTypes.length; index++) {
-		const question = questions[index];
-		const variantType = variantTypes[index];
-		const variantConfig = variantConfigs[index];
+	let position = currentMaxPosition + 1;
 
-		if (!variantConfig) {
-			throw new Error(`Invalid configuration for new SoundBite ${index + 1}`);
-		}
-
-		const context: ProcessingContext = {
-			formData,
+	for (const soundbite of newSoundbiteList) {
+		// Create processing context
+		const context = {
+			formData: new FormData(),
 			blobToken,
-			soundbiteIndex: index,
-			fileIndex,
-			files
+			soundbiteIndex: position,
+			fileIndex: 0,
+			files: soundbite.file ? [soundbite.file] : []
 		};
 
-		// Process the variant
-		const outcome = await processVariant(variantType, variantConfig, context);
+		// Process the variant with proper type narrowing
+		let outcome: ProcessingOutcome;
+
+		if (soundbite.variantType === 'sequence') {
+			outcome = await processSequenceVariant(
+				soundbite.variantConfig as Extract<typeof soundbite.variantConfig, { type: 'sequence' }>,
+				context
+			);
+		} else if (soundbite.variantType === 'rank') {
+			outcome = await processRankVariant(
+				soundbite.variantConfig as Extract<typeof soundbite.variantConfig, { type: 'rank' }>,
+				context
+			);
+		} else if (soundbite.variantType === 'image_choice') {
+			outcome = await processImageChoiceVariant(
+				soundbite.variantConfig as Extract<
+					typeof soundbite.variantConfig,
+					{ type: 'image_choice' }
+				>,
+				context
+			);
+		} else {
+			outcome = await processSimpleVariant(soundbite.variantConfig, context);
+		}
 
 		if (isError(outcome)) {
 			throw new Error(outcome.message);
 		}
 
-		const { trackId, updatedConfig, newFileIndex } = outcome;
-		fileIndex = newFileIndex;
+		const { trackId, updatedConfig } = outcome;
 
 		// Track created resources
 		if (trackId) {
@@ -390,8 +351,8 @@ async function processNewSoundbites(
 		}
 
 		// Track uploaded blobs for cleanup on failure
-		if (variantType === 'image_choice') {
-			const config = updatedConfig as any;
+		if (soundbite.variantType === 'image_choice') {
+			const config = updatedConfig as { options: Array<{ pathname?: string }> };
 			for (const option of config.options) {
 				if (option.pathname) {
 					tracker.trackBlob(option.pathname);
@@ -400,39 +361,20 @@ async function processNewSoundbites(
 		}
 
 		// Create soundbite record
-		const [soundbite] = await db
+		const [newSoundbiteRecord] = await db
 			.insert(soundbites)
 			.values({
 				quizId,
 				trackId,
-				position: currentMaxPosition + index + 1,
-				question,
-				variantType: variantType as any,
+				position,
+				question: soundbite.question ?? null,
+				variantType: soundbite.variantType,
 				variantConfig: updatedConfig
 			})
 			.returning({ id: soundbites.id });
 
-		tracker.trackSoundbite(soundbite.id);
-	}
-}
-
-/**
- * Process a variant using the existing processors
- */
-async function processVariant(
-	variantType: string,
-	variantConfig: VariantConfig,
-	context: ProcessingContext
-) {
-	switch (variantType) {
-		case 'sequence':
-			return await processSequenceVariant(variantConfig as any, context);
-		case 'rank':
-			return await processRankVariant(variantConfig as any, context);
-		case 'image_choice':
-			return await processImageChoiceVariant(variantConfig as any, context);
-		default:
-			return await processSimpleVariant(variantConfig, context);
+		tracker.trackSoundbite(newSoundbiteRecord.id);
+		position++;
 	}
 }
 
@@ -440,12 +382,15 @@ async function processVariant(
  * Create or update speed run configuration
  */
 async function createOrUpdateSpeedRunConfig(
-	db: any,
+	db: Db,
 	quizId: string,
-	configJson: string
+	config: {
+		defaultQuestionTimeLimit: number | null;
+		revealDelayMs: number;
+		audioLoopGapMs: number;
+		enableStreakBonus: boolean;
+	}
 ): Promise<void> {
-	const config = JSON.parse(configJson);
-
 	// Check if speed run config exists
 	const existing = await db.query.speedRuns.findFirst({
 		where: eq(speedRuns.quizId, quizId)
@@ -455,19 +400,19 @@ async function createOrUpdateSpeedRunConfig(
 		await db
 			.update(speedRuns)
 			.set({
-				defaultQuestionTimeLimit: config.defaultQuestionTimeLimit || null,
-				revealDelayMs: config.revealDelayMs || 3000,
-				audioLoopGapMs: config.audioLoopGapMs || 2000,
-				enableStreakBonus: config.enableStreakBonus ?? true
+				defaultQuestionTimeLimit: config.defaultQuestionTimeLimit,
+				revealDelayMs: config.revealDelayMs,
+				audioLoopGapMs: config.audioLoopGapMs,
+				enableStreakBonus: config.enableStreakBonus
 			})
 			.where(eq(speedRuns.quizId, quizId));
 	} else {
 		await db.insert(speedRuns).values({
 			quizId,
-			defaultQuestionTimeLimit: config.defaultQuestionTimeLimit || null,
-			revealDelayMs: config.revealDelayMs || 3000,
-			audioLoopGapMs: config.audioLoopGapMs || 2000,
-			enableStreakBonus: config.enableStreakBonus ?? true
+			defaultQuestionTimeLimit: config.defaultQuestionTimeLimit,
+			revealDelayMs: config.revealDelayMs,
+			audioLoopGapMs: config.audioLoopGapMs,
+			enableStreakBonus: config.enableStreakBonus
 		});
 	}
 }

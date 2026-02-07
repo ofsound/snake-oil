@@ -1,8 +1,3 @@
-/**
- * Unified form builder for quiz create and edit operations
- * Eliminates duplication between create and edit pages
- */
-
 import type { SoundbiteState } from './types/soundbite';
 
 export interface QuizFormOptions {
@@ -25,8 +20,8 @@ export interface QuizFormOptions {
 }
 
 /**
- * Builds FormData for quiz submission
- * Works for both create and edit scenarios
+ * Builds FormData for quiz submission using bracket notation
+ * soundbite[0].variantType, soundbite[0].file, etc.
  */
 export function buildQuizFormData(options: QuizFormOptions): FormData {
 	const formData = new FormData();
@@ -52,7 +47,7 @@ export function buildQuizFormData(options: QuizFormOptions): FormData {
 		);
 	}
 
-	// Process soundbites
+	// Process soundbites with bracket notation
 	options.soundbites.forEach((soundbite, index) => {
 		appendSoundbiteToFormData(formData, soundbite, index);
 	});
@@ -65,13 +60,13 @@ function appendSoundbiteToFormData(
 	soundbite: QuizFormOptions['soundbites'][number],
 	index: number
 ): void {
-	const prefix = soundbite.type === 'existing' ? 'existingSoundbite' : 'newSoundbite';
+	const prefix = `soundbite[${index}]`;
 
-	// ID and removal flag for existing
+	// ID and removal flag for existing soundbites
 	if (soundbite.type === 'existing' && soundbite.id) {
-		formData.append(`${prefix}Id`, soundbite.id.toString());
+		formData.append(`${prefix}.id`, soundbite.id.toString());
 		if (soundbite.removed) {
-			formData.append(`${prefix}Remove`, soundbite.id.toString());
+			formData.append(`${prefix}.removed`, 'true');
 		}
 	}
 
@@ -93,26 +88,27 @@ function appendSoundbiteToFormData(
 }
 
 function appendSequenceFiles(formData: FormData, state: SoundbiteState, index: number): void {
+	const prefix = `soundbite[${index}]`;
 	const files = state.sequenceFiles || [];
 	files.forEach((file) => {
 		if (file && file.size > 0) {
-			formData.append(`sequenceFiles-${index}`, file);
+			formData.append(`${prefix}.sequenceFiles`, file);
 		}
 	});
 }
 
 function appendRankFiles(formData: FormData, state: SoundbiteState, index: number): void {
+	const prefix = `soundbite[${index}]`;
 	const files = state.rankFiles || [];
 	files.forEach((file) => {
 		if (file && file.size > 0) {
-			formData.append(`rankFiles-${index}`, file);
+			formData.append(`${prefix}.rankFiles`, file);
 		}
 	});
 }
 
 function appendImageChoiceFiles(formData: FormData, state: SoundbiteState, index: number): void {
-	// Always append files for image_choice, even if empty/null
-	// The server expects one entry per option
+	const prefix = `soundbite[${index}]`;
 	const files = state.imageChoiceFiles || [];
 	const optionsCount = state.imageChoiceOptions?.length || 0;
 
@@ -120,10 +116,10 @@ function appendImageChoiceFiles(formData: FormData, state: SoundbiteState, index
 	for (let i = 0; i < optionsCount; i++) {
 		const file = files[i];
 		if (file && file.size > 0) {
-			formData.append(`imageChoiceFiles-${index}`, file);
+			formData.append(`${prefix}.imageFiles`, file);
 		} else {
 			// Append empty placeholder for missing/existing images
-			formData.append(`imageChoiceFiles-${index}`, new Blob([]), 'placeholder');
+			formData.append(`${prefix}.imageFiles`, new Blob([]), 'placeholder');
 		}
 	}
 }

@@ -34,6 +34,7 @@ export {
 } from '../../variant-types';
 
 import type { VariantType, VariantConfig, AnswersPayload } from '../../variant-types';
+import type { SpeedRunAnswer } from '../../speed-run/types';
 
 // Better Auth core tables (see https://better-auth.com/docs/concepts/database)
 export const user = pgTable(
@@ -180,7 +181,7 @@ export const speedRunResults = pgTable(
 			.references(() => speedRuns.id, { onDelete: 'cascade' }),
 		userId: text('user_id').references(() => user.id, { onDelete: 'set null' }), // NULL for anonymous
 		displayName: text('display_name').notNull(), // For anonymous users or name override
-		answers: jsonb('answers').notNull(), // Array of speed run answers
+		answers: jsonb('answers').$type<SpeedRunAnswer[]>().notNull(), // Array of speed run answers
 		totalQuestions: integer('total_questions').notNull(),
 		correctCount: integer('correct_count').notNull(),
 		totalTimeMs: integer('total_time_ms').notNull(), // From start to last answer

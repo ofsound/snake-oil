@@ -1,9 +1,10 @@
-import { error, json, type RequestHandler } from '@sveltejs/kit';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
 import { soundbites } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
-import type { SpeedRunCheckAnswerRequest, SpeedRunCheckAnswerResponse } from '$lib/speed-run/types';
+import { SpeedRunCheckAnswerRequestSchema } from '$lib/speed-run/types';
+import type { SpeedRunCheckAnswerResponse } from '$lib/speed-run/types';
 import type { MultipleChoiceConfig } from '$lib/variant-types';
 
 /**
@@ -13,14 +14,24 @@ import type { MultipleChoiceConfig } from '$lib/variant-types';
  */
 export const POST: RequestHandler = async ({ request }) => {
 	try {
-		const body: SpeedRunCheckAnswerRequest = await request.json();
-		const { soundbiteId, guess } = body;
+		// Parse and validate request body with Zod
+		const rawBody = await request.json();
+		const parseResult = SpeedRunCheckAnswerRequestSchema.safeParse(rawBody);
 
-		if (!soundbiteId) {
-			return json({ success: false, error: 'Missing soundbiteId' } as SpeedRunCheckAnswerResponse, {
-				status: 400
-			});
+		if (!parseResult.success) {
+			const errorMessage = parseResult.error.issues.map((issue) => issue.message).join(', ');
+			return json(
+				{
+					success: false,
+					error: `Invalid request: ${errorMessage}`
+				} as SpeedRunCheckAnswerResponse,
+				{
+					status: 400
+				}
+			);
 		}
+
+		const { soundbiteId, guess } = parseResult.data;
 
 		// Get the soundbite with correct answer
 		const soundbite = await db.query.soundbites.findFirst({

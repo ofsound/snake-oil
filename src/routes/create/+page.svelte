@@ -347,12 +347,8 @@
 
 	<SoundbiteFormSection
 		bind:soundbites
-		variantTypeName="soundbiteVariantType"
-		variantConfigName="soundbiteVariantConfig"
-		questionName="soundbiteQuestion"
-		fileInputName="soundbiteFile"
-		fileInputRequired={true}
 		onChange={handleSoundbitesChange}
+		startIndex={0}
 		forceVariantType={quizMode === 'speed_run' ? 'multiple_choice' : undefined}
 	/>
 
