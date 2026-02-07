@@ -17,9 +17,7 @@
 	} from '$lib/speed-run/types';
 	interface Props {
 		quiz: {
-			id: string;
 			title: string;
-			slug: string;
 			description: string;
 		};
 		speedRun: {
@@ -27,7 +25,6 @@
 			defaultQuestionTimeLimit: number | null;
 			revealDelayMs: number;
 			audioLoopGapMs: number;
-			enableStreakBonus: boolean;
 		};
 		questions: SpeedRunQuestion[];
 		initialLeaderboard: SpeedRunLeaderboardEntry[];

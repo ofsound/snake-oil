@@ -16,7 +16,6 @@
 	let { data, children }: LayoutProps = $props();
 
 	let loading = $state(false);
-	let error = $state<string | null>(null);
 
 	async function handleSignOut() {
 		loading = true;
@@ -26,7 +25,6 @@
 			goto('/', { invalidateAll: true });
 		} catch (err: unknown) {
 			console.error('Sign out error:', err);
-			error = err instanceof Error ? err.message : 'Failed to sign out';
 		} finally {
 			loading = false;
 		}

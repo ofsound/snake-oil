@@ -4,15 +4,12 @@
 		soundbiteId: string;
 		result?: AnswerDetail | null;
 		answer?: string;
-		onBuzzer: () => void;
-		disabled?: boolean;
 	}
 
-	let { soundbiteId, result = null, answer = '', onBuzzer, disabled = false }: Props = $props();
+	let { soundbiteId, result = null, answer = '' }: Props = $props();
 
 	const hasResult = $derived(result !== null);
 	const isCorrect = $derived(result?.isCorrect ?? false);
-	const selectedTrackIndex = $derived(result?.selectedTrackIndex ?? -1);
 
 	// Use the answer value for form submission, parsing it as an integer
 	const submittedTrackIndex = $derived(answer ? parseInt(answer, 10) : -1);

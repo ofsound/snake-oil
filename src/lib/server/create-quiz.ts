@@ -1,5 +1,4 @@
 import { fail } from '@sveltejs/kit';
-import type { RequestEvent } from '@sveltejs/kit';
 import { processQuizSubmission } from './quiz-processor';
 import type { CreateQuizInput, CreateQuizResult } from './quiz-processor';
 

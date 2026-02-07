@@ -45,12 +45,10 @@
 
 <QuizList
 	quizzes={data.quizzes}
-	totalCount={data.totalCount}
 	currentPage={data.currentPage}
 	totalPages={data.totalPages}
 	sort={data.sort}
 	order={data.order}
-	{title}
 	{description}
 	basePath="/quizzes"
 	sortOptions={[

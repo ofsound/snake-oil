@@ -5,7 +5,7 @@
 	import AuthForm from '$lib/components/AuthForm.svelte';
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
-	import { authClient, signUpWithSlug } from '$lib/auth-client';
+	import { signUpWithSlug } from '$lib/auth-client';
 	import { validateRedirectUrl, slugify } from '$lib/utils';
 	let email = $state('');
 	let password = $state('');
@@ -111,39 +111,31 @@
 		handleSignUp();
 	}}
 >
-	{#snippet children()}
-		<AuthFormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
+	<AuthFormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
 
-		<div>
-			<AuthFormInput
-				type="text"
-				placeholder="Username (for your profile URL)"
-				bind:value={slug}
-				required
-				disabled={loading}
-			/>
-			{#if slug}
-				<p class="mt-1 text-sm text-gray-600">
-					Your profile URL: <span class="font-mono">/user/{slug}</span>
-				</p>
-			{/if}
-		</div>
-
+	<div>
 		<AuthFormInput
-			type="email"
-			placeholder="Email"
-			bind:value={email}
+			type="text"
+			placeholder="Username (for your profile URL)"
+			bind:value={slug}
 			required
 			disabled={loading}
 		/>
-		<AuthFormInput
-			type="password"
-			placeholder="Password"
-			bind:value={password}
-			required
-			disabled={loading}
-		/>
-	{/snippet}
+		{#if slug}
+			<p class="mt-1 text-sm text-gray-600">
+				Your profile URL: <span class="font-mono">/user/{slug}</span>
+			</p>
+		{/if}
+	</div>
+
+	<AuthFormInput type="email" placeholder="Email" bind:value={email} required disabled={loading} />
+	<AuthFormInput
+		type="password"
+		placeholder="Password"
+		bind:value={password}
+		required
+		disabled={loading}
+	/>
 
 	{#snippet footer()}
 		<p>

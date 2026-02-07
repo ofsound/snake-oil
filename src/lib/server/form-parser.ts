@@ -114,9 +114,16 @@ function extractSoundbiteIndices(formData: FormData): number[] {
 
 /**
  * Extract a single soundbite's form data by index
+ * Returns raw FormData values without type assertions - validation happens in Zod schema
  */
 function extractSoundbiteFormData(formData: FormData, index: number): Record<string, unknown> {
 	const prefix = `soundbite[${index}]`;
+
+	// Extract file inputs - FormData.getAll() returns FormDataEntryValue[] which may contain Files
+	const file = formData.get(`${prefix}.file`);
+	const sequenceFiles = formData.getAll(`${prefix}.sequenceFiles`);
+	const rankFiles = formData.getAll(`${prefix}.rankFiles`);
+	const imageFiles = formData.getAll(`${prefix}.imageFiles`);
 
 	return {
 		id: formData.get(`${prefix}.id`)?.toString(),
@@ -124,10 +131,11 @@ function extractSoundbiteFormData(formData: FormData, index: number): Record<str
 		variantType: formData.get(`${prefix}.variantType`)?.toString(),
 		variantConfig: formData.get(`${prefix}.variantConfig`)?.toString(),
 		question: formData.get(`${prefix}.question`)?.toString(),
-		file: (formData.get(`${prefix}.file`) as File) || undefined,
-		sequenceFiles: formData.getAll(`${prefix}.sequenceFiles`) as File[],
-		rankFiles: formData.getAll(`${prefix}.rankFiles`) as File[],
-		imageFiles: formData.getAll(`${prefix}.imageFiles`) as File[]
+		// Pass files through as unknown - Zod will validate they are File instances
+		file: file instanceof File ? file : undefined,
+		sequenceFiles: sequenceFiles.filter((f): f is File => f instanceof File),
+		rankFiles: rankFiles.filter((f): f is File => f instanceof File),
+		imageFiles: imageFiles.filter((f): f is File => f instanceof File)
 	};
 }
 
@@ -137,16 +145,12 @@ function extractSoundbiteFormData(formData: FormData, index: number): Record<str
  */
 export function parseQuizFormData(formData: FormData): ParseResult<QuizFormData> {
 	try {
-		// Extract basic fields
-		const title = formData.get('title')?.toString() || '';
-		const description = formData.get('description')?.toString() || '';
-		const slug = formData.get('slug')?.toString() || '';
-		const visibility = (formData.get('visibility')?.toString() || 'public') as
-			| 'public'
-			| 'unlisted';
-		const quizMode = (formData.get('quizMode')?.toString() || 'standard') as
-			| 'standard'
-			| 'speed_run';
+		// Extract basic fields as strings - Zod will validate them
+		const title = formData.get('title')?.toString() ?? '';
+		const description = formData.get('description')?.toString() ?? '';
+		const slug = formData.get('slug')?.toString() ?? '';
+		const visibility = formData.get('visibility')?.toString() ?? 'public';
+		const quizMode = formData.get('quizMode')?.toString() ?? 'standard';
 		const speedRunConfig = formData.get('speedRunConfig')?.toString();
 
 		// Extract soundbites using bracket notation

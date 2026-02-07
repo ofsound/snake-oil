@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
 import { SpeedRunCheckAnswerRequestSchema } from '$lib/speed-run/types';
 import type { SpeedRunCheckAnswerResponse } from '$lib/speed-run/types';
-import type { MultipleChoiceConfig } from '$lib/variant-types';
+import { isMultipleChoiceConfig } from '$lib/variant-types';
 
 /**
  * POST /api/speed-run/check-answer
@@ -20,15 +20,11 @@ export const POST: RequestHandler = async ({ request }) => {
 
 		if (!parseResult.success) {
 			const errorMessage = parseResult.error.issues.map((issue) => issue.message).join(', ');
-			return json(
-				{
-					success: false,
-					error: `Invalid request: ${errorMessage}`
-				} as SpeedRunCheckAnswerResponse,
-				{
-					status: 400
-				}
-			);
+			const errorResponse: SpeedRunCheckAnswerResponse = {
+				success: false,
+				error: `Invalid request: ${errorMessage}`
+			};
+			return json(errorResponse, { status: 400 });
 		}
 
 		const { soundbiteId, guess } = parseResult.data;
@@ -39,18 +35,22 @@ export const POST: RequestHandler = async ({ request }) => {
 		});
 
 		if (!soundbite) {
-			return json({ success: false, error: 'Soundbite not found' } as SpeedRunCheckAnswerResponse, {
-				status: 404
-			});
+			const notFoundResponse: SpeedRunCheckAnswerResponse = {
+				success: false,
+				error: 'Soundbite not found'
+			};
+			return json(notFoundResponse, { status: 404 });
 		}
 
 		let isCorrect = false;
 		let correctAnswer = '';
 
-		if (soundbite.variantType === 'multiple_choice') {
-			const config = soundbite.variantConfig as MultipleChoiceConfig;
-			isCorrect = checkMultipleChoiceCorrect(guess, config);
-			const correctOption = config.options.find((opt) => opt.isCorrect);
+		if (
+			soundbite.variantType === 'multiple_choice' &&
+			isMultipleChoiceConfig(soundbite.variantConfig)
+		) {
+			isCorrect = checkMultipleChoiceCorrect(guess, soundbite.variantConfig);
+			const correctOption = soundbite.variantConfig.options.find((opt) => opt.isCorrect);
 			correctAnswer = correctOption?.text ?? '';
 		}
 
@@ -63,8 +63,10 @@ export const POST: RequestHandler = async ({ request }) => {
 		return json(response);
 	} catch (err) {
 		console.error('[API Check Answer Error]', err);
-		return json({ success: false, error: 'Internal server error' } as SpeedRunCheckAnswerResponse, {
-			status: 500
-		});
+		const errorResponse: SpeedRunCheckAnswerResponse = {
+			success: false,
+			error: 'Internal server error'
+		};
+		return json(errorResponse, { status: 500 });
 	}
 };

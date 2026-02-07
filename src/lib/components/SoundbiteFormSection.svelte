@@ -15,10 +15,7 @@
 		showHeader?: boolean;
 		headerTitle?: string;
 		addButtonText?: string;
-		cardTitle?: (index: number) => string;
 		forceVariantType?: VariantType;
-		// For edit mode: map of soundbite ID to whether it's been removed
-		removedIds?: Set<string>;
 		// Starting index for bracket notation (0 for create, existing count for edit)
 		startIndex?: number;
 	}
@@ -29,9 +26,7 @@
 		showHeader = true,
 		headerTitle = 'Audio Clips',
 		addButtonText = 'Add Audio Clip',
-		cardTitle = (index) => `SoundBite #${index + 1}`,
 		forceVariantType,
-		removedIds = new Set(),
 		startIndex = 0
 	}: Props = $props();
 

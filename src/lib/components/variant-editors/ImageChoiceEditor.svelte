@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
 
-	import Button from '$lib/components/Button.svelte';
-
 	import { processImageToThumbnail, validateImageFile, getFileHash } from '$lib/image-processing';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';

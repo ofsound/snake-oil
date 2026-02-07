@@ -4,7 +4,6 @@
 
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
-	import Heading from './Heading.svelte';
 	interface Quiz {
 		id: string;
 		title: string;
@@ -16,12 +15,10 @@
 
 	interface Props {
 		quizzes: Quiz[];
-		totalCount: number;
 		currentPage: number;
 		totalPages: number;
 		sort: string;
 		order: 'asc' | 'desc';
-		title: string;
 		description: string;
 		basePath: string;
 		searchValue?: string;
@@ -32,12 +29,10 @@
 
 	let {
 		quizzes,
-		totalCount,
 		currentPage,
 		totalPages,
 		sort,
 		order,
-		title,
 		description,
 		basePath,
 		searchValue = '',

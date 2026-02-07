@@ -63,15 +63,8 @@
 		handleSignIn();
 	}}
 >
-	{#snippet children()}
-		<AuthFormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
-		<AuthFormInput
-			type="password"
-			placeholder="Password"
-			bind:value={password}
-			disabled={loading}
-		/>
-	{/snippet}
+	<AuthFormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
+	<AuthFormInput type="password" placeholder="Password" bind:value={password} disabled={loading} />
 
 	{#snippet footer()}
 		<p>

@@ -6,7 +6,7 @@ import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
 import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 import { SpeedRunSubmitRequestSchema } from '$lib/speed-run/types';
 import type { SpeedRunSubmitResponse } from '$lib/speed-run/types';
-import type { MultipleChoiceConfig } from '$lib/variant-types';
+import { isMultipleChoiceConfig } from '$lib/variant-types';
 
 /**
  * POST /api/speed-run/submit
@@ -21,12 +21,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 
 		if (!parseResult.success) {
 			const errorMessage = parseResult.error.issues.map((issue) => issue.message).join(', ');
-			return json(
-				{ success: false, error: `Invalid request: ${errorMessage}` } as SpeedRunSubmitResponse,
-				{
-					status: 400
-				}
-			);
+			const errorResponse: SpeedRunSubmitResponse = {
+				success: false,
+				error: `Invalid request: ${errorMessage}`
+			};
+			return json(errorResponse, { status: 400 });
 		}
 
 		const { speedRunId, answers, startTime, endTime, displayName } = parseResult.data;
@@ -46,9 +45,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		});
 
 		if (!speedRun) {
-			return json({ success: false, error: 'Speed run not found' } as SpeedRunSubmitResponse, {
-				status: 404
-			});
+			const notFoundResponse: SpeedRunSubmitResponse = {
+				success: false,
+				error: 'Speed run not found'
+			};
+			return json(notFoundResponse, { status: 404 });
 		}
 
 		// Validate all answers against correct answers
@@ -61,9 +62,11 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 			}
 
 			let isCorrect = false;
-			if (soundbite.variantType === 'multiple_choice') {
-				const config = soundbite.variantConfig as MultipleChoiceConfig;
-				isCorrect = checkMultipleChoiceCorrect(answer.guess, config);
+			if (
+				soundbite.variantType === 'multiple_choice' &&
+				isMultipleChoiceConfig(soundbite.variantConfig)
+			) {
+				isCorrect = checkMultipleChoiceCorrect(answer.guess, soundbite.variantConfig);
 			}
 
 			return {
@@ -158,8 +161,10 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 		return json(response);
 	} catch (err) {
 		console.error('[API Submit Error]', err);
-		return json({ success: false, error: 'Internal server error' } as SpeedRunSubmitResponse, {
-			status: 500
-		});
+		const errorResponse: SpeedRunSubmitResponse = {
+			success: false,
+			error: 'Internal server error'
+		};
+		return json(errorResponse, { status: 500 });
 	}
 };

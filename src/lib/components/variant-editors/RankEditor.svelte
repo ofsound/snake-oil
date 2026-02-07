@@ -203,7 +203,6 @@
 		}, 0);
 	}
 
-	const isValid = $derived(items.length >= 2 && items.length <= 10 && prompt.trim().length > 0);
 	const canAddMore = $derived(items.length < 10);
 </script>
 

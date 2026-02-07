@@ -13,10 +13,9 @@
 	type Props = {
 		answerDetail: AnswerDetail;
 		variantConfig: VariantConfig;
-		index: number;
 	};
 
-	let { answerDetail, variantConfig, index }: Props = $props();
+	let { answerDetail, variantConfig }: Props = $props();
 
 	function getUserAnswerText(): string {
 		if (answerDetail.variantType === 'simple_guess') {
@@ -50,12 +49,6 @@
 				.join(' → ');
 		}
 		return answerDetail.guess;
-	}
-
-	// Check if a specific position in rank order is correct
-	function isRankPositionCorrect(position: number): boolean {
-		if (variantConfig.type !== 'rank' || !answerDetail.userOrder) return false;
-		return answerDetail.userOrder[position] === variantConfig.correctOrder[position];
 	}
 
 	let correctAnswerText = $derived(getCorrectAnswerText(variantConfig));

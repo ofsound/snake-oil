@@ -1,4 +1,5 @@
 import { createAuthClient } from 'better-auth/svelte';
+import { inferAdditionalFields } from 'better-auth/client/plugins';
 import { env } from '$env/dynamic/public';
 
 // Better Auth client can auto-detect baseURL if not provided
@@ -9,12 +10,23 @@ const baseURL =
 	(typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_BETTER_AUTH_BASE_URL) ||
 	undefined; // undefined allows Better Auth to auto-detect
 
+// Define the additional fields to match server configuration
+const additionalFields = {
+	user: {
+		slug: {
+			type: 'string' as const,
+			required: true as const
+		}
+	}
+};
+
 export const authClient = createAuthClient({
-	...(baseURL && { baseURL })
+	...(baseURL && { baseURL }),
+	plugins: [inferAdditionalFields(additionalFields)]
 });
 
 // Type for signup with custom fields (slug)
-// Better Auth's additionalFields are passed through to the signup endpoint
+// Now properly typed through inferAdditionalFields plugin
 export interface SignUpWithSlug {
 	email: string;
 	password: string;
@@ -27,6 +39,6 @@ export interface SignUpWithSlug {
  * Better Auth passes additional fields to the user table when configured with additionalFields
  */
 export async function signUpWithSlug(data: SignUpWithSlug) {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	return authClient.signUp.email(data as any);
+	// Type is now properly inferred through the inferAdditionalFields plugin
+	return authClient.signUp.email(data);
 }

@@ -30,7 +30,7 @@ export function createEmptyOption(): { id: string; text: string; isCorrect: bool
 	};
 }
 
-import type { RankConfig, VariantConfig } from '$lib/variant-types';
+import type { VariantConfig } from '$lib/variant-types';
 
 /**
  * Get the correct answer text for display

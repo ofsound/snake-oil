@@ -207,6 +207,14 @@ export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceC
 	return MultipleChoiceConfigSchema.safeParse(value).success;
 }
 
+export function isSequenceConfig(value: unknown): value is SequenceConfig {
+	return SequenceConfigSchema.safeParse(value).success;
+}
+
+export function isSimpleGuessConfig(value: unknown): value is SimpleGuessConfig {
+	return SimpleGuessConfigSchema.safeParse(value).success;
+}
+
 export function validateVariantConfig(value: unknown): value is VariantConfig {
 	return VariantConfigSchema.safeParse(value).success;
 }

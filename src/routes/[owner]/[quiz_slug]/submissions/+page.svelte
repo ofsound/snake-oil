@@ -166,7 +166,7 @@
 			<p class="text-sm text-gray-500">No speed run submissions yet.</p>
 		{:else}
 			<div class="flex flex-col gap-4">
-				{#each data.speedRunResults as result, index (result.id)}
+				{#each data.speedRunResults as result (result.id)}
 					<Card variant="flat" padding="sm" class="flex flex-col gap-3">
 						<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
 							<div class="flex gap-1">

@@ -1,19 +1,11 @@
 import { db } from '$lib/server/db';
-import {
-	quizzes,
-	quizAnswers,
-	soundbites,
-	speedRuns,
-	speedRunResults,
-	user
-} from '$lib/server/db/schema';
-import type { AnswersPayload, VariantConfig, RankConfig } from '$lib/server/db/schema';
-import { error, fail, redirect } from '@sveltejs/kit';
+import { quizzes, quizAnswers, soundbites, speedRunResults, user } from '$lib/server/db/schema';
+import type { AnswersPayload, VariantConfig } from '$lib/server/db/schema';
+import { error, fail } from '@sveltejs/kit';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 import { buildAnswerDetail, calculateScore } from '$lib/server/variant-utils';
-import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
-import type { SpeedRunAnswer, SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
+import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const { owner, quiz_slug: quizSlug } = params;
@@ -338,8 +330,7 @@ export const actions: Actions = {
 								const correctTrack = sb.variantConfig.tracks[sb.variantConfig.correctTrackIndex];
 								return [sb.id, correctTrack?.name ?? ''];
 							} else if (sb.variantConfig.type === 'rank') {
-								const rankConfig = sb.variantConfig as RankConfig;
-								return [sb.id, JSON.stringify(rankConfig)];
+								return [sb.id, JSON.stringify(sb.variantConfig)];
 							} else if (sb.variantConfig.type === 'image_choice') {
 								return [sb.id, JSON.stringify(sb.variantConfig)];
 							}

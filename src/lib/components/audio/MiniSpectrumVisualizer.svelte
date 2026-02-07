@@ -80,7 +80,6 @@
 		isDrawing = true;
 		const bufferLength = currentAnalyser.frequencyBinCount;
 		const dataArray = new Uint8Array(bufferLength);
-		const barWidth = canvasWidth / bufferLength;
 
 		// Throttle to 30fps to reduce CPU/memory bandwidth usage
 		// Audio analysis transfers data from audio thread to main thread

@@ -1,6 +1,5 @@
 <script lang="ts">
 	interface Quiz {
-		id: string;
 		slug: string;
 		title: string;
 		description: string;

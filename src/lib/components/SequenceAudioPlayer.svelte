@@ -139,7 +139,7 @@
 		<!-- Segmented Progress Bar -->
 		<div class="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
 			<div class="flex h-full w-full">
-				{#each tracks as _, index (index)}
+				{#each tracks, index (index)}
 					{@const width = segmentWidths[index]}
 					{@const fillPercent = getSegmentFillPercent(index)}
 					<div

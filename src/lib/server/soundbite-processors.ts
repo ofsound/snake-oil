@@ -33,6 +33,14 @@ function isError(outcome: ProcessingOutcome): outcome is ProcessingError {
 	return 'message' in outcome && !('trackId' in outcome);
 }
 
+/**
+ * Safely extract File objects from FormData
+ * Filters out any non-File entries
+ */
+function getFilesFromFormData(formData: FormData, key: string): File[] {
+	return formData.getAll(key).filter((entry): entry is File => entry instanceof File);
+}
+
 export async function processSequenceVariant(
 	config: SequenceConfig,
 	context: ProcessingContext
@@ -41,7 +49,7 @@ export async function processSequenceVariant(
 	const uploadedTracks = [];
 
 	// Get sequence files from form data
-	const sequenceFiles = formData.getAll(`sequenceFiles-${soundbiteIndex}`) as File[];
+	const sequenceFiles = getFilesFromFormData(formData, `sequenceFiles-${soundbiteIndex}`);
 	console.log(
 		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (sequence): Found ${sequenceFiles.length} files, expected ${config.tracks.length} tracks`
 	);
@@ -106,7 +114,7 @@ export async function processRankVariant(
 	const uploadedItems = [];
 
 	// Get rank files from form data
-	const rankFiles = formData.getAll(`rankFiles-${soundbiteIndex}`) as File[];
+	const rankFiles = getFilesFromFormData(formData, `rankFiles-${soundbiteIndex}`);
 	console.log(
 		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (rank): Found ${rankFiles.length} files, expected ${config.items.length} items`
 	);
@@ -197,7 +205,7 @@ export async function processImageChoiceVariant(
 	const uploadedOptions = [];
 
 	// Get image files from form data
-	const imageFiles = formData.getAll(`imageChoiceFiles-${soundbiteIndex}`) as File[];
+	const imageFiles = getFilesFromFormData(formData, `imageChoiceFiles-${soundbiteIndex}`);
 	console.log(
 		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (image_choice): Found ${imageFiles.length} files in formData, expected ${config.options.length} images`
 	);

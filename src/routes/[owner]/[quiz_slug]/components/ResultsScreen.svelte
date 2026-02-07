@@ -71,7 +71,7 @@
 		<h2 class="mb-6 text-2xl font-bold text-white">🏆 Leaderboard</h2>
 
 		<div class="space-y-3">
-			{#each leaderboard as entry, index}
+			{#each leaderboard as entry, index (entry.id)}
 				{@const isCurrentUserClass = entry.isCurrentUser
 					? 'bg-amber-500/20 border border-amber-500/50'
 					: 'bg-white/5'}

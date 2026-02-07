@@ -21,7 +21,6 @@
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
-	let nextNewSoundbiteId = $state(0);
 	let newSoundbites = $state<SoundbiteState[]>([]);
 
 	let submitting = $state(false);
@@ -228,7 +227,7 @@
 			slug,
 			quizMode: data.isSpeedRun ? 'speed_run' : 'standard',
 			speedRunConfig: data.isSpeedRun ? speedRunConfig : undefined,
-			soundbites: newSoundbites.map((sb, idx) => ({
+			soundbites: newSoundbites.map((sb) => ({
 				id: sb.id,
 				state: sb,
 				type: 'new' as const
@@ -241,8 +240,8 @@
 		newSoundbitesFormData.forEach((value, key) => {
 			if (!skipKeys.includes(key)) {
 				// Adjust indices to account for existing soundbites
-				const adjustedKey = key.replace(/soundbite\[(\d+)\]/, (_, idx) => {
-					const newIdx = parseInt(idx, 10) + data.soundbites.length;
+				const adjustedKey = key.replace(/soundbite\[(\d+)\]/, (_, index) => {
+					const newIdx = parseInt(index, 10) + data.soundbites.length;
 					return `soundbite[${newIdx}]`;
 				});
 				formData.append(adjustedKey, value);
@@ -262,7 +261,6 @@
 				description = currentDescription;
 				// Clear new soundbites since they've been saved
 				newSoundbites = [];
-				nextNewSoundbiteId = 0;
 			} else {
 				await update({ reset: false });
 			}
@@ -397,7 +395,6 @@
 		bind:soundbites={newSoundbites}
 		headerTitle="Add New Audio Clips"
 		addButtonText="Add Audio Clip"
-		cardTitle={(idx) => `New SoundBite #${idx + 1}`}
 		startIndex={data.soundbites.length}
 		onChange={handleNewSoundbitesChange}
 	/>

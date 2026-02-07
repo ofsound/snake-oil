@@ -3,15 +3,7 @@
  * Pure functions for formatting and displaying variant-related data
  */
 
-import type {
-	VariantConfig,
-	SimpleGuessConfig,
-	MultipleChoiceConfig,
-	MultipleResponseConfig,
-	SequenceConfig,
-	RankConfig,
-	ImageChoiceConfig
-} from './variant-types';
+import type { VariantConfig } from './variant-types';
 
 /**
  * Get the correct answer text for display

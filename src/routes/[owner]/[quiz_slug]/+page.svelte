@@ -6,7 +6,6 @@
 	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
 	import MultipleChoiceInput from '$lib/components/MultipleChoiceInput.svelte';
 	import AnswerResultCard from '$lib/components/AnswerResultCard.svelte';
-	import FormField from '$lib/components/FormField.svelte';
 	import MultipleResponseInput from '$lib/components/MultipleResponseInput.svelte';
 	import ImageChoiceInput from '$lib/components/ImageChoiceInput.svelte';
 	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
@@ -43,7 +42,6 @@
 	let sequenceBuzzed = $state<Record<string, boolean>>({});
 	let rankOrders = $state<Record<string, number[]>>({});
 
-	let signedInLabel = $derived(data.user?.name || data.user?.email || 'Signed-in user');
 	let isOwner = $derived(data.user?.id === data.quiz.owner.id);
 	let isSpeedRun = $derived(!!data.quiz.speedRun);
 	let speedRunConfig = $derived(isSpeedRun ? data.quiz.speedRun : null);
@@ -203,7 +201,6 @@
 										...soundbite.variantConfig,
 										...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
 									}}
-								{index}
 							/>
 						</div>
 					{/if}
@@ -299,8 +296,6 @@
 									<SequenceInput
 										soundbiteId={soundbite.id}
 										answer={userAnswers[soundbite.id] ?? ''}
-										onBuzzer={() => {}}
-										disabled={sequenceBuzzed[soundbite.id] ?? false}
 									/>
 								</div>
 							{:else if soundbite.variantType === 'rank'}

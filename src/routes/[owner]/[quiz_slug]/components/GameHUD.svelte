@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatTimeMs, formatTimeLong } from '$lib/speed-run/scoring';
+	import { formatTimeLong } from '$lib/speed-run/scoring';
 	interface Props {
 		progress: { current: number; total: number };
 		globalTimeMs: number;

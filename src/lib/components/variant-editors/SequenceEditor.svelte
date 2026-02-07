@@ -139,7 +139,6 @@
 		}
 	}
 
-	const isValid = $derived(tracks.length >= 2 && tracks.length <= 10 && prompt.trim().length > 0);
 	const canAddMore = $derived(tracks.length < 10);
 </script>
 

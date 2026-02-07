@@ -9,14 +9,12 @@
 	let { question, gapMs, onAnswer }: Props = $props();
 
 	let audioElement: HTMLAudioElement;
-	let isPlaying = $state(true);
 	let hasAnswered = $state(false);
 
 	// Auto-play audio when question appears
 	$effect(() => {
 		if (audioElement) {
 			audioElement.play();
-			isPlaying = true;
 		}
 	});
 

@@ -39,7 +39,6 @@
 		enableStreakBonus: true
 	});
 
-	let nextSoundbiteId = $state(1);
 	let soundbites = $state<SoundbiteState[]>([
 		{
 			id: 0,
