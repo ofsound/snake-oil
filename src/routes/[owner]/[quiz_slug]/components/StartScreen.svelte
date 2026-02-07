@@ -17,10 +17,8 @@
 		onStart
 	}: Props = $props();
 
-	let nameInput = $state('');
-	$effect(() => {
-		nameInput = displayName;
-	});
+	let localOverride = $state<string | null>(null);
+	let nameInput = $derived(localOverride !== null ? localOverride : displayName);
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();
@@ -34,7 +32,7 @@
 	<div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 		<div class="mb-8 text-center">
 			<div
-				class="mb-4 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold text-white"
+				class="mb-4 inline-flex items-center justify-center rounded-full bg-linear-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold text-white"
 			>
 				⚡ SPEED RUN
 			</div>
@@ -93,7 +91,8 @@
 				<input
 					type="text"
 					id="displayName"
-					bind:value={nameInput}
+					value={nameInput}
+					oninput={(e) => (localOverride = e.currentTarget.value)}
 					placeholder="Your name"
 					required
 					class="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/50 focus:outline-none"
@@ -102,7 +101,7 @@
 
 			<button
 				type="submit"
-				class="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
+				class="w-full rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
 			>
 				START SPEED RUN ⚡
 			</button>

@@ -68,7 +68,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 		// Skip if already loaded this URL (but still allow re-load if explicitly requested)
 		if (this.bufferLoaded && this.trackUrl === url && this.audioBuffer && !this.loadInProgress) {
-			console.log('[SingleTrackAudioEngine] Buffer already loaded for this URL, skipping');
 			return;
 		}
 
@@ -118,7 +117,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 			// Check if a newer load operation has superseded this one
 			if (this.loadOperationId !== operationId) {
-				console.log(`[SingleTrackAudioEngine] Load operation ${operationId} superseded, aborting`);
 				return;
 			}
 
@@ -130,9 +128,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 			// Check again after async operation
 			if (this.loadOperationId !== operationId) {
-				console.log(
-					`[SingleTrackAudioEngine] Load operation ${operationId} superseded after fetch, aborting`
-				);
 				return;
 			}
 
@@ -146,9 +141,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 
 			// Final check before applying results
 			if (this.loadOperationId !== operationId) {
-				console.log(
-					`[SingleTrackAudioEngine] Load operation ${operationId} superseded after decode, aborting`
-				);
 				return;
 			}
 
@@ -161,18 +153,12 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			this.bufferLoaded = true;
 			this.duration = decodedBuffer.duration;
 			this.armAudio();
-
-			console.log(`[SingleTrackAudioEngine] Load operation ${operationId} completed successfully`);
 		} catch (err) {
 			// Only update error state if this operation is still current
 			if (this.loadOperationId === operationId) {
 				const message = err instanceof Error ? err.message : 'Failed to load audio';
 				this.reportError(message, 'Error loading buffer', err, true);
 				this.bufferLoaded = false;
-			} else {
-				console.log(
-					`[SingleTrackAudioEngine] Error in superseded operation ${operationId}, ignoring`
-				);
 			}
 		} finally {
 			// Only clear loading state if this is the current operation
@@ -201,7 +187,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		const needsReinit = !this.audioContext || this.audioContext.state === 'closed';
 
 		if (needsReinit) {
-			console.log('[SingleTrackAudioEngine] AudioContext needs reinitialization...');
 			const reinitSuccess = this.initialize();
 			if (!reinitSuccess || !this.audioContext) {
 				this.reportError(
@@ -212,26 +197,16 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				);
 				return;
 			}
-			console.log('[SingleTrackAudioEngine] AudioContext reinitialized, reloading buffer...');
 			if (this.trackUrl) {
-				this.loadBuffer(this.trackUrl).then(() => {
-					if (this.bufferLoaded) {
-						console.log('[SingleTrackAudioEngine] Buffer reloaded after reinit');
-					}
-				});
+				this.loadBuffer(this.trackUrl);
 			}
 		}
 
 		if (!this.audioContext || !this.bufferLoaded) {
-			console.log('[SingleTrackAudioEngine] Cannot play: context or buffer not ready', {
-				hasContext: !!this.audioContext,
-				bufferLoaded: this.bufferLoaded
-			});
 			return;
 		}
 
 		const state = this.getCurrentState();
-		console.log('[SingleTrackAudioEngine] State transition:', state);
 
 		// Route to appropriate state transition
 		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {

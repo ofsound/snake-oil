@@ -119,7 +119,6 @@ export const quizAudioContext = {
 	 */
 	async play(playerId: string, url: string): Promise<void> {
 		if (isEngineError) {
-			console.log('[QuizAudioContext] Engine is in error state, cannot play');
 			return;
 		}
 

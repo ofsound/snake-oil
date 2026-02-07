@@ -200,9 +200,6 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			// Final check before applying results
 			if (this.loadOperationId !== operationId) {
-				console.log(
-					`[MultiTrackAudioEngine] Load operation ${operationId} superseded after decode, aborting`
-				);
 				return;
 			}
 
@@ -226,18 +223,12 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 
 			// Arm audio for first track
 			this.armAudio(0);
-
-			console.log(`[MultiTrackAudioEngine] Load operation ${operationId} completed successfully`);
 		} catch (err) {
 			// Only update error state if this operation is still current
 			if (this.loadOperationId === operationId) {
 				this.error = err instanceof Error ? err.message : 'Failed to load audio';
 				console.error('[MultiTrackAudioEngine] Error loading buffers:', err);
 				this.buffersLoaded = false;
-			} else {
-				console.log(
-					`[MultiTrackAudioEngine] Error in superseded operation ${operationId}, ignoring`
-				);
 			}
 		} finally {
 			// Only clear loading state if this is the current operation
@@ -263,14 +254,12 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		const needsReinit = !this.audioContext || this.audioContext.state === 'closed';
 
 		if (needsReinit) {
-			console.log('[MultiTrackAudioEngine] AudioContext needs reinitialization...');
 			const reinitSuccess = this.initialize();
 			if (!reinitSuccess || !this.audioContext) {
 				console.error('[MultiTrackAudioEngine] Failed to reinitialize audio context');
 				this.error = 'Failed to initialize audio';
 				return;
 			}
-			console.log('[MultiTrackAudioEngine] AudioContext reinitialized, reloading buffers...');
 			if (this.tracks.length > 0) {
 				this.loadBuffers(this.tracks);
 				return;
@@ -278,15 +267,10 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		}
 
 		if (!this.audioContext || !this.buffersLoaded || this.buffers.length === 0) {
-			console.log('[MultiTrackAudioEngine] Cannot play: context or buffers not ready', {
-				hasContext: !!this.audioContext,
-				buffersLoaded: this.buffersLoaded
-			});
 			return;
 		}
 
 		const state = this.getCurrentState();
-		console.log('[MultiTrackAudioEngine] State transition:', state);
 
 		// Route to appropriate state transition
 		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
@@ -354,8 +338,6 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 							this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
 					}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 				}
-
-				console.log('[MultiTrackAudioEngine] Playback started successfully');
 			});
 		});
 	}
@@ -689,9 +671,6 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 		if (this.isShuffleEnabled) {
 			// Initialize shuffle history with current track
 			this.playedIndices = [this.currentTrackIndex];
-			console.log('[MultiTrackAudioEngine] Shuffle mode enabled');
-		} else {
-			console.log('[MultiTrackAudioEngine] Shuffle mode disabled');
 		}
 	}
 
