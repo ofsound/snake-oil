@@ -64,8 +64,8 @@
 				transition-all duration-200 ease-in-out focus:outline-none focus-visible:ring-2
 				focus-visible:ring-green-500 focus-visible:ring-offset-2
 				{checked
-				? 'bg-gradient-to-r from-green-400 to-green-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'
-				: 'bg-gradient-to-r from-gray-300 to-gray-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'}
+				? 'bg-linear-to-r from-green-400 to-green-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'
+				: 'bg-linear-to-r from-gray-300 to-gray-400 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'}
 				{disabled ? 'cursor-not-allowed opacity-50' : ''}
 			"
 		>

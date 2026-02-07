@@ -53,10 +53,10 @@
 					onclick={() => onTrackSelect(index)}
 					class="flex min-h-14 w-full items-center gap-3 border-b border-gray-400 px-4 py-3 text-left transition-colors {isCurrent
 						? 'bg-gray-800 text-white hover:bg-gray-700'
-						: 'bg-[repeating-linear-gradient(45deg,_#e1e1e1_0,_#e1e1e1_1px,_transparent_0,_transparent_50%)] bg-[size:10px_10px] text-gray-400 hover:bg-gray-200'}"
+						: 'bg-[repeating-linear-gradient(45deg,#e1e1e1_0,#e1e1e1_1px,transparent_0,transparent_50%)] bg-size-[10px_10px] text-gray-400 hover:bg-gray-200'}"
 				>
 					<!-- Track number -->
-					<span class="min-w-[1.5rem] text-center text-xs font-bold">
+					<span class="min-w-6 text-center text-xs font-bold">
 						{index + 1}
 					</span>
 

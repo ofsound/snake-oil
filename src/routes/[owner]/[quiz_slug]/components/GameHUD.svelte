@@ -49,7 +49,7 @@
 	<!-- Progress bar -->
 	<div class="h-2 w-full overflow-hidden rounded-full bg-white/10">
 		<div
-			class="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 transition-all duration-300"
+			class="h-full rounded-full bg-linear-to-r from-amber-500 to-orange-500 transition-all duration-300"
 			style="width: {progressPercent}%"
 		></div>
 	</div>
@@ -93,7 +93,7 @@
 		<!-- Streak counter -->
 		{#if streak > 0}
 			<div
-				class="flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-4 py-2"
+				class="flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-red-500 px-4 py-2"
 			>
 				<span class="text-xl">🔥</span>
 				<span class="font-bold text-white">{streak}</span>
