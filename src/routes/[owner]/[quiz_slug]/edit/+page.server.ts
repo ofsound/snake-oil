@@ -18,6 +18,7 @@ import {
 } from '$lib/server/db/schema';
 import { deleteFromBlob } from '$lib/server/quiz-utils';
 import { processQuizSubmission } from '$lib/server/quiz-processor';
+import { handleQuizTagRemoval } from '$lib/server/tag-utils';
 
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
@@ -131,7 +132,7 @@ export const actions: Actions = {
 
 		const existingQuiz = await db.query.quizzes.findFirst({
 			where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
-			columns: { id: true },
+			columns: { id: true, visibility: true },
 			with: {
 				soundbites: {
 					with: {
@@ -146,6 +147,9 @@ export const actions: Actions = {
 		}
 
 		try {
+			// Decrement tag counts before deletion (for public quizzes)
+			await handleQuizTagRemoval(db, existingQuiz.id, existingQuiz.visibility === 'public');
+
 			const trackIds: string[] = [];
 			for (const soundbite of existingQuiz.soundbites) {
 				if (soundbite.track?.pathname) {

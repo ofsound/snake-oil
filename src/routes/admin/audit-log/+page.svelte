@@ -47,7 +47,7 @@
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
 					<option value="all" selected={data.filters.action === 'all'}>All Actions</option>
-					{#each data.filterOptions.actions as action}
+					{#each data.filterOptions.actions as action (action)}
 						<option value={action} selected={data.filters.action === action}>
 							{formatAction(action)}
 						</option>
@@ -62,7 +62,7 @@
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
 					<option value="all" selected={data.filters.targetType === 'all'}>All Targets</option>
-					{#each data.filterOptions.targetTypes as targetType}
+					{#each data.filterOptions.targetTypes as targetType (targetType)}
 						<option value={targetType} selected={data.filters.targetType === targetType}>
 							{formatTargetType(targetType)}
 						</option>
@@ -115,7 +115,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.actions as action}
+						{#each data.actions as action (action.id)}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
 									<time title={new Date(action.createdAt).toLocaleString()}>

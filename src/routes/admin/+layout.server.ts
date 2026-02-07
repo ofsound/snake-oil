@@ -1,5 +1,3 @@
-import { error } from '@sveltejs/kit';
-
 import { requireModerator } from '$lib/server/permissions';
 
 import type { LayoutServerLoad } from './$types';

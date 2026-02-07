@@ -297,7 +297,7 @@
 		<div class="mt-8">
 			<Heading level={2} class="mb-4 text-lg">Most Popular Tags</Heading>
 			<div class="flex flex-wrap gap-2">
-				{#each data.popularTags as tag}
+				{#each data.popularTags as tag (tag.id)}
 					<a
 						href="/quizzes/tag/{tag.slug}"
 						class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
@@ -482,7 +482,7 @@
 						};
 					}}
 				>
-					{#each selectedTagsForMerge as tagId}
+					{#each selectedTagsForMerge as tagId (tagId)}
 						<input type="hidden" name="sourceIds" value={tagId} />
 					{/each}
 					<FormField label="Target Tag" id="target-tag">
@@ -493,7 +493,7 @@
 							class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
 						>
 							<option value="">Select a tag...</option>
-							{#each data.tags.filter((t) => !selectedTagsForMerge.includes(t.id)) as tag}
+							{#each data.tags.filter((t) => !selectedTagsForMerge.includes(t.id)) as tag (tag.id)}
 								<option value={tag.id}>{tag.label} ({tag.useCount} uses)</option>
 							{/each}
 						</select>

@@ -154,7 +154,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.recentActions as action}
+						{#each data.recentActions as action (action.id)}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="text-sm font-medium text-gray-900">

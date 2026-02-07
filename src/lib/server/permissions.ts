@@ -1,7 +1,5 @@
 import { error } from '@sveltejs/kit';
 
-import type { UserRole } from '$lib/server/db/schema';
-
 // Flexible user interface that works with both auth User and schema User
 type UserLike = {
 	id: string;

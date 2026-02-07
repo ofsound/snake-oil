@@ -1,5 +1,5 @@
 import { json, error } from '@sveltejs/kit';
-import { eq, like, or, desc, sql } from 'drizzle-orm';
+import { eq, like, desc, sql } from 'drizzle-orm';
 import { db } from '$lib/server/db';
 import { tags } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
@@ -30,8 +30,13 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 };
 
-// POST /api/tags - Create a new tag
-export const POST: RequestHandler = async ({ request }) => {
+// POST /api/tags - Create a new tag (authenticated users only)
+export const POST: RequestHandler = async ({ request, locals }) => {
+	// Require authentication
+	if (!locals.user) {
+		error(401, 'Authentication required');
+	}
+
 	const formData = await request.formData();
 	const label = formData.get('label')?.toString().trim().toLowerCase();
 
@@ -65,7 +70,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			.values({
 				label,
 				slug,
-				useCount: 0
+				useCount: 0,
+				createdBy: locals.user.id
 			})
 			.returning();
 

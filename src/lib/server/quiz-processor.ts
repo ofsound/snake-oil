@@ -4,15 +4,7 @@ import { slugify } from '$lib/utils';
 import type { VariantConfig, VariantType, ImageChoiceConfig } from '$lib/variant-types';
 
 import { db, type Db } from './db/index.js';
-import {
-	quizzes,
-	soundbites,
-	tracks,
-	speedRuns,
-	quizTags,
-	tags,
-	tagCooccurrence
-} from './db/schema.js';
+import { quizzes, soundbites, tracks } from './db/schema.js';
 import { findUniqueSlug } from './db/slug-utils.js';
 import {
 	processSequenceVariant,
@@ -24,6 +16,8 @@ import {
 } from './soundbite-processors.js';
 import { parseQuizFormData, isSoundbiteRemoved, isNewSoundbite } from './form-parser.js';
 import { uploadToBlob, deleteFromBlob } from './quiz-utils.js';
+import { processQuizTags, handleVisibilityChange } from './tag-processor.js';
+import { createOrUpdateSpeedRunConfig } from './speedrun-processor.js';
 import type { SoundbiteFormData } from './form-parser.js';
 
 interface ProcessQuizOptions {
@@ -119,6 +113,7 @@ class ResourceTracker {
 
 /**
  * Unified quiz processor - handles both create and edit operations
+ * REFACTORED: Tag and speed run logic extracted to separate processors
  */
 export async function processQuizSubmission(
 	options: ProcessQuizOptions
@@ -141,17 +136,28 @@ export async function processQuizSubmission(
 	try {
 		let quizIdToUse: string;
 		let finalSlug: string;
+		let wasPublic = false;
 
 		if (quizId) {
 			// EDIT MODE: Update existing quiz
 			const existingQuiz = await db.query.quizzes.findFirst({
 				where: and(eq(quizzes.id, quizId), eq(quizzes.ownerId, userId)),
-				columns: { id: true }
+				columns: { id: true, visibility: true }
 			});
 
 			if (!existingQuiz) {
 				return { success: false, error: 'Quiz not found or access denied' };
 			}
+
+			wasPublic = existingQuiz.visibility === 'public';
+
+			// Handle visibility change before updating quiz
+			await handleVisibilityChange({
+				db,
+				quizId,
+				oldVisibility: existingQuiz.visibility as 'public' | 'private' | 'unlisted',
+				newVisibility: data.visibility as 'public' | 'private' | 'unlisted'
+			});
 
 			// Find unique slug excluding current quiz
 			finalSlug = await findUniqueSlug(data.slug, userId, quizId);
@@ -194,12 +200,43 @@ export async function processQuizSubmission(
 
 		// Handle speed run config if applicable
 		if (data.quizMode === 'speed_run' && data.speedRunConfig) {
-			await createOrUpdateSpeedRunConfig(db, quizIdToUse, data.speedRunConfig);
+			const speedRunResult = await createOrUpdateSpeedRunConfig(
+				db,
+				quizIdToUse,
+				data.speedRunConfig
+			);
+
+			if (!speedRunResult.success) {
+				throw new Error(speedRunResult.error || 'Failed to save speed run configuration');
+			}
 		}
 
-		// Handle tags
+		// Handle tags using the new tag processor
 		if (data.tags && data.tags.length > 0) {
-			await processQuizTags(db, quizIdToUse, data.tags, quizId ? undefined : userId);
+			const tagResult = await processQuizTags({
+				db,
+				quizId: quizIdToUse,
+				newTagIds: data.tags,
+				visibility: data.visibility as 'public' | 'private' | 'unlisted',
+				wasPublic
+			});
+
+			if (!tagResult.success) {
+				throw new Error(tagResult.error || 'Failed to process tags');
+			}
+		} else if (quizId) {
+			// All tags removed - process empty tag set
+			const tagResult = await processQuizTags({
+				db,
+				quizId: quizIdToUse,
+				newTagIds: [],
+				visibility: data.visibility as 'public' | 'private' | 'unlisted',
+				wasPublic
+			});
+
+			if (!tagResult.success) {
+				throw new Error(tagResult.error || 'Failed to process tags');
+			}
 		}
 
 		return {
@@ -448,157 +485,5 @@ async function processAllSoundbites(
 
 		tracker.trackSoundbite(newSoundbiteRecord.id);
 		position++;
-	}
-}
-
-/**
- * Create or update speed run configuration
- */
-async function createOrUpdateSpeedRunConfig(
-	db: Db,
-	quizId: string,
-	config: {
-		defaultQuestionTimeLimit: number | null;
-		revealDelayMs: number;
-		audioLoopGapMs: number;
-		enableStreakBonus: boolean;
-	}
-): Promise<void> {
-	// Check if speed run config exists
-	const existing = await db.query.speedRuns.findFirst({
-		where: eq(speedRuns.quizId, quizId)
-	});
-
-	if (existing) {
-		await db
-			.update(speedRuns)
-			.set({
-				defaultQuestionTimeLimit: config.defaultQuestionTimeLimit,
-				revealDelayMs: config.revealDelayMs,
-				audioLoopGapMs: config.audioLoopGapMs,
-				enableStreakBonus: config.enableStreakBonus
-			})
-			.where(eq(speedRuns.quizId, quizId));
-	} else {
-		await db.insert(speedRuns).values({
-			quizId,
-			defaultQuestionTimeLimit: config.defaultQuestionTimeLimit,
-			revealDelayMs: config.revealDelayMs,
-			audioLoopGapMs: config.audioLoopGapMs,
-			enableStreakBonus: config.enableStreakBonus
-		});
-	}
-}
-
-/**
- * Process quiz tags - creates associations and updates tag counts
- */
-async function processQuizTags(
-	db: Db,
-	quizId: string,
-	tagIds: string[],
-	userId?: string
-): Promise<void> {
-	// Remove existing tags for edit mode
-	await db.delete(quizTags).where(eq(quizTags.quizId, quizId));
-
-	if (tagIds.length === 0) return;
-
-	// Verify all tags exist and get their data
-	const existingTags = await db.query.tags.findMany({
-		where: (tags, { inArray }) => inArray(tags.id, tagIds)
-	});
-
-	if (existingTags.length === 0) return;
-
-	// Create quiz-tag associations
-	const now = new Date();
-	await db.insert(quizTags).values(
-		existingTags.map((tag) => ({
-			quizId,
-			tagId: tag.id,
-			addedAt: now
-		}))
-	);
-
-	// Update tag use counts for public quizzes
-	const quiz = await db.query.quizzes.findFirst({
-		where: eq(quizzes.id, quizId),
-		columns: { visibility: true }
-	});
-
-	if (quiz?.visibility === 'public') {
-		// Increment use counts
-		for (const tag of existingTags) {
-			await db
-				.update(tags)
-				.set({ useCount: tag.useCount + 1 })
-				.where(eq(tags.id, tag.id));
-		}
-
-		// Update co-occurrences for related tags feature
-		if (existingTags.length > 1) {
-			await updateTagCooccurrences(
-				db,
-				existingTags.map((t) => t.id)
-			);
-		}
-	}
-}
-
-/**
- * Update tag co-occurrence counts for related tags
- */
-async function updateTagCooccurrences(db: Db, tagIds: string[]): Promise<void> {
-	// For each pair of tags, increment their co-occurrence count
-	for (let i = 0; i < tagIds.length; i++) {
-		for (let j = i + 1; j < tagIds.length; j++) {
-			const tagA = tagIds[i];
-			const tagB = tagIds[j];
-
-			// Check if co-occurrence exists (both directions)
-			const existingA = await db.query.tagCooccurrence.findFirst({
-				where: (co, { and, eq }) => and(eq(co.tagId, tagA), eq(co.relatedTagId, tagB))
-			});
-
-			if (existingA) {
-				await db
-					.update(tagCooccurrence)
-					.set({
-						cooccurrenceCount: existingA.cooccurrenceCount + 1,
-						updatedAt: new Date()
-					})
-					.where(and(eq(tagCooccurrence.tagId, tagA), eq(tagCooccurrence.relatedTagId, tagB)));
-			} else {
-				await db.insert(tagCooccurrence).values({
-					tagId: tagA,
-					relatedTagId: tagB,
-					cooccurrenceCount: 1,
-					updatedAt: new Date()
-				});
-			}
-
-			// Also record the reverse relationship
-			const existingB = await db.query.tagCooccurrence.findFirst({
-				where: (co, { and, eq }) => and(eq(co.tagId, tagB), eq(co.relatedTagId, tagA))
-			});
-
-			if (existingB) {
-				await db
-					.update(tagCooccurrence)
-					.set({
-						cooccurrenceCount: existingB.cooccurrenceCount + 1,
-						updatedAt: new Date()
-					})
-					.where(and(eq(tagCooccurrence.tagId, tagB), eq(tagCooccurrence.relatedTagId, tagA)));
-			} else {
-				await db.insert(tagCooccurrence).values({
-					tagId: tagB,
-					relatedTagId: tagA,
-					cooccurrenceCount: 1,
-					updatedAt: new Date()
-				});
-			}
-		}
 	}
 }

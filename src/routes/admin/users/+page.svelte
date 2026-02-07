@@ -164,7 +164,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.users as user}
+						{#each data.users as user (user.id)}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">

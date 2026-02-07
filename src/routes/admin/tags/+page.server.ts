@@ -5,6 +5,7 @@ import { db } from '$lib/server/db';
 import { tags, quizTags, tagCooccurrence } from '$lib/server/db/schema';
 import { slugify } from '$lib/utils';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
+import { isModeratorOrBetter } from '$lib/server/permissions';
 
 import type { PageServerLoad, Actions } from './$types';
 
@@ -93,8 +94,8 @@ export const load: PageServerLoad = async ({ url }) => {
 
 export const actions: Actions = {
 	create: async ({ request, locals }) => {
-		if (!locals.user) {
-			return fail(401, { error: 'Unauthorized' });
+		if (!isModeratorOrBetter(locals.user)) {
+			return fail(403, { error: 'Moderator access required' });
 		}
 
 		const formData = await request.formData();
@@ -135,7 +136,7 @@ export const actions: Actions = {
 
 		// Log the action
 		await logAdminAction(
-			locals.user.id,
+			locals.user!.id,
 			AdminActionTypes.CREATE_TAG,
 			TargetTypes.TAG,
 			newTag.id,
@@ -147,8 +148,8 @@ export const actions: Actions = {
 	},
 
 	update: async ({ request, locals }) => {
-		if (!locals.user) {
-			return fail(401, { error: 'Unauthorized' });
+		if (!isModeratorOrBetter(locals.user)) {
+			return fail(403, { error: 'Moderator access required' });
 		}
 
 		const formData = await request.formData();
@@ -192,7 +193,7 @@ export const actions: Actions = {
 
 		// Log the action
 		await logAdminAction(
-			locals.user.id,
+			locals.user!.id,
 			AdminActionTypes.UPDATE_TAG,
 			TargetTypes.TAG,
 			id,
@@ -204,8 +205,8 @@ export const actions: Actions = {
 	},
 
 	delete: async ({ request, locals }) => {
-		if (!locals.user) {
-			return fail(401, { error: 'Unauthorized' });
+		if (!isModeratorOrBetter(locals.user)) {
+			return fail(403, { error: 'Moderator access required' });
 		}
 
 		const formData = await request.formData();
@@ -236,7 +237,7 @@ export const actions: Actions = {
 
 		// Log the action
 		await logAdminAction(
-			locals.user.id,
+			locals.user!.id,
 			AdminActionTypes.DELETE_TAG,
 			TargetTypes.TAG,
 			id,
@@ -251,8 +252,8 @@ export const actions: Actions = {
 	},
 
 	merge: async ({ request, locals }) => {
-		if (!locals.user) {
-			return fail(401, { error: 'Unauthorized' });
+		if (!isModeratorOrBetter(locals.user)) {
+			return fail(403, { error: 'Moderator access required' });
 		}
 
 		const formData = await request.formData();
@@ -267,7 +268,7 @@ export const actions: Actions = {
 			return fail(400, { error: 'Cannot merge a tag into itself' });
 		}
 
-		// Get target tag
+		// Get target tag and source tags before transaction for validation and audit
 		const targetTag = await db.query.tags.findFirst({
 			where: eq(tags.id, targetId)
 		});
@@ -276,57 +277,70 @@ export const actions: Actions = {
 			return fail(404, { error: 'Target tag not found' });
 		}
 
-		// Get source tags for audit log
 		const sourceTags = await db.query.tags.findMany({
 			where: sql`${tags.id} IN ${sourceIds}`
 		});
 
-		// Move all quiz associations from source tags to target
-		for (const sourceId of sourceIds) {
-			// Get quiz associations for source tag
-			const sourceAssociations = await db.query.quizTags.findMany({
-				where: eq(quizTags.tagId, sourceId)
-			});
-
-			for (const association of sourceAssociations) {
-				// Check if quiz already has target tag
-				const existing = await db.query.quizTags.findFirst({
-					where: and(eq(quizTags.quizId, association.quizId), eq(quizTags.tagId, targetId))
-				});
-
-				if (!existing) {
-					// Add target tag to quiz
-					await db.insert(quizTags).values({
-						quizId: association.quizId,
-						tagId: targetId
-					});
-				}
-
-				// Remove source tag association
-				await db
-					.delete(quizTags)
-					.where(and(eq(quizTags.quizId, association.quizId), eq(quizTags.tagId, sourceId)));
-			}
-
-			// Delete source tag
-			await db.delete(quizTags).where(eq(quizTags.tagId, sourceId));
-			await db.delete(tagCooccurrence).where(eq(tagCooccurrence.tagId, sourceId));
-			await db.delete(tagCooccurrence).where(eq(tagCooccurrence.relatedTagId, sourceId));
-			await db.delete(tags).where(eq(tags.id, sourceId));
+		if (sourceTags.length === 0) {
+			return fail(404, { error: 'No source tags found' });
 		}
 
-		// Recalculate target tag use count
-		const countResult = await db
-			.select({ count: count() })
-			.from(quizTags)
-			.where(eq(quizTags.tagId, targetId));
-		const newCount = countResult[0]?.count ?? 0;
+		let newCount: number;
 
-		await db.update(tags).set({ useCount: newCount }).where(eq(tags.id, targetId));
+		// Execute merge within a transaction for atomicity
+		try {
+			await db.transaction(async (tx) => {
+				// Move all quiz associations from source tags to target
+				for (const sourceId of sourceIds) {
+					// Get quiz associations for source tag
+					const sourceAssociations = await tx.query.quizTags.findMany({
+						where: eq(quizTags.tagId, sourceId)
+					});
 
-		// Log the action
+					for (const association of sourceAssociations) {
+						// Check if quiz already has target tag
+						const existing = await tx.query.quizTags.findFirst({
+							where: and(eq(quizTags.quizId, association.quizId), eq(quizTags.tagId, targetId))
+						});
+
+						if (!existing) {
+							// Add target tag to quiz
+							await tx.insert(quizTags).values({
+								quizId: association.quizId,
+								tagId: targetId
+							});
+						}
+
+						// Remove source tag association
+						await tx
+							.delete(quizTags)
+							.where(and(eq(quizTags.quizId, association.quizId), eq(quizTags.tagId, sourceId)));
+					}
+
+					// Delete source tag and related data
+					await tx.delete(quizTags).where(eq(quizTags.tagId, sourceId));
+					await tx.delete(tagCooccurrence).where(eq(tagCooccurrence.tagId, sourceId));
+					await tx.delete(tagCooccurrence).where(eq(tagCooccurrence.relatedTagId, sourceId));
+					await tx.delete(tags).where(eq(tags.id, sourceId));
+				}
+
+				// Recalculate target tag use count
+				const countResult = await tx
+					.select({ count: count() })
+					.from(quizTags)
+					.where(eq(quizTags.tagId, targetId));
+				newCount = countResult[0]?.count ?? 0;
+
+				await tx.update(tags).set({ useCount: newCount }).where(eq(tags.id, targetId));
+			});
+		} catch (err) {
+			console.error('Transaction failed during tag merge:', err);
+			return fail(500, { error: 'Failed to merge tags. Please try again.' });
+		}
+
+		// Log the action (outside transaction since it's audit logging)
 		await logAdminAction(
-			locals.user.id,
+			locals.user!.id,
 			AdminActionTypes.MERGE_TAGS,
 			TargetTypes.TAG,
 			targetId,
@@ -334,7 +348,7 @@ export const actions: Actions = {
 			{
 				targetTag: { id: targetTag.id, label: targetTag.label },
 				mergedTags: sourceTags.map((t) => ({ id: t.id, label: t.label })),
-				newUseCount: newCount
+				newUseCount: newCount!
 			}
 		);
 
@@ -345,8 +359,8 @@ export const actions: Actions = {
 	},
 
 	recalculate: async ({ locals }) => {
-		if (!locals.user) {
-			return fail(401, { error: 'Unauthorized' });
+		if (!isModeratorOrBetter(locals.user)) {
+			return fail(403, { error: 'Moderator access required' });
 		}
 
 		// Recalculate all use counts
@@ -364,7 +378,7 @@ export const actions: Actions = {
 
 		// Log the action
 		await logAdminAction(
-			locals.user.id,
+			locals.user!.id,
 			'recalculate_counts',
 			TargetTypes.TAG,
 			undefined,

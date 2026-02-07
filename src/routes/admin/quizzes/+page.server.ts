@@ -1,10 +1,11 @@
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { eq, desc, asc, count, sql, like, or } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
 import { quizzes, user, speedRuns, quizAnswers, soundbites } from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
+import { handleQuizTagRemoval } from '$lib/server/tag-utils';
 
 import type { PageServerLoad, Actions } from './$types';
 
@@ -151,7 +152,10 @@ export const actions: Actions = {
 			.from(quizAnswers)
 			.where(eq(quizAnswers.quizId, quizId));
 
-		// Delete the quiz (cascades to soundbites, quizAnswers, speedRuns)
+		// Decrement tag counts before deletion (for public quizzes)
+		await handleQuizTagRemoval(db, quizId, quiz.visibility === 'public');
+
+		// Delete the quiz (cascades to soundbites, quizAnswers, speedRuns, quizTags)
 		await db.delete(quizzes).where(eq(quizzes.id, quizId));
 
 		// Log the action

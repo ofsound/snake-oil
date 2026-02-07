@@ -34,6 +34,7 @@
 	let containerElement: HTMLDivElement;
 	let isLoading = $state(false);
 	let recentlyAdded = $state<string | null>(null);
+	let createError = $state<string | null>(null);
 
 	function debounce(fn: (query: string) => Promise<void>, delay: number) {
 		let timeoutId: ReturnType<typeof setTimeout>;
@@ -71,6 +72,7 @@
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		inputValue = target.value;
+		createError = null;
 		debouncedFetch(inputValue);
 	}
 
@@ -153,6 +155,7 @@
 		if (tags.length >= maxTags) return;
 
 		isLoading = true;
+		createError = null;
 		try {
 			const formData = new FormData();
 			formData.append('label', label);
@@ -165,11 +168,16 @@
 			if (response.ok) {
 				const newTag = await response.json();
 				addTag(newTag);
+			} else if (response.status === 401) {
+				createError = 'Please sign in to create new tags';
+				console.error('Authentication required to create tags');
 			} else {
-				const error = await response.json();
-				console.error('Failed to create tag:', error);
+				const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+				createError = errorData.message || 'Failed to create tag';
+				console.error('Failed to create tag:', errorData);
 			}
 		} catch (error) {
+			createError = 'Network error. Please try again.';
 			console.error('Failed to create tag:', error);
 		} finally {
 			isLoading = false;
@@ -267,6 +275,20 @@
 			/>
 		{/if}
 	</div>
+
+	{#if createError}
+		<div class="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+			<span>{createError}</span>
+		</div>
+	{/if}
 
 	{#if tags.length > 0}
 		<div class="mt-1.5 flex items-center justify-between text-xs text-gray-500">

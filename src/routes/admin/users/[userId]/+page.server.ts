@@ -1,5 +1,5 @@
 import { error, fail } from '@sveltejs/kit';
-import { eq, desc, count } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 import { canSuspendUser, canManageRoles, isAdmin } from '$lib/server/permissions';
 import { db } from '$lib/server/db';

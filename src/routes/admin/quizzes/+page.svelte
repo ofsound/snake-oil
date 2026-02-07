@@ -142,7 +142,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.quizzes as quiz}
+						{#each data.quizzes as quiz (quiz.id)}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4">
 									<div class="text-sm font-medium text-gray-900">{quiz.title}</div>

@@ -67,7 +67,7 @@
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
 					<option value="all" selected={data.filters.quiz === 'all'}>All Quizzes</option>
-					{#each data.quizzes as quiz}
+					{#each data.quizzes as quiz (quiz.id)}
 						<option value={quiz.id} selected={data.filters.quiz === quiz.id}>
 							{quiz.title}
 						</option>
@@ -123,7 +123,7 @@
 	<div class="rounded-lg bg-white p-4 shadow">
 		<h2 class="mb-3 text-lg font-medium text-gray-900">Clear Leaderboards</h2>
 		<div class="flex flex-wrap gap-2">
-			{#each data.quizzes as quiz}
+			{#each data.quizzes as quiz (quiz.id)}
 				<button
 					onclick={() => openClearModal(quiz)}
 					class="rounded bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200"
@@ -178,7 +178,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.results as result}
+						{#each data.results as result (result.id)}
 							<tr class="hover:bg-gray-50 {result.isSuspicious ? 'bg-red-50' : ''}">
 								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
 									<time title={new Date(result.createdAt).toLocaleString()}>

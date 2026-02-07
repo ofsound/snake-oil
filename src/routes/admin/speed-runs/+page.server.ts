@@ -1,4 +1,4 @@
-import { error, fail } from '@sveltejs/kit';
+import { fail } from '@sveltejs/kit';
 import { eq, desc, asc, count, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';

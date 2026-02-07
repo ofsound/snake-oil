@@ -58,7 +58,7 @@
 						<h2 class="text-xs font-semibold tracking-wider text-gray-500 uppercase">Menu</h2>
 					</div>
 					<div class="border-t">
-						{#each navItems as item}
+						{#each navItems as item (item.href)}
 							<a
 								href={item.href}
 								class="flex items-center px-4 py-3 text-sm font-medium transition-colors {isActive(

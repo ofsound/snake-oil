@@ -16,6 +16,10 @@ const additionalFields = {
 		slug: {
 			type: 'string' as const,
 			required: true as const
+		},
+		role: {
+			type: 'string' as const,
+			defaultValue: 'user' as const
 		}
 	}
 };

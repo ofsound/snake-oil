@@ -182,7 +182,7 @@
 				<p class="text-sm text-gray-500">No quizzes created yet</p>
 			{:else}
 				<div class="space-y-4">
-					{#each data.quizzes.slice(0, 5) as quiz}
+					{#each data.quizzes.slice(0, 5) as quiz (quiz.id)}
 						<div class="flex items-center justify-between rounded-lg border p-4 hover:bg-gray-50">
 							<div>
 								<h3 class="text-sm font-medium text-gray-900">{quiz.title}</h3>
@@ -239,7 +239,7 @@
 							</td>
 						</tr>
 					{:else}
-						{#each data.recentActions as action}
+						{#each data.recentActions as action (action.id)}
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
 									{action.admin?.name || 'Unknown'}
