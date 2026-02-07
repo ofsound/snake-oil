@@ -8,17 +8,14 @@
 	import { formatTime } from '$lib/audio/format-time';
 
 	import type { Component } from 'svelte';
-	import type { tracks as tracksTable } from '$lib/server/db/schema';
-	import type { InferSelectModel } from 'drizzle-orm';
+	import type { Track } from '$lib/types/tracks';
+
 	interface VisualizerProps {
 		analyser: AnalyserNode | null;
 		isPlaying?: boolean;
 	}
 
 	let VisualizerComponent = $state<Component<VisualizerProps> | null>(null);
-
-	/** Track type from database schema */
-	type Track = InferSelectModel<typeof tracksTable>;
 
 	interface Props {
 		tracks: Track[];

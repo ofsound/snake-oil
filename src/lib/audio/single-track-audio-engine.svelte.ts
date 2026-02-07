@@ -276,8 +276,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 							this.analyser.smoothingTimeConstant = AUDIO_CONFIG.ANALYSER_SMOOTHING_TIME_CONSTANT;
 					}, AUDIO_CONFIG.ANALYSER_SMOOTHING_RESTORE_DELAY_MS);
 				}
-
-				console.log('[SingleTrackAudioEngine] Playback started successfully');
 			});
 		});
 	}

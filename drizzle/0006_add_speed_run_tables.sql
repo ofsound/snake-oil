@@ -13,7 +13,7 @@ CREATE TABLE speed_runs (
     CONSTRAINT speed_runs_quiz_unique UNIQUE (quiz_id)
 );
 
-CREATE INDEX speed_runs_quiz_idx ON speed_runs(quiz_id);
+-- Note: No separate index needed on quiz_id - the UNIQUE constraint creates one automatically
 
 CREATE TABLE speed_run_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

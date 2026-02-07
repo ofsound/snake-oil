@@ -1,4 +1,4 @@
-import { db } from './db/index.js';
+import { db, type Db } from './db/index.js';
 import { quizzes, soundbites, tracks, speedRuns } from './db/schema.js';
 import { eq, and } from 'drizzle-orm';
 import { findUniqueSlug } from './db/slug-utils.js';
@@ -13,7 +13,6 @@ import {
 } from './soundbite-processors.js';
 import { parseQuizFormData, isSoundbiteRemoved, isNewSoundbite } from './form-parser.js';
 import { uploadToBlob, deleteFromBlob } from './quiz-utils.js';
-import type { Db } from './db-operations.js';
 import type { SoundbiteFormData } from './form-parser.js';
 import type { VariantConfig, VariantType } from '$lib/variant-types';
 

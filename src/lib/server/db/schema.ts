@@ -166,10 +166,7 @@ export const speedRuns = pgTable(
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull()
 	},
-	(table) => [
-		uniqueIndex('speed_runs_quiz_unique').on(table.quizId),
-		index('speed_runs_quiz_idx').on(table.quizId)
-	]
+	(table) => [uniqueIndex('speed_runs_quiz_unique').on(table.quizId)]
 );
 
 export const speedRunResults = pgTable(

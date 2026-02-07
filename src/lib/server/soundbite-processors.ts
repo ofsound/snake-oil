@@ -50,9 +50,6 @@ export async function processSequenceVariant(
 
 	// Get sequence files from form data
 	const sequenceFiles = getFilesFromFormData(formData, `sequenceFiles-${soundbiteIndex}`);
-	console.log(
-		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (sequence): Found ${sequenceFiles.length} files, expected ${config.tracks.length} tracks`
-	);
 
 	for (let trackIndex = 0; trackIndex < config.tracks.length; trackIndex++) {
 		const track = config.tracks[trackIndex];
@@ -115,9 +112,6 @@ export async function processRankVariant(
 
 	// Get rank files from form data
 	const rankFiles = getFilesFromFormData(formData, `rankFiles-${soundbiteIndex}`);
-	console.log(
-		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (rank): Found ${rankFiles.length} files, expected ${config.items.length} items`
-	);
 
 	for (let itemIndex = 0; itemIndex < config.items.length; itemIndex++) {
 		const item = config.items[itemIndex];
@@ -177,14 +171,7 @@ export async function processImageChoiceVariant(
 ): Promise<ProcessingOutcome> {
 	const { formData, blobToken, soundbiteIndex, fileIndex, files } = context;
 
-	console.log(
-		`[Create Quiz] image_choice: Getting MP3 file at index ${fileIndex}, files.length=${files.length}`
-	);
 	const file = files[fileIndex];
-
-	console.log(
-		`[Create Quiz] image_choice: mp3file=${file ? file.name : 'undefined'}, size=${file ? file.size : 0}`
-	);
 
 	if (!file || file.size === 0) {
 		return { message: `SoundBite ${soundbiteIndex + 1} is missing an MP3 file.` };
@@ -206,32 +193,14 @@ export async function processImageChoiceVariant(
 
 	// Get image files from form data
 	const imageFiles = getFilesFromFormData(formData, `imageChoiceFiles-${soundbiteIndex}`);
-	console.log(
-		`[Create Quiz] SoundBite ${soundbiteIndex + 1} (image_choice): Found ${imageFiles.length} files in formData, expected ${config.options.length} images`
-	);
-
-	// Log all files received
-	imageFiles.forEach((f, i) => {
-		console.log(
-			`[Create Quiz] image_choice file ${i}: name=${f.name}, size=${f.size}, type=${f.type}`
-		);
-	});
 
 	for (let optionIndex = 0; optionIndex < config.options.length; optionIndex++) {
 		const option = config.options[optionIndex];
 		const imgFile = imageFiles[optionIndex];
 
-		console.log(
-			`[Create Quiz] Processing option ${optionIndex}: id=${option.id}, imgFile=${imgFile ? imgFile.name : 'none'}, imgFileSize=${imgFile ? imgFile.size : 0}`
-		);
-
 		if (imgFile && imgFile.size > 0) {
 			// Upload to Vercel Blob
-			console.log(`[Create Quiz] Uploading image ${optionIndex}: ${imgFile.name}`);
 			const imgBlob = await uploadToBlob(imgFile, blobToken);
-			console.log(
-				`[Create Quiz] Image ${optionIndex} uploaded: url=${imgBlob.url.substring(0, 50)}..., pathname=${imgBlob.pathname}`
-			);
 			uploadedOptions.push({
 				id: option.id,
 				imageUrl: imgBlob.url,
@@ -253,11 +222,6 @@ export async function processImageChoiceVariant(
 		...config,
 		options: uploadedOptions
 	};
-
-	console.log(
-		`[Create Quiz] Final variantConfig for soundbite ${soundbiteIndex + 1}:`,
-		JSON.stringify(updatedConfig, null, 2)
-	);
 
 	// Validate the updated image_choice config
 	if (!validateVariantConfig(updatedConfig)) {

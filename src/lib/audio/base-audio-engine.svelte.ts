@@ -546,7 +546,6 @@ export abstract class BaseAudioEngine {
 		};
 
 		if (ctx.state === 'suspended') {
-			console.log(`[${this.stateMachineConfig.engineName}] Context suspended, resuming first...`);
 			if (this.gainNode) {
 				const t = ctx.currentTime;
 				this.gainNode.gain.cancelScheduledValues(t);
@@ -555,9 +554,6 @@ export abstract class BaseAudioEngine {
 			ctx
 				.resume()
 				.then(() => {
-					console.log(
-						`[${this.stateMachineConfig.engineName}] Context resumed, starting playback...`
-					);
 					const audioCtx = this.audioContext;
 					if (audioCtx && this.gainNode) {
 						const t = audioCtx.currentTime;
