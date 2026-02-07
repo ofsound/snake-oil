@@ -6,7 +6,7 @@
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
 	import { authClient } from '$lib/auth-client';
-	import { validateRedirectUrl } from '$lib/utils';
+	import { validateRedirectUrl, resolvePath } from '$lib/utils';
 	let email = $state('');
 	let password = $state('');
 	let loading = $state(false);
@@ -43,7 +43,7 @@
 			if (data) {
 				console.log('Sign in successful:', data.user);
 				// Redirect to the validated return URL and refresh session data
-				goto(redirectUrl, { invalidateAll: true });
+				goto(resolvePath(redirectUrl), { invalidateAll: true });
 			}
 		} catch (err: unknown) {
 			console.error('Sign in error:', err);
@@ -69,7 +69,11 @@
 	{#snippet footer()}
 		<p>
 			Don't have an account?
-			<a href="/signup?redirect={encodeURIComponent(page.url.searchParams.get('redirect') || '')}">
+			<a
+				href={resolvePath(
+					`/signup?redirect=${encodeURIComponent(page.url.searchParams.get('redirect') || '')}`
+				)}
+			>
 				Sign up here
 			</a>
 		</p>

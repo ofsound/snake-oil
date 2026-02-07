@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
+	import { resolvePath } from '$lib/utils';
 
 	import QuizList from '$lib/components/QuizList.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
@@ -8,22 +11,21 @@
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 
-	let mode = $state(data.mode);
+	let mode = $derived(data.mode);
 
 	function getDefaultOrder(column: string): 'asc' | 'desc' {
 		return column === 'date' || column === 'relevance' ? 'desc' : 'asc';
 	}
 
 	function handleModeChange(newMode: 'all' | 'quiz' | 'speedrun') {
-		mode = newMode;
-		const params = new URLSearchParams(page.url.searchParams);
+		const params = new SvelteURLSearchParams(page.url.searchParams);
 		if (newMode === 'all') {
 			params.delete('mode');
 		} else {
 			params.set('mode', newMode);
 		}
 		params.set('page', '1');
-		goto(`/results?${params.toString()}`);
+		goto(resolvePath(`/results?${params.toString()}`));
 	}
 
 	let description = $derived(

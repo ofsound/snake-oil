@@ -6,21 +6,15 @@
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
 
 	import { signUpWithSlug } from '$lib/auth-client';
-	import { validateRedirectUrl, slugify } from '$lib/utils';
+	import { validateRedirectUrl, slugify, resolvePath } from '$lib/utils';
 	let email = $state('');
 	let password = $state('');
 	let name = $state('');
-	let slug = $state('');
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 
-	// Derived slug from name - used for auto-generation
-	const derivedSlug = $derived(name ? slugify(name) : '');
-
-	// Sync slug from name when name changes (user requested always sync behavior)
-	$effect(() => {
-		slug = derivedSlug;
-	});
+	// Slug is always derived from name (always-sync behavior)
+	const slug = $derived(name ? slugify(name) : '');
 
 	// Get and validate the redirect URL from query parameters
 	const redirectUrl = $derived(validateRedirectUrl(page.url.searchParams.get('redirect')));
@@ -89,9 +83,8 @@
 				email = '';
 				password = '';
 				name = '';
-				slug = '';
 				// Redirect to the validated return URL and refresh session data
-				goto(redirectUrl, { invalidateAll: true });
+				goto(resolvePath(redirectUrl), { invalidateAll: true });
 			}
 		} catch (err: unknown) {
 			console.error('Sign up error:', err);
@@ -114,12 +107,14 @@
 	<AuthFormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
 
 	<div>
-		<AuthFormInput
+		<input
 			type="text"
 			placeholder="Username (for your profile URL)"
-			bind:value={slug}
+			value={slug}
 			required
 			disabled={loading}
+			readonly
+			class="box-border w-full rounded-sm border border-neutral-200 bg-white px-2 py-3 text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
 		/>
 		{#if slug}
 			<p class="mt-1 text-sm text-gray-600">
@@ -140,7 +135,11 @@
 	{#snippet footer()}
 		<p>
 			Already have an account?
-			<a href="/login?redirect={encodeURIComponent(page.url.searchParams.get('redirect') || '')}">
+			<a
+				href={resolvePath(
+					`/login?redirect=${encodeURIComponent(page.url.searchParams.get('redirect') || '')}`
+				)}
+			>
 				Sign in here
 			</a>
 		</p>

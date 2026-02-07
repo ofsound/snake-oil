@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
+	import { resolve } from '$app/paths';
 	import { ModeWatcher } from 'mode-watcher';
 
 	import Button from '$lib/components/Button.svelte';
@@ -22,7 +23,7 @@
 		try {
 			await authClient.signOut();
 			// Redirect to home after successful logout
-			goto('/', { invalidateAll: true });
+			goto(resolve('/'), { invalidateAll: true });
 		} catch (err: unknown) {
 			console.error('Sign out error:', err);
 		} finally {
@@ -42,7 +43,7 @@
 	>
 		<div class="mx-auto flex max-w-5xl justify-between gap-2 px-8">
 			<a
-				href="/"
+				href={resolve('/')}
 				class="text-xl font-bold transition-colors duration-200 text-shadow-sm text-shadow-zinc-400/20 dark:text-shadow-zinc-600/20"
 				>snakeoil.app</a
 			>

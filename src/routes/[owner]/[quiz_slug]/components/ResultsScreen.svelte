@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { formatTimeMs } from '$lib/speed-run/scoring';
 
 	import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
@@ -57,7 +58,7 @@
 
 	<!-- Rank and Score -->
 	<div
-		class="mb-8 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/20 to-orange-500/20 p-8 text-center"
+		class="mb-8 rounded-2xl border border-amber-500/30 bg-linear-to-r from-amber-500/20 to-orange-500/20 p-8 text-center"
 	>
 		<div class="mb-2 text-sm font-semibold tracking-wider text-amber-400 uppercase">Your Rank</div>
 		<div class="mb-2 text-7xl font-black text-white">#{rank ?? '-'}</div>
@@ -78,7 +79,7 @@
 				<div class="flex items-center gap-4 rounded-xl p-4 {isCurrentUserClass}">
 					<!-- Rank -->
 					<div
-						class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-white"
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-white"
 					>
 						{#if index === 0}
 							🥇
@@ -120,12 +121,12 @@
 	<div class="flex gap-4">
 		<button
 			onclick={onRestart}
-			class="flex-1 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
+			class="flex-1 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
 		>
 			Play Again ⚡
 		</button>
 		<a
-			href="/"
+			href={resolve('/')}
 			class="flex-1 rounded-xl border-2 border-white/20 bg-white/5 px-8 py-4 text-center text-xl font-bold text-white transition-all hover:bg-white/10"
 		>
 			More Quizzes

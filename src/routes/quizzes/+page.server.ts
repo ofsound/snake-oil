@@ -65,9 +65,6 @@ export const load: PageServerLoad = async ({ url }) => {
 	const currentPage = Math.min(page, totalPages);
 	const offset = (currentPage - 1) * PAGE_SIZE;
 
-	// Fetch quizzes with owner info and speed run status
-	let quizzesList;
-
 	// Use join query for all sorting (most reliable)
 	const result = await db
 		.select({
@@ -92,7 +89,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.limit(PAGE_SIZE)
 		.offset(offset);
 
-	quizzesList = result.map((row) => ({
+	const quizzesList = result.map((row) => ({
 		id: row.id,
 		title: row.title,
 		slug: row.slug,

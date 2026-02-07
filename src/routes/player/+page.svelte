@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	import PersistentPlayer from '$lib/components/audio/PersistentPlayer.svelte';
 	interface Track {
 		id: string;
@@ -54,7 +56,7 @@
 				</h2>
 				<p class="mb-6 text-gray-600 dark:text-gray-400">There are no tracks to play right now.</p>
 				<a
-					href="/"
+					href={resolve('/')}
 					class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700"
 				>
 					<svg

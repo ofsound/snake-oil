@@ -9,7 +9,14 @@
 		isLastQuestion: boolean;
 	}
 
-	let { isCorrect, guess, correctAnswer, revealDelayMs, streak, isLastQuestion }: Props = $props();
+	let {
+		isCorrect,
+		guess: _guess,
+		correctAnswer,
+		revealDelayMs: _revealDelayMs,
+		streak,
+		isLastQuestion
+	}: Props = $props();
 
 	let countdown = $state(3);
 
@@ -77,7 +84,7 @@
 	<!-- Streak milestone -->
 	{#if milestone && isCorrect}
 		<div
-			class="mb-6 inline-block animate-bounce rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-6 py-3 text-lg font-bold text-white"
+			class="mb-6 inline-block animate-bounce rounded-full bg-linear-to-r from-orange-500 to-red-500 px-6 py-3 text-lg font-bold text-white"
 		>
 			{milestone.emoji}
 			{milestone.message}

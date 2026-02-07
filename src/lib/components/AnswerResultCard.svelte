@@ -84,7 +84,7 @@
 				Your ranking vs correct ranking (Kendall Tau: {kendallTauScore}%):
 			</p>
 			{#if answerDetail.userOrder && answerDetail.userOrder.length > 0}
-				{#each variantConfig.correctOrder as correctItemIdx, position}
+				{#each variantConfig.correctOrder as correctItemIdx, position (position)}
 					{@const userItemIdx = answerDetail.userOrder[position]}
 					{@const isCorrect = correctItemIdx === userItemIdx}
 					<div

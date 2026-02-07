@@ -17,7 +17,10 @@
 		onStart
 	}: Props = $props();
 
-	let nameInput = $state(displayName);
+	let nameInput = $state('');
+	$effect(() => {
+		nameInput = displayName;
+	});
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();

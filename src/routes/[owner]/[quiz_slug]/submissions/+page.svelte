@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 
@@ -75,10 +77,14 @@
 	<Heading level={1}>{data.quiz.title} Submissions</Heading>
 	<div class="text-gray-500">
 		<!-- Updated link to new URL format -->
-		(<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}">
+		(<a
+			class="text-sm hover:underline"
+			href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}`)}
+		>
 			{data.hasSpeedRun ? 'view speed run' : 'view quiz'}
-		</a>) (<a class="text-sm hover:underline" href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
-			>edit quiz</a
+		</a>) (<a
+			class="text-sm hover:underline"
+			href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}/edit`)}>edit quiz</a
 		>)
 	</div>
 </header>

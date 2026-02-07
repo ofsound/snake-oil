@@ -22,6 +22,8 @@
  *   quizAudioContext.stop(soundbiteId);
  */
 
+import { SvelteMap } from 'svelte/reactivity';
+
 import { SingleTrackAudioEngine } from './single-track-audio-engine.svelte';
 
 /** Callbacks for a registered player */
@@ -33,7 +35,7 @@ interface PlayerCallbacks {
 }
 
 /** Registry of all active players */
-const playerRegistry = new Map<string, PlayerCallbacks>();
+const playerRegistry = new SvelteMap<string, PlayerCallbacks>();
 
 /** The shared audio engine instance */
 let engine: SingleTrackAudioEngine | null = null;

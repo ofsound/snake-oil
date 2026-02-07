@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	interface Quiz {
 		slug: string;
 		title: string;
@@ -26,10 +28,8 @@
 	const ownerSlug = $derived(quiz.owner?.slug ?? '');
 
 	const rowHref = $derived(
-		linkToManage ? `/${ownerSlug}/${quiz.slug}/edit` : `/${ownerSlug}/${quiz.slug}`
+		resolve(linkToManage ? `/${ownerSlug}/${quiz.slug}/edit` : `/${ownerSlug}/${quiz.slug}`)
 	);
-	const manageHref = $derived(`/${ownerSlug}/${quiz.slug}/edit`);
-	const viewHref = $derived(`/${ownerSlug}/${quiz.slug}`);
 	const viewLabel = $derived(quiz.speedRun ? 'View Speed Run' : 'View Quiz');
 
 	function handleClick(event: MouseEvent): void {
@@ -89,7 +89,7 @@
 			{#if linkToManage}
 				<a
 					data-view-link
-					href={viewHref}
+					href={resolve(`/${ownerSlug}/${quiz.slug}`)}
 					class="rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600"
 					onclick={(e) => e.stopPropagation()}
 				>
@@ -97,7 +97,7 @@
 				</a>
 				<a
 					data-manage-link
-					href={manageHref}
+					href={resolve(`/${ownerSlug}/${quiz.slug}/edit`)}
 					class="rounded-md bg-indigo-500 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-600"
 					onclick={(e) => e.stopPropagation()}
 				>
@@ -111,7 +111,7 @@
 		{#if showOwner && quiz.owner && quiz.owner.name}
 			<a
 				data-owner-link
-				href="/user/{quiz.owner.slug}"
+				href={resolve(`/user/${quiz.owner.slug}`)}
 				onclick={handleOwnerClick}
 				class="text-sm font-medium hover:text-indigo-800"
 			>

@@ -3,6 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { untrack } from 'svelte';
 
+	import { resolvePath } from '$lib/utils';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import SoundbiteEditor from '$lib/components/SoundbiteEditor.svelte';
@@ -31,10 +33,15 @@
 	let lastQuizId = $state<string>('');
 
 	// Local state for form fields - initialize from data immediately to prevent flash
+	// svelte-ignore state_referenced_locally
 	let title = $state(data.quiz.title);
+	// svelte-ignore state_referenced_locally
 	let slug = $state(data.quiz.slug);
+	// svelte-ignore state_referenced_locally
 	let description = $state(data.quiz.description);
+	// svelte-ignore state_referenced_locally
 	let isPublic = $state(data.quiz.visibility === 'public');
+	// svelte-ignore state_referenced_locally
 	let existingSoundbiteState = $state<Record<string, SoundbiteState>>(
 		Object.fromEntries(
 			data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
@@ -42,6 +49,7 @@
 	);
 
 	// Speed run configuration state - initialize from server data immediately to prevent flash
+	// svelte-ignore state_referenced_locally
 	let speedRunConfig = $state(
 		data.isSpeedRun && data.speedRunConfig
 			? {
@@ -179,9 +187,12 @@
 	<Heading level={1}>Edit Quiz</Heading>
 	<div class="text-gray-500">
 		<!-- Updated links to new URL format -->
-		(<a class="text-sm hover:underline" href="/{data.quiz.owner?.slug ?? ''}/{slug}">view quiz</a>)
-		(<a class="text-sm hover:underline" href="/{data.quiz.owner?.slug ?? ''}/{slug}/submissions"
-			>view submissions</a
+		(<a
+			class="text-sm hover:underline"
+			href={resolvePath(`/${data.quiz.owner?.slug ?? ''}/${slug}`)}>view quiz</a
+		>) (<a
+			class="text-sm hover:underline"
+			href={resolvePath(`/${data.quiz.owner?.slug ?? ''}/${slug}/submissions`)}>view submissions</a
 		>)
 	</div>
 </header>
@@ -199,7 +210,7 @@
 			return async ({ result, update }) => {
 				// If redirect, navigate to the location
 				if (result.type === 'redirect') {
-					await goto(result.location);
+					await goto(resolvePath(result.location));
 					return;
 				}
 				// For other result types (success, failure), update the page

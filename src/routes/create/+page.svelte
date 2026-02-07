@@ -11,6 +11,7 @@
 	import Toggle from '$lib/components/Toggle.svelte';
 
 	import { buildQuizFormData } from '$lib/form-builder';
+	import { resolve } from '$app/paths';
 	import { slugify } from '$lib/utils';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
@@ -355,8 +356,10 @@
 		<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
 			{successMessage}
 			{#if form?.slug && data.user?.slug}
-				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}`}>View quiz</a>
-				<a class="ml-2 underline" href={`/${data.user.slug}/${form.slug}/edit`}>Edit quiz</a>
+				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>View quiz</a>
+				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}/edit`)}
+					>Edit quiz</a
+				>
 			{/if}
 		</div>
 	{/if}

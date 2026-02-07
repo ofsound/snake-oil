@@ -69,7 +69,7 @@
 		<div class="flex items-center justify-center rounded-xl bg-white/5 p-8">
 			<div class="flex items-center gap-4">
 				<div
-					class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
+					class="flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-r from-amber-500 to-orange-500"
 				>
 					<svg class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -97,7 +97,7 @@
 
 	<!-- Multiple Choice Options -->
 	<div class="grid gap-3">
-		{#each question.variantConfig.options as option, index}
+		{#each question.variantConfig.options as option, index (option.id)}
 			<button
 				onclick={() => handleOptionClick(option.id)}
 				disabled={hasAnswered}
@@ -105,7 +105,7 @@
 			>
 				<div class="flex items-center gap-4">
 					<div
-						class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/10 text-lg font-bold text-white group-hover:bg-amber-500/20 group-hover:text-amber-400"
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-lg font-bold text-white group-hover:bg-amber-500/20 group-hover:text-amber-400"
 					>
 						{String.fromCharCode(65 + index)}
 					</div>

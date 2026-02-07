@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
+	import { resolvePath } from '$lib/utils';
 
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
@@ -47,7 +50,7 @@
 	}
 
 	function handleSort(column: string): void {
-		const params = new URLSearchParams(page.url.searchParams);
+		const params = new SvelteURLSearchParams(page.url.searchParams);
 
 		if (sort === column) {
 			params.set('order', order === 'asc' ? 'desc' : 'asc');
@@ -57,13 +60,13 @@
 		}
 
 		params.set('page', '1');
-		goto(`${basePath}?${params.toString()}`);
+		goto(resolvePath(`${basePath}?${params.toString()}`));
 	}
 
 	function handlePageChange(newPage: number): void {
-		const params = new URLSearchParams(page.url.searchParams);
+		const params = new SvelteURLSearchParams(page.url.searchParams);
 		params.set('page', String(newPage));
-		goto(`${basePath}?${params.toString()}`);
+		goto(resolvePath(`${basePath}?${params.toString()}`));
 	}
 
 	function getPageNumbers(current: number, total: number): (number | '...')[] {
@@ -170,7 +173,7 @@
 		<p class="text-gray-600">{emptyState.message}</p>
 		{#if emptyState.link}
 			<a
-				href={emptyState.link.href}
+				href={resolvePath(emptyState.link.href)}
 				class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
 			>
 				{emptyState.link.text}

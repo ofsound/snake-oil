@@ -223,7 +223,7 @@
 		<div class="flex flex-col gap-2">
 			<span class="text-sm font-medium text-gray-700">Select Correct Track (target)</span>
 			<div class="flex flex-wrap gap-2">
-				{#each tracks as track, index}
+				{#each tracks as track, index (track.id)}
 					<label
 						class="flex cursor-pointer items-center gap-2 rounded-sm border px-3 py-2 transition-colors {correctTrackIndex ===
 						index

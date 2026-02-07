@@ -1,9 +1,11 @@
 <script lang="ts" module>
+	import { SvelteMap } from 'svelte/reactivity';
+
 	import { shuffleOptions } from '$lib/variant-client-utils';
 
 	import type { MultipleChoiceOption } from '$lib/variant-types';
 	// Module-level cache to maintain consistent shuffle order per soundbite
-	const shuffleCache = new Map<string, MultipleChoiceOption[]>();
+	const shuffleCache = new SvelteMap<string, MultipleChoiceOption[]>();
 
 	function getShuffledOptions(
 		soundbiteId: string,

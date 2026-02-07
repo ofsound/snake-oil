@@ -58,8 +58,9 @@
 		correctAnswer: string;
 		isLastQuestion: boolean;
 	} | null>(null);
-	let displayName = $state(user?.name || '');
-	let leaderboard = $state(initialLeaderboard);
+	let displayName = $derived(user?.name || '');
+	let submittedLeaderboard = $state<SpeedRunLeaderboardEntry[] | null>(null);
+	let leaderboard = $derived(submittedLeaderboard ?? initialLeaderboard);
 	let finalResult = $state<{
 		rank: number;
 		correctCount: number;
@@ -241,7 +242,7 @@
 					maxStreak: result.result.streakMax
 				};
 
-				leaderboard = result.top10;
+				submittedLeaderboard = result.top10;
 			} else {
 				console.error('Submission failed:', result.error);
 				// Fallback to client-side calculation

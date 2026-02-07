@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 
+	import { resolve } from '$app/paths';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import SimpleGuessInput from '$lib/components/SimpleGuessInput.svelte';
@@ -92,14 +94,14 @@
 				<div class="mx-auto flex max-w-4xl items-center gap-4 text-sm">
 					<span class="text-white/60">Owner:</span>
 					<a
-						href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit"
+						href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}/edit`)}
 						class="text-indigo-400 hover:text-indigo-300 hover:underline"
 					>
 						edit quiz
 					</a>
 					<span class="text-white/30">|</span>
 					<a
-						href="/{data.quiz.owner.slug}/{data.quiz.slug}/submissions"
+						href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}/submissions`)}
 						class="text-indigo-400 hover:text-indigo-300 hover:underline"
 					>
 						view submissions
@@ -122,15 +124,20 @@
 		<div class="text-sm">
 			{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 			by
-			<a href="/user/{data.quiz.owner.slug}" class="font-semibold text-indigo-700 hover:underline">
+			<a
+				href={resolve(`/user/${data.quiz.owner.slug}`)}
+				class="font-semibold text-indigo-700 hover:underline"
+			>
 				{data.quiz.owner.name || data.quiz.owner.slug}
 			</a>
 			{#if isOwner}
 				<span class="text-sm text-gray-500">
-					(<a href="/{data.quiz.owner.slug}/{data.quiz.slug}/edit" class="hover:underline"
-						>edit quiz</a
-					>) (<a href="/{data.quiz.owner.slug}/{data.quiz.slug}/submissions" class="hover:underline"
-						>view submissions</a
+					(<a
+						href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}/edit`)}
+						class="hover:underline">edit quiz</a
+					>) (<a
+						href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}/submissions`)}
+						class="hover:underline">view submissions</a
 					>)
 				</span>
 			{/if}

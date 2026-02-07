@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+
+	import { resolvePath } from '$lib/utils';
 	interface Props {
 		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'outline' | 'ghost';
 		size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -73,7 +75,17 @@
 </script>
 
 {#if href}
-	<a {href} {target} {rel} class={classes} {onclick}>
+	<a
+		href={href && href.startsWith('/')
+			? href.includes('?')
+				? resolvePath(href.split('?')[0] ?? '') + '?' + href.split('?').slice(1).join('?')
+				: resolvePath(href)
+			: href}
+		{target}
+		{rel}
+		class={classes}
+		{onclick}
+	>
 		{@render children()}
 	</a>
 {:else}

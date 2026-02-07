@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 
@@ -9,7 +11,7 @@
 </script>
 
 <a
-	href="/create"
+	href={resolve('/create')}
 	class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm hover:bg-emerald-400"
 	>Create a Quiz</a
 >

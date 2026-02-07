@@ -2,6 +2,16 @@
  * Shared utility functions that can be used on both client and server
  */
 
+import { resolve as kitResolve } from '$app/paths';
+
+/**
+ * Resolve a dynamic path (e.g. with query string or runtime segments).
+ * Use for paths that are not literal route IDs; satisfies base-path handling like resolve() from $app/paths.
+ */
+export function resolvePath(path: string): string {
+	return (kitResolve as (path: string) => string)(path);
+}
+
 /**
  * Converts a string to a URL-friendly slug
  */

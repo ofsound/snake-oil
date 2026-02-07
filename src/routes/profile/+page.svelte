@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
@@ -29,7 +31,7 @@
 			<div class="flex items-baseline rounded-md">
 				<div class="w-18 text-sm text-gray-600">URL:</div>
 				<a
-					href="/user/{profile.slug}"
+					href={resolve(`/user/${profile.slug}`)}
 					class="text-sm font-medium text-indigo-600 hover:text-indigo-700">/user/{profile.slug}</a
 				>
 			</div>
@@ -48,10 +50,10 @@
 	</div>
 
 	<div class=" hidden flex-col gap-1.5 text-sm">
-		<a href="/" class="underline">Update Profile</a>
-		<a href="/" class="underline">Change Password</a>
-		<a href="/" class="underline">View Activity</a>
-		<a href="/" class="underline">Delete Account</a>
+		<a href={resolve('/')} class="underline">Update Profile</a>
+		<a href={resolve('/')} class="underline">Change Password</a>
+		<a href={resolve('/')} class="underline">View Activity</a>
+		<a href={resolve('/')} class="underline">Delete Account</a>
 	</div>
 </Card>
 
