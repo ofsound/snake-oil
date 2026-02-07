@@ -20,3 +20,8 @@ Thumbs.db
 
 # Vite
 vite.config.js.timestamp-*
+
+# Cursor / agent config (optional: remove lines if you want these in the repo)
+.cursor/
+.cursorrules
+AGENTS.md
