@@ -25,8 +25,8 @@
 		soundbites = $bindable(),
 		onChange,
 		showHeader = true,
-		headerTitle = 'Audio Clips',
-		addButtonText = 'Add Audio Clip',
+		headerTitle = 'Questions',
+		addButtonText = 'Add Question',
 		forceVariantType,
 		allowedVariantTypes,
 		startIndex = 0

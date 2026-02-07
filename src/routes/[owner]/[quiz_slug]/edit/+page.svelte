@@ -394,7 +394,7 @@
 	</Card>
 
 	<section class="flex flex-col gap-4">
-		<Heading level={2} class="mb-6">Audio Clips</Heading>
+		<Heading level={2} class="mb-6">Questions</Heading>
 		<div class="flex flex-col gap-4">
 			{#each data.soundbites as soundbite, index (soundbite.id)}
 				{@const state = existingSoundbiteState[soundbite.id]}
@@ -427,8 +427,8 @@
 
 	<SoundbiteFormSection
 		bind:soundbites={newSoundbites}
-		headerTitle="Add New Audio Clips"
-		addButtonText="Add Audio Clip"
+		headerTitle="Add New Questions"
+		addButtonText="Add Question"
 		startIndex={data.soundbites.length}
 		onChange={handleNewSoundbitesChange}
 		allowedVariantTypes={data.isSpeedRun
