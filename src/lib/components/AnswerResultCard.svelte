@@ -190,10 +190,17 @@
 				>
 			</p>
 			{#if !answerDetail.isCorrect}
-				<p>
-					<span class="text-gray-500">Correct answer:</span>
-					<span class="ml-1 text-green-700">{correctAnswerText}</span>
-				</p>
+				{#if answerDetail.variantType === 'simple_guess'}
+					<p>
+						<span class="text-gray-500">Acceptable answers:</span>
+						<span class="ml-1 text-green-700">{correctAnswerText}</span>
+					</p>
+				{:else}
+					<p>
+						<span class="text-gray-500">Correct answer:</span>
+						<span class="ml-1 text-green-700">{correctAnswerText}</span>
+					</p>
+				{/if}
 			{/if}
 		</div>
 	{/if}

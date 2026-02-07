@@ -26,11 +26,18 @@
 	let isPublic = $state(true); // Default to public
 	let slugEdited = $state(false);
 	let submitting = $state(false);
-	let successMessage = $derived(form?.success ? 'Quiz created successfully.' : null);
-	let errorMessage = $derived(form?.message ?? null);
 
-	// Quiz mode selection
+	// Quiz mode selection (must be defined before successMessage)
 	let quizMode = $state<'standard' | 'speed_run'>('standard');
+
+	let successMessage = $derived(
+		form?.success
+			? quizMode === 'speed_run'
+				? 'Speed run created successfully!'
+				: 'Quiz created successfully.'
+			: null
+	);
+	let errorMessage = $derived(form?.message ?? null);
 
 	// Speed run configuration (stored as strings for HTML form inputs)
 	let speedRunConfig = $state({
@@ -44,7 +51,7 @@
 		{
 			id: 0,
 			variantType: 'simple_guess',
-			simpleGuessAnswer: '',
+			simpleGuessAnswers: [],
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 			imageChoiceOptions: [],
@@ -78,32 +85,22 @@
 		soundbites = newSoundbites;
 	}
 
-	// Update mode and convert soundbites if needed
+	// Update mode - no conversion needed, both multiple_choice and simple_guess are supported
 	function handleModeChange(newMode: 'standard' | 'speed_run') {
 		quizMode = newMode;
-
-		// Convert all soundbites to multiple_choice when switching to speed run
-		if (newMode === 'speed_run') {
-			soundbites = soundbites.map((sb) => {
-				if (sb.variantType !== 'multiple_choice') {
-					return {
-						...sb,
-						variantType: 'multiple_choice' as VariantType,
-						multipleChoiceOptions:
-							sb.multipleChoiceOptions.length >= 2
-								? sb.multipleChoiceOptions
-								: [createEmptyOption(), createEmptyOption()]
-					};
-				}
-				return sb;
-			});
-		}
+		// Both multiple_choice and simple_guess are now supported in speed runs
+		// No conversion needed
 	}
 
-	// Check if any soundbites are not multiple_choice in speed run mode
-	let nonMultipleChoiceCount = $derived(
+	// Check if any soundbites are unsupported in speed run mode (MC, SG, and IC are allowed)
+	let unsupportedVariantCount = $derived(
 		quizMode === 'speed_run'
-			? soundbites.filter((sb) => sb.variantType !== 'multiple_choice').length
+			? soundbites.filter(
+					(sb) =>
+						sb.variantType !== 'multiple_choice' &&
+						sb.variantType !== 'simple_guess' &&
+						sb.variantType !== 'image_choice'
+				).length
 			: 0
 	);
 </script>
@@ -283,18 +280,19 @@
 					</label>
 				</div>
 
-				{#if nonMultipleChoiceCount > 0}
+				{#if unsupportedVariantCount > 0}
 					<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
 						<p class="text-sm text-red-700">
-							<strong>Warning:</strong> You have {nonMultipleChoiceCount} question(s) that are not Multiple
-							Choice. Please remove them or the server will reject the submission.
+							<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
+							variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
+							Please change them to continue.
 						</p>
 					</div>
 				{/if}
 
 				<p class="mt-3 text-sm text-amber-700">
-					<strong>Note:</strong> Speed Run mode only supports Multiple Choice questions. New questions
-					will default to Multiple Choice.
+					<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
+					questions. Simple Guess allows unlimited attempts until time runs out!
 				</p>
 			</div>
 		{/if}
@@ -338,7 +336,15 @@
 		<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
 		<input type="hidden" name="quizMode" value={quizMode} />
 		{#if quizMode === 'speed_run'}
-			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfig)} />
+			{@const speedRunConfigNumeric = {
+				defaultQuestionTimeLimit: speedRunConfig.defaultQuestionTimeLimit
+					? parseInt(speedRunConfig.defaultQuestionTimeLimit, 10)
+					: null,
+				revealDelayMs: parseInt(speedRunConfig.revealDelayMs, 10),
+				audioLoopGapMs: parseInt(speedRunConfig.audioLoopGapMs, 10),
+				enableStreakBonus: speedRunConfig.enableStreakBonus
+			}}
+			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfigNumeric)} />
 		{/if}
 		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
 	</Card>
@@ -349,16 +355,29 @@
 		bind:soundbites
 		onChange={handleSoundbitesChange}
 		startIndex={0}
-		forceVariantType={quizMode === 'speed_run' ? 'multiple_choice' : undefined}
+		allowedVariantTypes={quizMode === 'speed_run'
+			? ['multiple_choice', 'simple_guess', 'image_choice']
+			: undefined}
 	/>
 
 	{#if successMessage}
-		<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+		{@const isSpeedRun = quizMode === 'speed_run'}
+		<div
+			class="rounded-md border px-4 py-3 text-sm"
+			class:border-green-200={!isSpeedRun}
+			class:bg-green-50={!isSpeedRun}
+			class:text-green-700={!isSpeedRun}
+			class:border-orange-200={isSpeedRun}
+			class:bg-orange-50={isSpeedRun}
+			class:text-orange-700={isSpeedRun}
+		>
 			{successMessage}
 			{#if form?.slug && data.user?.slug}
-				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>View quiz</a>
+				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>
+					{isSpeedRun ? 'View speed run' : 'View quiz'}
+				</a>
 				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}/edit`)}
-					>Edit quiz</a
+					>{isSpeedRun ? 'Edit speed run' : 'Edit quiz'}</a
 				>
 			{/if}
 		</div>

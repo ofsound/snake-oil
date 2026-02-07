@@ -14,7 +14,7 @@ import type {
 export interface SoundbiteState {
 	id: number | string;
 	variantType: VariantType;
-	simpleGuessAnswer: string;
+	simpleGuessAnswers: string[];
 	multipleChoiceOptions: MultipleChoiceOption[];
 	multipleResponseOptions: MultipleResponseOption[];
 	imageChoiceOptions: ImageChoiceOption[];

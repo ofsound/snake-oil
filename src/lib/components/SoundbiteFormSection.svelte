@@ -16,6 +16,7 @@
 		headerTitle?: string;
 		addButtonText?: string;
 		forceVariantType?: VariantType;
+		allowedVariantTypes?: VariantType[];
 		// Starting index for bracket notation (0 for create, existing count for edit)
 		startIndex?: number;
 	}
@@ -27,19 +28,38 @@
 		headerTitle = 'Audio Clips',
 		addButtonText = 'Add Audio Clip',
 		forceVariantType,
+		allowedVariantTypes,
 		startIndex = 0
 	}: Props = $props();
+
+	// Determine the default variant type for new soundbites
+	function getDefaultVariantType(): VariantType {
+		if (forceVariantType) return forceVariantType;
+		if (allowedVariantTypes && allowedVariantTypes.length > 0) return allowedVariantTypes[0];
+		return 'simple_guess';
+	}
+
+	// Check if variant type changing is allowed
+	function isVariantTypeLocked(): boolean {
+		return !!forceVariantType;
+	}
+
+	// Get available variant types for selector
+	function getAvailableVariantTypes(): VariantType[] | undefined {
+		if (forceVariantType) return undefined; // Use default behavior (all types)
+		return allowedVariantTypes;
+	}
 
 	let nextId = $state(
 		Math.max(...soundbites.map((s) => (typeof s.id === 'number' ? s.id : 0)), 0) + 1
 	);
 
 	function addSoundbite() {
-		const defaultVariantType = forceVariantType || 'simple_guess';
+		const defaultVariantType = getDefaultVariantType();
 		const newSoundbite: SoundbiteState = {
 			id: nextId,
 			variantType: defaultVariantType,
-			simpleGuessAnswer: '',
+			simpleGuessAnswers: [],
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 			imageChoiceOptions: [],
@@ -92,12 +112,11 @@
 					</button>
 
 					<SoundbiteEditor
-						soundbite={forceVariantType
-							? { ...soundbite, variantType: forceVariantType }
-							: soundbite}
+						{soundbite}
 						index={globalIndex}
 						fileInputRequired={true}
-						disabledVariantType={!!forceVariantType}
+						disabledVariantType={isVariantTypeLocked()}
+						allowedVariantTypes={getAvailableVariantTypes()}
 						onChange={(updates) => updateSoundbite(Number(soundbite.id), updates)}
 					/>
 				</Card>

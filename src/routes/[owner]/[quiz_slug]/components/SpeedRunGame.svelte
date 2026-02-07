@@ -5,6 +5,7 @@
 	import AnswerReveal from './AnswerReveal.svelte';
 	import ResultsScreen from './ResultsScreen.svelte';
 	import GameHUD from './GameHUD.svelte';
+	import AudioPlayer from './AudioPlayer.svelte';
 
 	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 
@@ -15,6 +16,7 @@
 		SpeedRunCheckAnswerResponse,
 		SpeedRunSubmitResponse
 	} from '$lib/speed-run/types';
+
 	interface Props {
 		quiz: {
 			title: string;
@@ -69,8 +71,128 @@
 		maxStreak: number;
 	} | null>(null);
 
+	// Audio player reference for fading out
+	let audioPlayerRef = $state<AudioPlayer | null>(null);
+
+	// Preloading state
+	let preloadStatus = $state<'idle' | 'loading' | 'error' | 'complete'>('idle');
+	let preloadProgress = $state(0);
+	let preloadTotal = $state(0);
+
 	// Animation frame for timer
 	let animationFrameId: number;
+
+	// Shared validation helper for all variant types
+	async function validateAnswer(
+		soundbiteId: string,
+		guess: string
+	): Promise<{ isCorrect: boolean; correctAnswer: string } | null> {
+		try {
+			const response = await fetch('/api/speed-run/check-answer', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ soundbiteId, guess })
+			});
+
+			const result: SpeedRunCheckAnswerResponse = await response.json();
+
+			if (result.success) {
+				return {
+					isCorrect: result.isCorrect,
+					correctAnswer: result.correctAnswer
+				};
+			}
+		} catch (e) {
+			console.error('Failed to validate answer:', e);
+		}
+		return null;
+	}
+
+	// Preload all images and audio metadata before starting
+	async function preloadAllAssets(): Promise<boolean> {
+		preloadStatus = 'loading';
+		preloadProgress = 0;
+
+		// Collect all URLs to preload
+		const imageUrls: string[] = [];
+		const audioUrls: string[] = [];
+
+		questions.forEach((q) => {
+			// Audio for ALL question types
+			audioUrls.push(q.track.url);
+
+			// Images only for image_choice
+			if (q.variantType === 'image_choice') {
+				q.variantConfig.options.forEach((opt) => {
+					// Skip blob URLs (temporary preview URLs) - only preload actual uploaded images
+					if (opt.imageUrl && !opt.imageUrl.startsWith('blob:')) {
+						imageUrls.push(opt.imageUrl);
+					}
+				});
+			}
+		});
+
+		preloadTotal = imageUrls.length + audioUrls.length;
+		let loaded = 0;
+
+		const updateProgress = () => {
+			loaded++;
+			preloadProgress = loaded;
+		};
+
+		// Preload images
+		const imagePromises = imageUrls.map(
+			(url) =>
+				new Promise<void>((resolve, reject) => {
+					const img = new Image();
+					img.onload = () => {
+						updateProgress();
+						resolve();
+					};
+					img.onerror = () => {
+						reject(new Error(`Failed to load image: ${url}`));
+					};
+					img.src = url;
+				})
+		);
+
+		// Preload audio metadata
+		const audioPromises = audioUrls.map(
+			(url) =>
+				new Promise<void>((resolve, reject) => {
+					const audio = new Audio();
+					audio.preload = 'metadata';
+
+					const timeout = setTimeout(() => {
+						reject(new Error(`Timeout loading audio: ${url}`));
+					}, 10000);
+
+					audio.onloadedmetadata = () => {
+						clearTimeout(timeout);
+						updateProgress();
+						resolve();
+					};
+
+					audio.onerror = () => {
+						clearTimeout(timeout);
+						reject(new Error(`Failed to load audio: ${url}`));
+					};
+
+					audio.src = url;
+				})
+		);
+
+		// All must succeed
+		try {
+			await Promise.all([...imagePromises, ...audioPromises]);
+			preloadStatus = 'complete';
+			return true;
+		} catch (error) {
+			preloadStatus = 'error';
+			console.error('Preload failed:', error);
+			return false;
+		}
+	}
 
 	function startGlobalTimer() {
 		globalStartTime = Date.now();
@@ -119,8 +241,24 @@
 		}
 	}
 
-	function handleStart(name: string) {
+	async function handleStart(name: string) {
 		displayName = name;
+
+		// Check if we have any image_choice questions that need preloading
+		const hasImageChoice = questions.some((q) => q.variantType === 'image_choice');
+
+		if (hasImageChoice) {
+			// Preload all assets first
+			const success = await preloadAllAssets();
+			if (!success) {
+				// Force reload on failure
+				setTimeout(() => {
+					window.location.reload();
+				}, 2000);
+				return;
+			}
+		}
+
 		phase = 'countdown';
 	}
 
@@ -130,37 +268,26 @@
 		startQuestionTimer();
 	}
 
-	async function handleAnswer(guess: string) {
+	async function handleAnswer(guess: string, isCorrect?: boolean, correctAnswerText?: string) {
 		const currentQuestion = questions[currentQuestionIndex];
 		const timeSpent = Date.now() - questionStartTime;
 
-		// Validate answer with server via API
-		let isCorrect = false;
-		let correctAnswer = '';
+		// If isCorrect is not provided, we need to check via API
+		// This happens for multiple_choice (immediate) or simple_guess timeout
+		let finalIsCorrect = isCorrect ?? false;
+		let finalCorrectAnswer = correctAnswerText ?? '';
 
-		try {
-			const response = await fetch('/api/speed-run/check-answer', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					soundbiteId: currentQuestion.id,
-					guess
-				})
-			});
-
-			const result: SpeedRunCheckAnswerResponse = await response.json();
-
-			if (result.success) {
-				isCorrect = result.isCorrect;
-				correctAnswer = result.correctAnswer;
+		if (isCorrect === undefined) {
+			// Validate answer with server via API
+			const result = await validateAnswer(currentQuestion.id, guess);
+			if (result) {
+				finalIsCorrect = result.isCorrect;
+				finalCorrectAnswer = result.correctAnswer;
 			}
-		} catch (e) {
-			console.error('Failed to validate answer:', e);
-			// Continue with local state - don't block the game on API failure
 		}
 
 		// Update streak
-		if (isCorrect) {
+		if (finalIsCorrect) {
 			streak++;
 			maxStreak = Math.max(maxStreak, streak);
 		} else {
@@ -172,7 +299,7 @@
 			...answers,
 			{
 				soundbiteId: currentQuestion.id,
-				isCorrect,
+				isCorrect: finalIsCorrect,
 				timeSpentMs: timeSpent,
 				answeredAt: Date.now(),
 				guess
@@ -182,9 +309,9 @@
 		const isLastQuestion = currentQuestionIndex >= questions.length - 1;
 
 		lastAnswer = {
-			isCorrect,
+			isCorrect: finalIsCorrect,
 			guess,
-			correctAnswer,
+			correctAnswer: finalCorrectAnswer,
 			isLastQuestion
 		};
 
@@ -303,14 +430,38 @@
 </script>
 
 {#if phase === 'idle'}
-	<StartScreen
-		quizTitle={quiz.title}
-		quizDescription={quiz.description}
-		totalQuestions={questions.length}
-		defaultTimeLimit={speedRun.defaultQuestionTimeLimit}
-		{displayName}
-		onStart={handleStart}
-	/>
+	{#if preloadStatus === 'loading'}
+		<div class="flex min-h-screen items-center justify-center px-4">
+			<div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
+				<div class="mb-4 text-2xl font-bold text-white">Preparing Quiz...</div>
+				<div class="mb-2 text-white/60">{preloadProgress} / {preloadTotal}</div>
+				<div class="h-2 w-full overflow-hidden rounded-full bg-white/10">
+					<div
+						class="h-full bg-amber-500 transition-all duration-300"
+						style="width: {(preloadProgress / preloadTotal) * 100}%"
+					></div>
+				</div>
+			</div>
+		</div>
+	{:else if preloadStatus === 'error'}
+		<div class="flex min-h-screen items-center justify-center px-4">
+			<div
+				class="w-full max-w-md rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-center"
+			>
+				<div class="mb-4 text-2xl font-bold text-red-400">Loading Failed</div>
+				<div class="text-white/60">Reloading...</div>
+			</div>
+		</div>
+	{:else}
+		<StartScreen
+			quizTitle={quiz.title}
+			quizDescription={quiz.description}
+			totalQuestions={questions.length}
+			defaultTimeLimit={speedRun.defaultQuestionTimeLimit}
+			{displayName}
+			onStart={handleStart}
+		/>
+	{/if}
 {:else if phase === 'countdown'}
 	<CountdownOverlay onComplete={handleCountdownComplete} />
 {:else if phase === 'question' || phase === 'revealing'}
@@ -323,20 +474,35 @@
 			{streak}
 		/>
 
+		<!-- Audio Player - persists during both question and reveal phases -->
+		<AudioPlayer
+			trackUrl={currentQuestion.track.url}
+			gapMs={speedRun.audioLoopGapMs}
+			isPlaying={phase === 'question'}
+			bind:this={audioPlayerRef}
+		/>
+
 		{#if phase === 'question'}
+			{@const boundValidateAnswer =
+				currentQuestion.variantType === 'simple_guess'
+					? (guess: string) => validateAnswer(currentQuestion.id, guess)
+					: undefined}
 			<QuestionCard
 				question={currentQuestion}
-				gapMs={speedRun.audioLoopGapMs}
 				onAnswer={handleAnswer}
+				onValidateGuess={boundValidateAnswer}
+				onAudioFadeOut={() => audioPlayerRef?.fadeOutAudio()}
 			/>
 		{:else if lastAnswer}
+			{@const isImageChoice = currentQuestion?.variantType === 'image_choice'}
 			<AnswerReveal
 				isCorrect={lastAnswer.isCorrect}
 				guess={lastAnswer.guess}
 				correctAnswer={lastAnswer.correctAnswer}
-				revealDelayMs={speedRun.revealDelayMs}
+				revealDelayMs={isImageChoice ? 2000 : speedRun.revealDelayMs}
 				{streak}
 				isLastQuestion={lastAnswer.isLastQuestion}
+				question={currentQuestion}
 			/>
 		{/if}
 	</div>

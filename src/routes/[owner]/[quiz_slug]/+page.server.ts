@@ -106,7 +106,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		} else {
 			safeConfig = {
 				type: 'simple_guess',
-				correctAnswer: '' // Don't reveal correct answer
+				correctAnswers: [] // Don't reveal correct answers
 			};
 		}
 
@@ -126,39 +126,80 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	let leaderboard: SpeedRunLeaderboardEntry[] = [];
 
 	if (quiz.speedRun) {
-		// Only support multiple_choice for speed runs
-		const supportedVariants = quiz.soundbites.filter((sb) => sb.variantType === 'multiple_choice');
+		// Support multiple_choice, simple_guess, and image_choice for speed runs
+		const supportedVariants = quiz.soundbites.filter(
+			(sb) =>
+				sb.variantType === 'multiple_choice' ||
+				sb.variantType === 'simple_guess' ||
+				sb.variantType === 'image_choice'
+		);
 
 		if (supportedVariants.length > 0) {
-			speedRunQuestions = supportedVariants.map(
-				(sb): import('$lib/speed-run/types').SpeedRunQuestion => {
+			speedRunQuestions = supportedVariants.map((sb) => {
+				const baseQuestion = {
+					id: sb.id,
+					position: sb.position,
+					question: sb.question,
+					track: {
+						id: sb.track.id,
+						name: sb.track.name,
+						url: sb.track.url
+					}
+				};
+
+				if (sb.variantType === 'multiple_choice') {
 					const config = sb.variantConfig as {
 						type: 'multiple_choice';
 						options: { id: string; text: string; isCorrect: boolean }[];
 						questionTimeLimit?: number;
 					};
 					return {
-						id: sb.id,
-						position: sb.position,
-						question: sb.question,
-						variantType: 'multiple_choice',
+						...baseQuestion,
+						variantType: 'multiple_choice' as const,
 						variantConfig: {
-							type: 'multiple_choice',
+							type: 'multiple_choice' as const,
 							options: config.options.map((opt) => ({
 								id: opt.id,
 								text: opt.text,
-								isCorrect: false // Hide correct answer
+								isCorrect: false as const // Hide correct answer
 							})),
 							questionTimeLimit: config.questionTimeLimit
-						},
-						track: {
-							id: sb.track.id,
-							name: sb.track.name,
-							url: sb.track.url
+						}
+					};
+				} else if (sb.variantType === 'simple_guess') {
+					// simple_guess
+					const config = sb.variantConfig as { type: 'simple_guess'; questionTimeLimit?: number };
+					return {
+						...baseQuestion,
+						variantType: 'simple_guess' as const,
+						variantConfig: {
+							type: 'simple_guess' as const,
+							questionTimeLimit: config.questionTimeLimit
+						}
+					};
+				} else {
+					// image_choice
+					const config = sb.variantConfig as {
+						type: 'image_choice';
+						options: { id: string; imageUrl: string; label: string; isCorrect: boolean }[];
+						questionTimeLimit?: number;
+					};
+					return {
+						...baseQuestion,
+						variantType: 'image_choice' as const,
+						variantConfig: {
+							type: 'image_choice' as const,
+							options: config.options.map((opt) => ({
+								id: opt.id,
+								imageUrl: opt.imageUrl,
+								label: opt.label,
+								isCorrect: false as const // Hide correct answer
+							})),
+							questionTimeLimit: config.questionTimeLimit
 						}
 					};
 				}
-			);
+			});
 
 			// Fetch top 10 leaderboard entries
 			const topResults = await db.query.speedRunResults.findMany({
@@ -332,18 +373,7 @@ export const actions: Actions = {
 					correctAnswers: Object.fromEntries(
 						quiz.soundbites.map((sb) => {
 							if (sb.variantConfig.type === 'simple_guess') {
-								return [sb.id, sb.variantConfig.correctAnswer];
-							} else if (sb.variantConfig.type === 'multiple_choice') {
-								return [sb.id, JSON.stringify(sb.variantConfig)];
-							} else if (sb.variantConfig.type === 'multiple_response') {
-								return [sb.id, JSON.stringify(sb.variantConfig)];
-							} else if (sb.variantConfig.type === 'sequence') {
-								const correctTrack = sb.variantConfig.tracks[sb.variantConfig.correctTrackIndex];
-								return [sb.id, correctTrack?.name ?? ''];
-							} else if (sb.variantConfig.type === 'rank') {
-								return [sb.id, JSON.stringify(sb.variantConfig)];
-							} else if (sb.variantConfig.type === 'image_choice') {
-								return [sb.id, JSON.stringify(sb.variantConfig)];
+								return [sb.id, sb.variantConfig.correctAnswers.join(', ')];
 							}
 							return [sb.id, ''];
 						})

@@ -1,7 +1,7 @@
 import { eq, and } from 'drizzle-orm';
 
 import { slugify } from '$lib/utils';
-import type { VariantConfig, VariantType } from '$lib/variant-types';
+import type { VariantConfig, VariantType, ImageChoiceConfig } from '$lib/variant-types';
 
 import { db, type Db } from './db/index.js';
 import { quizzes, soundbites, tracks, speedRuns } from './db/schema.js';
@@ -260,6 +260,43 @@ async function processExistingSoundbites(
 			}
 		}
 
+		// Handle image uploads for image_choice variant
+		let variantConfig = soundbite.variantConfig;
+		if (
+			soundbite.variantType === 'image_choice' &&
+			soundbite.imageFiles &&
+			soundbite.imageFiles.length > 0
+		) {
+			const config = variantConfig as ImageChoiceConfig;
+			const uploadedOptions = [];
+
+			for (let i = 0; i < config.options.length; i++) {
+				const option = config.options[i];
+				const file = soundbite.imageFiles[i];
+
+				// If there's a new file, upload it
+				if (file && file.size > 0) {
+					const blob = await uploadToBlob(file, blobToken);
+					tracker.trackBlob(blob.pathname);
+					uploadedOptions.push({
+						id: option.id,
+						imageUrl: blob.url,
+						pathname: blob.pathname,
+						label: option.label,
+						isCorrect: option.isCorrect
+					});
+				} else {
+					// Keep existing option
+					uploadedOptions.push(option);
+				}
+			}
+
+			variantConfig = {
+				...config,
+				options: uploadedOptions
+			};
+		}
+
 		// Update soundbite
 		const updateData: {
 			question: string | undefined;
@@ -269,7 +306,7 @@ async function processExistingSoundbites(
 		} = {
 			question: soundbite.question,
 			variantType: soundbite.variantType,
-			variantConfig: soundbite.variantConfig
+			variantConfig
 		};
 
 		if (trackId) {
@@ -305,9 +342,32 @@ async function processAllSoundbites(
 	let position = currentMaxPosition + 1;
 
 	for (const soundbite of newSoundbiteList) {
-		// Create processing context
+		// Create processing context with all necessary files
+		const processingFormData = new FormData();
+
+		// Add sequence files if present
+		if (soundbite.sequenceFiles && soundbite.sequenceFiles.length > 0) {
+			soundbite.sequenceFiles.forEach((file) => {
+				processingFormData.append(`sequenceFiles-${position}`, file);
+			});
+		}
+
+		// Add rank files if present
+		if (soundbite.rankFiles && soundbite.rankFiles.length > 0) {
+			soundbite.rankFiles.forEach((file) => {
+				processingFormData.append(`rankFiles-${position}`, file);
+			});
+		}
+
+		// Add image choice files if present
+		if (soundbite.imageFiles && soundbite.imageFiles.length > 0) {
+			soundbite.imageFiles.forEach((file) => {
+				processingFormData.append(`imageChoiceFiles-${position}`, file);
+			});
+		}
+
 		const context = {
-			formData: new FormData(),
+			formData: processingFormData,
 			blobToken,
 			soundbiteIndex: position,
 			fileIndex: 0,

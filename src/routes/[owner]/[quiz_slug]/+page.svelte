@@ -166,7 +166,10 @@
 					{@const answerDetail = results.answers[soundbite.id]}
 					{@const correctAnswer = results.correctAnswers[soundbite.id]}
 					{#if answerDetail}
-						{@const parsedConfig = correctAnswer ? JSON.parse(correctAnswer) : null}
+						{@const parsedConfig =
+							correctAnswer && soundbite.variantType !== 'simple_guess'
+								? JSON.parse(correctAnswer)
+								: null}
 						{@const rankConfig =
 							soundbite.variantType === 'rank' && parsedConfig && isRankConfig(parsedConfig)
 								? parsedConfig
@@ -206,7 +209,9 @@
 									multipleResponseConfig ??
 									multipleChoiceConfig ?? {
 										...soundbite.variantConfig,
-										...(soundbite.variantConfig.type === 'simple_guess' ? { correctAnswer } : {})
+										...(soundbite.variantConfig.type === 'simple_guess'
+											? { correctAnswers: correctAnswer.split(', ') }
+											: {})
 									}}
 							/>
 						</div>

@@ -20,11 +20,20 @@ export type SpeedRunAnswer = {
 	guess: string; // User's answer
 } & Partial<AnswerDetail>;
 
-// Question with client-safe data (no correct answers)
-export type SpeedRunQuestion = {
+// Base properties shared by all speed run questions
+export type SpeedRunQuestionBase = {
 	id: string;
 	position: number;
 	question: string | null;
+	track: {
+		id: string;
+		name: string;
+		url: string;
+	};
+};
+
+// Multiple choice variant
+export type SpeedRunMultipleChoiceQuestion = SpeedRunQuestionBase & {
 	variantType: 'multiple_choice';
 	variantConfig: {
 		type: 'multiple_choice';
@@ -33,14 +42,39 @@ export type SpeedRunQuestion = {
 			text: string;
 			isCorrect: false; // Always false on client
 		}[];
-		questionTimeLimit?: number; // Optional per-question timer
-	};
-	track: {
-		id: string;
-		name: string;
-		url: string;
+		questionTimeLimit?: number;
 	};
 };
+
+// Simple guess variant
+export type SpeedRunSimpleGuessQuestion = SpeedRunQuestionBase & {
+	variantType: 'simple_guess';
+	variantConfig: {
+		type: 'simple_guess';
+		questionTimeLimit?: number;
+	};
+};
+
+// Image choice variant
+export type SpeedRunImageChoiceQuestion = SpeedRunQuestionBase & {
+	variantType: 'image_choice';
+	variantConfig: {
+		type: 'image_choice';
+		options: {
+			id: string;
+			imageUrl: string;
+			label: string;
+			isCorrect: false; // Always false on client
+		}[];
+		questionTimeLimit?: number;
+	};
+};
+
+// Discriminated union of all supported speed run question types
+export type SpeedRunQuestion =
+	| SpeedRunMultipleChoiceQuestion
+	| SpeedRunSimpleGuessQuestion
+	| SpeedRunImageChoiceQuestion;
 
 // Leaderboard entry
 export type SpeedRunLeaderboardEntry = {

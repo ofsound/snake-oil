@@ -65,11 +65,15 @@
 				}
 	);
 
-	// Check if any soundbites are not multiple_choice (for validation display)
-	let nonMultipleChoiceCount = $derived(
+	// Check if any soundbites use unsupported variant types in speed run mode
+	let unsupportedVariantCount = $derived(
 		data.isSpeedRun
-			? Object.values(existingSoundbiteState).filter((sb) => sb.variantType !== 'multiple_choice')
-					.length
+			? Object.values(existingSoundbiteState).filter(
+					(sb) =>
+						sb.variantType !== 'multiple_choice' &&
+						sb.variantType !== 'simple_guess' &&
+						sb.variantType !== 'image_choice'
+				).length
 			: 0
 	);
 
@@ -78,7 +82,7 @@
 		const defaultState: SoundbiteState = {
 			id: 0, // Placeholder - actual ID comes from the database record key
 			variantType: 'simple_guess',
-			simpleGuessAnswer: '',
+			simpleGuessAnswers: [],
 			multipleChoiceOptions: [createEmptyOption(), createEmptyOption()],
 			multipleResponseOptions: [createEmptyOption(), createEmptyOption()],
 			imageChoiceOptions: [],
@@ -98,7 +102,7 @@
 			return {
 				...defaultState,
 				variantType: 'simple_guess',
-				simpleGuessAnswer: config.correctAnswer
+				simpleGuessAnswers: config.correctAnswers
 			};
 		} else if (config.type === 'multiple_choice') {
 			return {
@@ -331,20 +335,30 @@
 				</label>
 			</div>
 
-			{#if nonMultipleChoiceCount > 0}
+			{#if unsupportedVariantCount > 0}
 				<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
 					<p class="text-sm text-red-700">
-						<strong>Warning:</strong> You have {nonMultipleChoiceCount} question(s) that are not Multiple
-						Choice. Please change them to Multiple Choice or the quiz will not work correctly.
+						<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
+						variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
+						Please change them to continue.
 					</p>
 				</div>
 			{/if}
 
 			<p class="mt-3 text-sm text-amber-700">
-				<strong>Note:</strong> Speed Run mode only supports Multiple Choice questions.
+				<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
+				questions. Simple Guess allows unlimited attempts until time runs out!
 			</p>
 
-			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfig)} />
+			{@const speedRunConfigNumeric = {
+				defaultQuestionTimeLimit: speedRunConfig.defaultQuestionTimeLimit
+					? parseInt(String(speedRunConfig.defaultQuestionTimeLimit), 10)
+					: null,
+				revealDelayMs: parseInt(String(speedRunConfig.revealDelayMs), 10),
+				audioLoopGapMs: parseInt(String(speedRunConfig.audioLoopGapMs), 10),
+				enableStreakBonus: speedRunConfig.enableStreakBonus
+			}}
+			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfigNumeric)} />
 		</Card>
 	{/if}
 
@@ -407,6 +421,9 @@
 		addButtonText="Add Audio Clip"
 		startIndex={data.soundbites.length}
 		onChange={handleNewSoundbitesChange}
+		allowedVariantTypes={data.isSpeedRun
+			? ['multiple_choice', 'simple_guess', 'image_choice']
+			: undefined}
 	/>
 
 	{#if successMessage}

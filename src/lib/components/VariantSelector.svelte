@@ -9,11 +9,12 @@
 		onchange: (value: VariantType) => void;
 		id?: string;
 		disabled?: boolean;
+		allowedTypes?: VariantType[];
 	};
 
-	let { value, onchange, id = 'variant-type', disabled = false }: Props = $props();
+	let { value, onchange, id = 'variant-type', disabled = false, allowedTypes }: Props = $props();
 
-	const variantOptions: VariantType[] = [
+	const allVariantOptions: VariantType[] = [
 		'simple_guess',
 		'multiple_choice',
 		'multiple_response',
@@ -21,6 +22,13 @@
 		'sequence',
 		'rank'
 	];
+
+	// Filter options if allowedTypes is provided
+	const variantOptions = $derived(
+		allowedTypes && allowedTypes.length > 0
+			? allVariantOptions.filter((v) => allowedTypes.includes(v))
+			: allVariantOptions
+	);
 </script>
 
 <FormField label="Question Type" {id}>
@@ -37,7 +45,7 @@
 	</select>
 	{#if disabled}
 		<p class="mt-1 text-xs text-amber-600">
-			⚡ Speed Run mode only supports Multiple Choice questions
+			⚡ Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice questions
 		</p>
 	{/if}
 </FormField>

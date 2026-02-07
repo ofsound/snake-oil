@@ -2,7 +2,11 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 
 import { eq } from 'drizzle-orm';
 
-import { isMultipleChoiceConfig } from '$lib/variant-types';
+import {
+	isMultipleChoiceConfig,
+	isSimpleGuessConfig,
+	isImageChoiceConfig
+} from '$lib/variant-types';
 import {
 	SpeedRunCheckAnswerRequestSchema,
 	type SpeedRunCheckAnswerResponse
@@ -10,7 +14,11 @@ import {
 
 import { db } from '$lib/server/db';
 import { soundbites } from '$lib/server/db/schema';
-import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
+import {
+	checkMultipleChoiceCorrect,
+	checkSimpleGuessCorrect,
+	checkImageChoiceCorrect
+} from '$lib/server/variant-utils';
 
 /**
  * POST /api/speed-run/check-answer
@@ -57,6 +65,20 @@ export const POST: RequestHandler = async ({ request }) => {
 			isCorrect = checkMultipleChoiceCorrect(guess, soundbite.variantConfig);
 			const correctOption = soundbite.variantConfig.options.find((opt) => opt.isCorrect);
 			correctAnswer = correctOption?.text ?? '';
+		} else if (
+			soundbite.variantType === 'simple_guess' &&
+			isSimpleGuessConfig(soundbite.variantConfig)
+		) {
+			isCorrect = checkSimpleGuessCorrect(guess, soundbite.variantConfig.correctAnswers);
+			// Return the first correct answer for display purposes
+			correctAnswer = soundbite.variantConfig.correctAnswers[0] ?? '';
+		} else if (
+			soundbite.variantType === 'image_choice' &&
+			isImageChoiceConfig(soundbite.variantConfig)
+		) {
+			isCorrect = checkImageChoiceCorrect(guess, soundbite.variantConfig);
+			const correctOption = soundbite.variantConfig.options.find((opt) => opt.isCorrect);
+			correctAnswer = correctOption?.label ?? '';
 		}
 
 		const response: SpeedRunCheckAnswerResponse = {

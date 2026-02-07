@@ -38,7 +38,7 @@ import type { VariantConfig } from '$lib/variant-types';
  */
 export function getCorrectAnswerText(config: VariantConfig): string {
 	if (config.type === 'simple_guess') {
-		return config.correctAnswer;
+		return config.correctAnswers.join(', ');
 	} else if (config.type === 'multiple_choice') {
 		const correctOption = config.options.find((opt) => opt.isCorrect);
 		return correctOption?.text ?? '';

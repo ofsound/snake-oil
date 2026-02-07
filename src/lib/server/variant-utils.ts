@@ -18,8 +18,9 @@ import { calculateKendallTauScore } from '$lib/variant-display';
 function validateSimpleGuess(config: SimpleGuessConfig): boolean {
 	return (
 		config.type === 'simple_guess' &&
-		typeof config.correctAnswer === 'string' &&
-		config.correctAnswer.trim().length > 0
+		Array.isArray(config.correctAnswers) &&
+		config.correctAnswers.length > 0 &&
+		config.correctAnswers.every((answer) => typeof answer === 'string' && answer.trim().length > 0)
 	);
 }
 
@@ -189,11 +190,14 @@ export function validateVariantConfig(config: VariantConfig): boolean {
 /**
  * Check if a simple guess answer is correct
  * Uses flexible matching: case-insensitive, trimmed whitespace
+ * Returns true if guess matches ANY of the correct answers
  */
-function checkSimpleGuessCorrect(guess: string, correctAnswer: string): boolean {
+export function checkSimpleGuessCorrect(guess: string, correctAnswers: string[]): boolean {
 	const normalizedGuess = guess.trim().toLowerCase();
-	const normalizedCorrect = correctAnswer.trim().toLowerCase();
-	return normalizedGuess === normalizedCorrect;
+	return correctAnswers.some((answer) => {
+		const normalizedCorrect = answer.trim().toLowerCase();
+		return normalizedGuess === normalizedCorrect;
+	});
 }
 
 /**
@@ -246,7 +250,10 @@ function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
 /**
  * Check if an image choice answer is correct
  */
-function checkImageChoiceCorrect(selectedOptionId: string, config: ImageChoiceConfig): boolean {
+export function checkImageChoiceCorrect(
+	selectedOptionId: string,
+	config: ImageChoiceConfig
+): boolean {
 	const correctOption = config.options.find((opt) => opt.isCorrect);
 	return correctOption?.id === selectedOptionId;
 }
@@ -264,7 +271,7 @@ function checkAnswerCorrect(
 ): boolean {
 	switch (config.type) {
 		case 'simple_guess':
-			return checkSimpleGuessCorrect(guess, config.correctAnswer);
+			return checkSimpleGuessCorrect(guess, config.correctAnswers);
 		case 'multiple_choice':
 			return selectedOptionId ? checkMultipleChoiceCorrect(selectedOptionId, config) : false;
 		case 'multiple_response':

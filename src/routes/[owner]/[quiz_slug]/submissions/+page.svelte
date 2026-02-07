@@ -151,7 +151,10 @@
 											<span>Answer: <span class="font-medium">{answerInfo.guess}</span></span>
 											{#if !answerInfo.isCorrect}
 												<span class="ml-3">
-													(Correct: <span class="font-medium"
+													({soundbite.variantType === 'simple_guess'
+														? 'Acceptable answers'
+														: 'Correct'}:
+													<span class="font-medium"
 														>{getCorrectAnswerText(soundbite.variantConfig)}</span
 													>)
 												</span>

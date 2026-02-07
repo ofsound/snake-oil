@@ -43,7 +43,7 @@ export type ImageChoiceOption = {
 
 export type SimpleGuessConfig = {
 	type: 'simple_guess';
-	correctAnswer: string;
+	correctAnswers: string[];
 };
 
 export type MultipleChoiceConfig = {
@@ -148,7 +148,7 @@ const RankItemSchema = z.object({
 
 const SimpleGuessConfigSchema = z.object({
 	type: z.literal('simple_guess'),
-	correctAnswer: z.string()
+	correctAnswers: z.array(z.string().min(1)).min(1)
 });
 
 const MultipleChoiceConfigSchema = z.object({
@@ -205,4 +205,8 @@ export function isMultipleResponseConfig(value: unknown): value is MultipleRespo
 
 export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceConfig {
 	return MultipleChoiceConfigSchema.safeParse(value).success;
+}
+
+export function isSimpleGuessConfig(value: unknown): value is SimpleGuessConfig {
+	return SimpleGuessConfigSchema.safeParse(value).success;
 }

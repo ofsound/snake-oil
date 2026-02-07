@@ -11,7 +11,7 @@ import type { VariantConfig } from './variant-types';
 export function getCorrectAnswerText(config: VariantConfig): string {
 	switch (config.type) {
 		case 'simple_guess':
-			return config.correctAnswer;
+			return config.correctAnswers.join(', ');
 		case 'multiple_choice': {
 			const correctOption = config.options.find((opt) => opt.isCorrect);
 			return correctOption?.text ?? '';

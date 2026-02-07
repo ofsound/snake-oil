@@ -19,6 +19,7 @@
 		fileInputRequired?: boolean;
 		fileInputLabel?: string;
 		disabledVariantType?: boolean;
+		allowedVariantTypes?: VariantType[];
 		onChange: (updates: Partial<SoundbiteState>) => void;
 	}
 
@@ -30,6 +31,7 @@
 		fileInputRequired = false,
 		fileInputLabel = 'MP3 file',
 		disabledVariantType = false,
+		allowedVariantTypes,
 		onChange
 	}: Props = $props();
 
@@ -69,7 +71,7 @@
 		if (variantType === 'simple_guess') {
 			return JSON.stringify({
 				type: 'simple_guess',
-				correctAnswer: soundbite.simpleGuessAnswer
+				correctAnswers: soundbite.simpleGuessAnswers
 			});
 		} else if (variantType === 'multiple_choice') {
 			return JSON.stringify({
@@ -101,7 +103,7 @@
 				prompt: soundbite.rankPrompt
 			});
 		}
-		return JSON.stringify({ type: 'simple_guess', correctAnswer: '' });
+		return JSON.stringify({ type: 'simple_guess', correctAnswers: [] });
 	}
 </script>
 
@@ -119,6 +121,7 @@
 		value={soundbite.variantType}
 		onchange={(vt) => onChange({ variantType: vt })}
 		disabled={disabledVariantType}
+		allowedTypes={allowedVariantTypes}
 	/>
 
 	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
