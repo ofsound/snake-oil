@@ -72,11 +72,11 @@
 			<span class="sr-only">{checked ? rightLabel : leftLabel}</span>
 			<span
 				class="
-					pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg
+					pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white
+					shadow-[0_2px_4px_rgba(0,0,0,0.15),0_1px_2px_rgba(0,0,0,0.1)]
 					transition-all duration-200 ease-in-out
 					{checked ? 'translate-x-7' : 'translate-x-1'}
 				"
-				style="box-shadow: 0 2px 4px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.1);"
 			></span>
 		</button>
 
