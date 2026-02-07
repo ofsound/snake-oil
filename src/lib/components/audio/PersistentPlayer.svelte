@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
 	import PlayerTransport from './PlayerTransport.svelte';
 	import SinglePlaylist from './SinglePlaylist.svelte';
 
+	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
 	import { formatTime } from '$lib/audio/format-time';
 
-	import type { Component } from 'svelte';
 	import type { Track } from '$lib/types/tracks';
+	import type { Component } from 'svelte';
 
 	interface VisualizerProps {
 		analyser: AnalyserNode | null;

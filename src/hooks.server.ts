@@ -1,8 +1,10 @@
-import type { Handle } from '@sveltejs/kit';
+import { building } from '$app/environment';
+
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 import { auth } from '$lib/auth';
-import { building } from '$app/environment';
+
+import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	// Populate session and user in locals for use in load functions.

@@ -1,8 +1,11 @@
 import { redirect, fail } from '@sveltejs/kit';
-import type { PageServerLoad, Actions } from './$types';
+
 import { env } from '$env/dynamic/private';
+
 import { createQuiz, handleCreateQuizResult } from '$lib/server/create-quiz';
 import { getLoginUrl } from '$lib/constants/routes';
+
+import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Check for active user session

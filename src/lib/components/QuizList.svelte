@@ -3,10 +3,11 @@
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
-	import { resolvePath } from '$lib/utils';
-
 	import Button from '$lib/components/Button.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
+
+	import { resolvePath } from '$lib/utils';
+
 	interface Quiz {
 		id: string;
 		title: string;

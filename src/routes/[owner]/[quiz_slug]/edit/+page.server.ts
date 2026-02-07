@@ -1,14 +1,17 @@
-import { db } from '$lib/server/db';
-import { quizzes, soundbites, tracks } from '$lib/server/db/schema';
 import { error, fail, redirect } from '@sveltejs/kit';
-import { and, asc, eq } from 'drizzle-orm';
+
 import { env } from '$env/dynamic/private';
-import type { Actions, PageServerLoad, RequestEvent } from './$types';
+
+import { and, asc, eq } from 'drizzle-orm';
+
+import { getLoginUrl } from '$lib/constants/routes';
+
+import { db } from '$lib/server/db';
+import { quizzes, soundbites, tracks, user, type ImageChoiceConfig } from '$lib/server/db/schema';
 import { deleteFromBlob } from '$lib/server/quiz-utils';
 import { processQuizSubmission } from '$lib/server/quiz-processor';
-import { user } from '$lib/server/db/schema';
-import type { ImageChoiceConfig } from '$lib/server/db/schema';
-import { getLoginUrl } from '$lib/constants/routes';
+
+import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {
 	if (!locals.user) {

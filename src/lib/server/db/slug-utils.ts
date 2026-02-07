@@ -1,6 +1,7 @@
+import { eq, and, ne } from 'drizzle-orm';
+
 import { db } from './index';
 import { quizzes } from './schema';
-import { eq, and, ne } from 'drizzle-orm';
 
 /**
  * Utility functions for generating URL-friendly slugs

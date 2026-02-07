@@ -1,6 +1,8 @@
+import { asc, desc, count, eq, sql } from 'drizzle-orm';
+
 import { db } from '$lib/server/db';
 import { quizzes, user, speedRuns } from '$lib/server/db/schema';
-import { asc, desc, count, eq, sql } from 'drizzle-orm';
+
 import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 15;

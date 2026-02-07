@@ -1,11 +1,22 @@
-import { db } from '$lib/server/db';
-import { quizzes, quizAnswers, soundbites, speedRunResults, user } from '$lib/server/db/schema';
-import type { AnswersPayload, VariantConfig } from '$lib/server/db/schema';
 import { error, fail } from '@sveltejs/kit';
+
 import { and, asc, desc, eq } from 'drizzle-orm';
-import type { Actions, PageServerLoad, RequestEvent } from './$types';
-import { buildAnswerDetail, calculateScore } from '$lib/server/variant-utils';
+
 import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
+
+import { db } from '$lib/server/db';
+import {
+	quizzes,
+	quizAnswers,
+	soundbites,
+	speedRunResults,
+	user,
+	type AnswersPayload,
+	type VariantConfig
+} from '$lib/server/db/schema';
+import { buildAnswerDetail, calculateScore } from '$lib/server/variant-utils';
+
+import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const { owner, quiz_slug: quizSlug } = params;

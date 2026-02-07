@@ -1,12 +1,14 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
+
+import { eq, desc, asc, sql } from 'drizzle-orm';
+
+import { isMultipleChoiceConfig } from '$lib/variant-types';
+import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
+import { SpeedRunSubmitRequestSchema, type SpeedRunSubmitResponse } from '$lib/speed-run/types';
+
 import { db } from '$lib/server/db';
 import { speedRuns, speedRunResults, soundbites } from '$lib/server/db/schema';
-import { eq, desc, asc, sql } from 'drizzle-orm';
 import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
-import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
-import { SpeedRunSubmitRequestSchema } from '$lib/speed-run/types';
-import type { SpeedRunSubmitResponse } from '$lib/speed-run/types';
-import { isMultipleChoiceConfig } from '$lib/variant-types';
 
 /**
  * POST /api/speed-run/submit

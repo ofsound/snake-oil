@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
 	import { resolve } from '$app/paths';
+
 	import { ModeWatcher } from 'mode-watcher';
 
 	import Button from '$lib/components/Button.svelte';
@@ -9,9 +9,9 @@
 
 	import { authClient } from '$lib/auth-client';
 
-	import type { LayoutProps } from './$types';
-
 	import favicon from '$lib/assets/favicon.svg';
+
+	import type { LayoutProps } from './$types';
 
 	import './layout.css';
 	let { data, children }: LayoutProps = $props();

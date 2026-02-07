@@ -1,11 +1,16 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
+
+import { eq } from 'drizzle-orm';
+
+import { isMultipleChoiceConfig } from '$lib/variant-types';
+import {
+	SpeedRunCheckAnswerRequestSchema,
+	type SpeedRunCheckAnswerResponse
+} from '$lib/speed-run/types';
+
 import { db } from '$lib/server/db';
 import { soundbites } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
 import { checkMultipleChoiceCorrect } from '$lib/server/variant-utils';
-import { SpeedRunCheckAnswerRequestSchema } from '$lib/speed-run/types';
-import type { SpeedRunCheckAnswerResponse } from '$lib/speed-run/types';
-import { isMultipleChoiceConfig } from '$lib/variant-types';
 
 /**
  * POST /api/speed-run/check-answer

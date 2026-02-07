@@ -3,10 +3,10 @@
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
-	import { resolvePath } from '$lib/utils';
-
 	import QuizList from '$lib/components/QuizList.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
+
+	import { resolvePath } from '$lib/utils';
 
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();

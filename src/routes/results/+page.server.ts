@@ -1,7 +1,10 @@
+import { redirect } from '@sveltejs/kit';
+
+import { asc, desc, count, eq, or, ilike, sql, and } from 'drizzle-orm';
+
 import { db } from '$lib/server/db';
 import { quizzes, user, speedRuns } from '$lib/server/db/schema';
-import { asc, desc, count, eq, or, ilike, sql, and } from 'drizzle-orm';
-import { redirect } from '@sveltejs/kit';
+
 import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 50;

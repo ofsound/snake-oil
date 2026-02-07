@@ -1,8 +1,12 @@
+import { error, redirect } from '@sveltejs/kit';
+
+import { and, asc, eq } from 'drizzle-orm';
+
+import { getLoginUrl } from '$lib/constants/routes';
+
 import { db } from '$lib/server/db';
 import { quizAnswers, quizzes, soundbites, speedRunResults, user } from '$lib/server/db/schema';
-import { error, redirect } from '@sveltejs/kit';
-import { and, asc, eq } from 'drizzle-orm';
-import { getLoginUrl } from '$lib/constants/routes';
+
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals, params, url }) => {

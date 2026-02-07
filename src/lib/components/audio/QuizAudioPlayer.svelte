@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	import { quizAudioContext } from '$lib/audio/quiz-audio-context.svelte';
 	import MiniSpectrumVisualizer from './MiniSpectrumVisualizer.svelte';
 
+	import { quizAudioContext } from '$lib/audio/quiz-audio-context.svelte';
 	import { formatTime } from '$lib/audio/format-time';
+
 	interface Props {
 		soundbiteId: string;
 		url: string;
