@@ -146,6 +146,20 @@
 		<div class="mt-10">
 			{data.quiz.description}
 		</div>
+
+		<!-- Tags -->
+		{#if data.tags && data.tags.length > 0}
+			<div class="mt-6 flex flex-wrap gap-2">
+				{#each data.tags as tag}
+					<a
+						href="/quizzes/tag/{tag.slug}"
+						class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+					>
+						#{tag.label}
+					</a>
+				{/each}
+			</div>
+		{/if}
 	</header>
 
 	{#if hasResults && results}

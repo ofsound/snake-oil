@@ -17,6 +17,7 @@ interface QuizFormOptions {
 		type: 'new' | 'existing';
 		removed?: boolean;
 	}>;
+	tags?: Array<{ id: string; label: string; slug: string }>;
 }
 
 /**

@@ -46,10 +46,19 @@ export const user = pgTable(
 		slug: text('slug').notNull(),
 		emailVerified: boolean('email_verified'),
 		image: text('image'),
+		role: text('role').notNull().default('user'),
+		isSuspended: boolean('is_suspended').default(false),
+		suspendedAt: timestamp('suspended_at'),
+		suspendedReason: text('suspended_reason'),
+		suspendedBy: text('suspended_by'),
 		createdAt: timestamp('created_at').defaultNow().notNull(),
 		updatedAt: timestamp('updated_at').defaultNow().notNull()
 	},
-	(table) => [uniqueIndex('user_slug_unique').on(table.slug)]
+	(table) => [
+		uniqueIndex('user_slug_unique').on(table.slug),
+		index('user_role_idx').on(table.role),
+		index('user_suspended_idx').on(table.isSuspended)
+	]
 );
 
 export const session = pgTable('session', {
@@ -205,7 +214,8 @@ export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
 	}),
 	soundbites: many(soundbites),
 	quizAnswers: many(quizAnswers),
-	speedRun: one(speedRuns)
+	speedRun: one(speedRuns),
+	tags: many(quizTags)
 }));
 
 export const soundbitesRelations = relations(soundbites, ({ one }) => ({
@@ -254,6 +264,173 @@ export const speedRunResultsRelations = relations(speedRunResults, ({ one }) => 
 	})
 }));
 
+// Tags table for quiz tagging system
+export const tags = pgTable(
+	'tags',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		label: text('label').notNull().unique(),
+		slug: text('slug').notNull().unique(),
+		useCount: integer('use_count').default(0).notNull(),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' })
+	},
+	(table) => [
+		index('tags_use_count_idx').on(table.useCount.desc()),
+		index('tags_label_idx').on(table.label)
+	]
+);
+
+// Quiz-Tag junction table (many-to-many)
+export const quizTags = pgTable(
+	'quiz_tags',
+	{
+		quizId: uuid('quiz_id')
+			.notNull()
+			.references(() => quizzes.id, { onDelete: 'cascade' }),
+		tagId: uuid('tag_id')
+			.notNull()
+			.references(() => tags.id, { onDelete: 'cascade' }),
+		addedAt: timestamp('added_at').defaultNow().notNull()
+	},
+	(table) => [uniqueIndex('quiz_tags_unique').on(table.quizId, table.tagId)]
+);
+
+// Tag co-occurrence table for "Related Tags" feature
+export const tagCooccurrence = pgTable(
+	'tag_cooccurrence',
+	{
+		tagId: uuid('tag_id')
+			.notNull()
+			.references(() => tags.id, { onDelete: 'cascade' }),
+		relatedTagId: uuid('related_tag_id')
+			.notNull()
+			.references(() => tags.id, { onDelete: 'cascade' }),
+		cooccurrenceCount: integer('cooccurrence_count').default(1).notNull(),
+		updatedAt: timestamp('updated_at').defaultNow().notNull()
+	},
+	(table) => [
+		uniqueIndex('tag_cooccurrence_unique').on(table.tagId, table.relatedTagId),
+		index('tag_cooccurrence_count_idx').on(table.cooccurrenceCount.desc())
+	]
+);
+
+// Tag Relations
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+	createdByUser: one(user, {
+		fields: [tags.createdBy],
+		references: [user.id]
+	}),
+	quizzes: many(quizTags),
+	relatedTags: many(tagCooccurrence, { relationName: 'tag' })
+}));
+
+export const quizTagsRelations = relations(quizTags, ({ one }) => ({
+	quiz: one(quizzes, {
+		fields: [quizTags.quizId],
+		references: [quizzes.id]
+	}),
+	tag: one(tags, {
+		fields: [quizTags.tagId],
+		references: [tags.id]
+	})
+}));
+
+export const tagCooccurrenceRelations = relations(tagCooccurrence, ({ one }) => ({
+	tag: one(tags, {
+		fields: [tagCooccurrence.tagId],
+		references: [tags.id],
+		relationName: 'tag'
+	}),
+	relatedTag: one(tags, {
+		fields: [tagCooccurrence.relatedTagId],
+		references: [tags.id]
+	})
+}));
+
+// Admin audit log table
+export const adminActions = pgTable(
+	'admin_actions',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		adminId: text('admin_id')
+			.notNull()
+			.references(() => user.id, { onDelete: 'cascade' }),
+		action: text('action').notNull(),
+		targetType: text('target_type').notNull(),
+		targetId: text('target_id'),
+		targetOwnerId: text('target_owner_id').references(() => user.id, { onDelete: 'set null' }),
+		details: jsonb('details'),
+		createdAt: timestamp('created_at').defaultNow().notNull()
+	},
+	(table) => [
+		index('admin_actions_admin_idx').on(table.adminId),
+		index('admin_actions_target_type_idx').on(table.targetType),
+		index('admin_actions_target_id_idx').on(table.targetId),
+		index('admin_actions_created_at_idx').on(table.createdAt.desc())
+	]
+);
+
+// Content reports table for moderation
+export const contentReports = pgTable(
+	'content_reports',
+	{
+		id: uuid('id').defaultRandom().primaryKey(),
+		reporterId: text('reporter_id').references(() => user.id, { onDelete: 'set null' }),
+		targetType: text('target_type').notNull(),
+		targetId: text('target_id').notNull(),
+		reason: text('reason').notNull(),
+		status: text('status').notNull().default('pending'),
+		resolvedBy: text('resolved_by').references(() => user.id, { onDelete: 'set null' }),
+		resolution: text('resolution'),
+		createdAt: timestamp('created_at').defaultNow().notNull(),
+		resolvedAt: timestamp('resolved_at')
+	},
+	(table) => [
+		index('content_reports_status_idx').on(table.status),
+		index('content_reports_target_type_idx').on(table.targetType),
+		index('content_reports_target_id_idx').on(table.targetId),
+		index('content_reports_created_at_idx').on(table.createdAt.desc())
+	]
+);
+
+// Admin actions relations
+export const adminActionsRelations = relations(adminActions, ({ one }) => ({
+	admin: one(user, {
+		fields: [adminActions.adminId],
+		references: [user.id]
+	}),
+	targetOwner: one(user, {
+		fields: [adminActions.targetOwnerId],
+		references: [user.id]
+	})
+}));
+
+// Content reports relations
+export const contentReportsRelations = relations(contentReports, ({ one }) => ({
+	reporter: one(user, {
+		fields: [contentReports.reporterId],
+		references: [user.id]
+	}),
+	resolver: one(user, {
+		fields: [contentReports.resolvedBy],
+		references: [user.id]
+	})
+}));
+
+// Update user relations to include new relationships
+export const userRelations = relations(user, ({ one, many }) => ({
+	adminActions: many(adminActions),
+	targetedActions: many(adminActions, { relationName: 'targetOwner' }),
+	reportsMade: many(contentReports, { relationName: 'reporter' }),
+	reportsResolved: many(contentReports, { relationName: 'resolver' }),
+	suspendedByUser: one(user, {
+		fields: [user.suspendedBy],
+		references: [user.id],
+		relationName: 'suspendedByUser'
+	})
+}));
+
 // Export types for type safety
 export type User = typeof user.$inferSelect;
 export type NewUser = typeof user.$inferInsert;
@@ -265,3 +442,16 @@ export type SpeedRun = typeof speedRuns.$inferSelect;
 export type NewSpeedRun = typeof speedRuns.$inferInsert;
 export type SpeedRunResult = typeof speedRunResults.$inferSelect;
 export type NewSpeedRunResult = typeof speedRunResults.$inferInsert;
+export type Tag = typeof tags.$inferSelect;
+export type NewTag = typeof tags.$inferInsert;
+export type QuizTag = typeof quizTags.$inferSelect;
+export type NewQuizTag = typeof quizTags.$inferInsert;
+export type TagCooccurrence = typeof tagCooccurrence.$inferSelect;
+export type NewTagCooccurrence = typeof tagCooccurrence.$inferInsert;
+export type AdminAction = typeof adminActions.$inferSelect;
+export type NewAdminAction = typeof adminActions.$inferInsert;
+export type ContentReport = typeof contentReports.$inferSelect;
+export type NewContentReport = typeof contentReports.$inferInsert;
+
+// User role type
+export type UserRole = 'user' | 'moderator' | 'admin';

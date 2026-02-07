@@ -1,6 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 
+	interface Tag {
+		id: string;
+		label: string;
+		slug: string;
+	}
+
 	interface Quiz {
 		slug: string;
 		title: string;
@@ -13,6 +19,7 @@
 		speedRun?: {
 			id: string;
 		} | null;
+		tags?: Tag[];
 	}
 
 	interface Props {
@@ -83,6 +90,22 @@
 			{/if}
 		</div>
 		<div class="text-sm text-gray-600">{quiz.description}</div>
+		{#if quiz.tags && quiz.tags.length > 0}
+			<div class="mt-2 flex flex-wrap gap-1.5">
+				{#each quiz.tags.slice(0, 3) as tag}
+					<a
+						href="/quizzes/tag/{tag.slug}"
+						class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300"
+						onclick={(e) => e.stopPropagation()}
+					>
+						#{tag.label}
+					</a>
+				{/each}
+				{#if quiz.tags.length > 3}
+					<span class="text-xs text-gray-500">+{quiz.tags.length - 3} more</span>
+				{/if}
+			</div>
+		{/if}
 	</div>
 	<div class="flex flex-col items-end gap-1">
 		<div class="flex items-center gap-2">

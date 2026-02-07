@@ -9,6 +9,7 @@
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
+	import TagInput from '$lib/components/TagInput.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 
 	import { buildQuizFormData } from '$lib/form-builder';
@@ -68,6 +69,9 @@
 		}
 	]);
 
+	// Tags state
+	let selectedTags = $state<Array<{ id: string; label: string; slug: string }>>([]);
+
 	// Derived reactive calculation (no side effects)
 	const autoSlug = $derived(slugify(title));
 
@@ -125,17 +129,31 @@
 				id: sb.id,
 				state: sb,
 				type: 'new' as const
-			}))
+			})),
+			tags: selectedTags
 		});
 
 		// Merge into the formData that enhance provides
 		// Only skip basic fields that are already in the form HTML
-		const skipKeys = ['title', 'description', 'slug', 'visibility', 'quizMode', 'speedRunConfig'];
+		const skipKeys = [
+			'title',
+			'description',
+			'slug',
+			'visibility',
+			'quizMode',
+			'speedRunConfig',
+			'tags'
+		];
 		completeFormData.forEach((value, key) => {
 			if (!skipKeys.includes(key)) {
 				formData.append(key, value);
 			}
 		});
+
+		// Add tags as JSON
+		if (selectedTags.length > 0) {
+			formData.append('tags', JSON.stringify(selectedTags.map((t) => t.id)));
+		}
 
 		return async ({ update }) => {
 			submitting = false;
@@ -347,6 +365,17 @@
 			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfigNumeric)} />
 		{/if}
 		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
+	</Card>
+
+	<!-- Tags Section -->
+	<Card variant="flat" padding="md">
+		<FormField label="Tags" id="tags">
+			<TagInput bind:tags={selectedTags} placeholder="Add tags to help people find your quiz..." />
+			<p class="mt-2 text-xs text-gray-500">
+				Type to search existing tags or press Enter to create new ones. Tags help users discover
+				your quiz.
+			</p>
+		</FormField>
 	</Card>
 
 	<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>

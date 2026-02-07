@@ -11,6 +11,8 @@ import {
 	soundbites,
 	speedRunResults,
 	user,
+	quizTags,
+	tags,
 	type AnswersPayload,
 	type VariantConfig
 } from '$lib/server/db/schema';
@@ -224,6 +226,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		}
 	}
 
+	// Fetch quiz tags
+	const quizTagsData = await db
+		.select({
+			id: tags.id,
+			label: tags.label,
+			slug: tags.slug
+		})
+		.from(quizTags)
+		.innerJoin(tags, eq(quizTags.tagId, tags.id))
+		.where(eq(quizTags.quizId, quiz.id));
+
 	return {
 		quiz: {
 			id: quiz.id,
@@ -250,6 +263,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		soundbites: soundbiteItems,
 		speedRunQuestions,
 		leaderboard,
+		tags: quizTagsData,
 		user: locals.user
 			? { id: locals.user.id, name: locals.user.name, email: locals.user.email }
 			: null

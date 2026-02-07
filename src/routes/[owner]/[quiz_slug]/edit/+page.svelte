@@ -11,6 +11,7 @@
 	import FormInput from '$lib/components/FormInput.svelte';
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import Heading from '$lib/components/Heading.svelte';
+	import TagInput from '$lib/components/TagInput.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 
 	import { buildQuizFormData } from '$lib/form-builder';
@@ -46,6 +47,10 @@
 			data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
 		)
 	);
+
+	// Tags state - initialize from existing quiz tags
+	// svelte-ignore state_referenced_locally
+	let selectedTags = $state<Array<{ id: string; label: string; slug: string }>>(data.tags || []);
 
 	// Speed run configuration state - initialize from server data immediately to prevent flash
 	// svelte-ignore state_referenced_locally
@@ -260,7 +265,15 @@
 
 		// Merge new soundbite data into the main formData
 		// Skip basic fields that are already in the form HTML
-		const skipKeys = ['title', 'description', 'slug', 'visibility', 'quizMode', 'speedRunConfig'];
+		const skipKeys = [
+			'title',
+			'description',
+			'slug',
+			'visibility',
+			'quizMode',
+			'speedRunConfig',
+			'tags'
+		];
 		newSoundbitesFormData.forEach((value, key) => {
 			if (!skipKeys.includes(key)) {
 				// Adjust indices to account for existing soundbites
@@ -271,6 +284,11 @@
 				formData.append(adjustedKey, value);
 			}
 		});
+
+		// Add tags
+		if (selectedTags.length > 0) {
+			formData.append('tags', JSON.stringify(selectedTags.map((t) => t.id)));
+		}
 
 		return async ({ result, update }) => {
 			if (result.type === 'success') {
@@ -391,6 +409,17 @@
 
 		<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
 		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
+	</Card>
+
+	<!-- Tags Section -->
+	<Card variant="flat" padding="md">
+		<FormField label="Tags" id="tags">
+			<TagInput bind:tags={selectedTags} placeholder="Add tags to help people find your quiz..." />
+			<p class="mt-2 text-xs text-gray-500">
+				Type to search existing tags or press Enter to create new ones. Tags help users discover
+				your quiz.
+			</p>
+		</FormField>
 	</Card>
 
 	<section class="flex flex-col gap-4">

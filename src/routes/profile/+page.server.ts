@@ -1,9 +1,9 @@
 import { redirect } from '@sveltejs/kit';
 
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { quizzes } from '$lib/server/db/schema';
+import { quizzes, quizTags, tags } from '$lib/server/db/schema';
 import { getLoginUrl } from '$lib/constants/routes';
 
 import type { PageServerLoad } from './$types';
@@ -44,9 +44,39 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		}
 	});
 
+	// Fetch tags for all quizzes
+	const quizIds = userQuizzes.map((q) => q.id);
+	const tagsData =
+		quizIds.length > 0
+			? await db
+					.select({
+						quizId: quizTags.quizId,
+						id: tags.id,
+						label: tags.label,
+						slug: tags.slug
+					})
+					.from(quizTags)
+					.innerJoin(tags, eq(quizTags.tagId, tags.id))
+					.where(inArray(quizTags.quizId, quizIds))
+			: [];
+
+	// Group tags by quiz
+	const tagsByQuiz = new Map<string, typeof tagsData>();
+	for (const tag of tagsData) {
+		if (!tagsByQuiz.has(tag.quizId)) {
+			tagsByQuiz.set(tag.quizId, []);
+		}
+		tagsByQuiz.get(tag.quizId)!.push(tag);
+	}
+
+	const quizzesWithTags = userQuizzes.map((quiz) => ({
+		...quiz,
+		tags: tagsByQuiz.get(quiz.id)?.map((t) => ({ id: t.id, label: t.label, slug: t.slug })) || []
+	}));
+
 	return {
 		user: locals.user,
 		profile: locals.user,
-		quizzes: userQuizzes
+		quizzes: quizzesWithTags
 	};
 };

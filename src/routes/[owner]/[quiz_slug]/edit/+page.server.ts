@@ -7,7 +7,15 @@ import { and, asc, eq } from 'drizzle-orm';
 import { getLoginUrl } from '$lib/constants/routes';
 
 import { db } from '$lib/server/db';
-import { quizzes, soundbites, tracks, user, type ImageChoiceConfig } from '$lib/server/db/schema';
+import {
+	quizzes,
+	soundbites,
+	tracks,
+	user,
+	quizTags,
+	tags,
+	type ImageChoiceConfig
+} from '$lib/server/db/schema';
 import { deleteFromBlob } from '$lib/server/quiz-utils';
 import { processQuizSubmission } from '$lib/server/quiz-processor';
 
@@ -62,6 +70,17 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		variantConfig: soundbite.variantConfig
 	}));
 
+	// Fetch quiz tags
+	const quizTagData = await db
+		.select({
+			id: tags.id,
+			label: tags.label,
+			slug: tags.slug
+		})
+		.from(quizTags)
+		.innerJoin(tags, eq(quizTags.tagId, tags.id))
+		.where(eq(quizTags.quizId, quiz.id));
+
 	return {
 		quiz: {
 			id: quiz.id,
@@ -77,6 +96,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			}
 		},
 		soundbites: soundbiteItems,
+		tags: quizTagData,
 		isSpeedRun: !!quiz.speedRun,
 		speedRunConfig: quiz.speedRun
 			? {

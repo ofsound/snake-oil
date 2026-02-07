@@ -63,6 +63,10 @@ export const auth = betterAuth({
 			slug: {
 				type: 'string',
 				required: true
+			},
+			role: {
+				type: 'string',
+				defaultValue: 'user'
 			}
 		}
 	},

@@ -1,8 +1,12 @@
 import { building } from '$app/environment';
+import { error } from '@sveltejs/kit';
 
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 
 import { auth } from '$lib/auth';
+import { db } from '$lib/server/db';
+import { user } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
 import type { Handle } from '@sveltejs/kit';
 
@@ -15,6 +19,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 	});
 
 	if (sessionResult?.session && sessionResult?.user) {
+		// Check if user is suspended by querying the database
+		const userRecord = await db.query.user.findFirst({
+			where: eq(user.id, sessionResult.user.id),
+			columns: {
+				isSuspended: true
+			}
+		});
+
+		if (userRecord?.isSuspended) {
+			error(403, 'Your account has been suspended');
+		}
+
 		// Assign session and user to locals
 		Object.assign(event.locals, {
 			session: sessionResult.session,

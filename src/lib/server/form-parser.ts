@@ -80,7 +80,19 @@ const QuizFormSchema = z.object({
 				return z.NEVER;
 			}
 		}),
-	soundbites: z.array(SoundbiteFormSchema).min(1, 'At least one soundbite is required')
+	soundbites: z.array(SoundbiteFormSchema).min(1, 'At least one soundbite is required'),
+	tags: z
+		.string()
+		.optional()
+		.transform((str) => {
+			if (!str) return [];
+			try {
+				return JSON.parse(str) as string[];
+			} catch {
+				return [];
+			}
+		})
+		.default([])
 });
 
 /**
@@ -151,6 +163,7 @@ export function parseQuizFormData(formData: FormData): ParseResult<QuizFormData>
 		const visibility = formData.get('visibility')?.toString() ?? 'public';
 		const quizMode = formData.get('quizMode')?.toString() ?? 'standard';
 		const speedRunConfig = formData.get('speedRunConfig')?.toString();
+		const tags = formData.get('tags')?.toString();
 
 		// Extract soundbites using bracket notation
 		const indices = extractSoundbiteIndices(formData);
@@ -164,7 +177,8 @@ export function parseQuizFormData(formData: FormData): ParseResult<QuizFormData>
 			visibility,
 			quizMode,
 			speedRunConfig,
-			soundbites
+			soundbites,
+			tags
 		};
 
 		const result = QuizFormSchema.safeParse(rawData);
