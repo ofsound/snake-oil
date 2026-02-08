@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
+
 	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 
 	import StartScreen from './StartScreen.svelte';
@@ -431,7 +433,10 @@
 
 {#if phase === 'idle'}
 	{#if preloadStatus === 'loading'}
-		<div class="flex min-h-screen items-center justify-center px-4">
+		<div
+			class="flex min-h-screen items-center justify-center px-4"
+			transition:fade={{ duration: 200 }}
+		>
 			<div class="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-8 text-center">
 				<div class="mb-4 text-2xl font-bold text-white">Preparing Quiz...</div>
 				<div class="mb-2 text-white/60">{preloadProgress} / {preloadTotal}</div>
@@ -444,7 +449,10 @@
 			</div>
 		</div>
 	{:else if preloadStatus === 'error'}
-		<div class="flex min-h-screen items-center justify-center px-4">
+		<div
+			class="flex min-h-screen items-center justify-center px-4"
+			transition:fade={{ duration: 200 }}
+		>
 			<div
 				class="w-full max-w-md rounded-2xl border border-red-500/30 bg-red-500/10 p-8 text-center"
 			>
@@ -453,19 +461,23 @@
 			</div>
 		</div>
 	{:else}
-		<StartScreen
-			quizTitle={quiz.title}
-			quizDescription={quiz.description}
-			totalQuestions={questions.length}
-			defaultTimeLimit={speedRun.defaultQuestionTimeLimit}
-			{displayName}
-			onStart={handleStart}
-		/>
+		<div transition:fade={{ duration: 300 }}>
+			<StartScreen
+				quizTitle={quiz.title}
+				quizDescription={quiz.description}
+				totalQuestions={questions.length}
+				defaultTimeLimit={speedRun.defaultQuestionTimeLimit}
+				{displayName}
+				onStart={handleStart}
+			/>
+		</div>
 	{/if}
 {:else if phase === 'countdown'}
-	<CountdownOverlay onComplete={handleCountdownComplete} />
+	<div transition:fade={{ duration: 200 }}>
+		<CountdownOverlay onComplete={handleCountdownComplete} />
+	</div>
 {:else if phase === 'question' || phase === 'revealing'}
-	<div class="container mx-auto max-w-4xl px-4 py-6">
+	<div class="container mx-auto max-w-4xl px-4 py-6" transition:fade={{ duration: 300 }}>
 		<GameHUD
 			{progress}
 			globalTimeMs={globalElapsedMs}
@@ -508,19 +520,24 @@
 	</div>
 {:else if phase === 'results'}
 	{#if finalResult}
-		<ResultsScreen
-			quizTitle={quiz.title}
-			correctCount={finalResult.correctCount}
-			totalQuestions={questions.length}
-			totalTimeMs={finalResult.totalTimeMs}
-			score={finalResult.score}
-			maxStreak={finalResult.maxStreak}
-			rank={finalResult.rank}
-			{leaderboard}
-			onRestart={handleRestart}
-		/>
+		<div transition:fade={{ duration: 400 }}>
+			<ResultsScreen
+				quizTitle={quiz.title}
+				correctCount={finalResult.correctCount}
+				totalQuestions={questions.length}
+				totalTimeMs={finalResult.totalTimeMs}
+				score={finalResult.score}
+				maxStreak={finalResult.maxStreak}
+				rank={finalResult.rank}
+				{leaderboard}
+				onRestart={handleRestart}
+			/>
+		</div>
 	{:else}
-		<div class="flex min-h-screen items-center justify-center px-4">
+		<div
+			class="flex min-h-screen items-center justify-center px-4"
+			transition:fade={{ duration: 200 }}
+		>
 			<div class="text-center">
 				<h2 class="text-2xl font-bold text-white">Loading Results...</h2>
 				<p class="mt-2 text-white/60">If this persists, there may be an error.</p>

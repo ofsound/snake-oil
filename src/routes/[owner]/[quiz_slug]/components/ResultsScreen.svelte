@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { fly } from 'svelte/transition';
+
 	import { resolve } from '$app/paths';
 	import { formatTimeMs } from '$lib/speed-run/scoring';
 
@@ -31,13 +33,13 @@
 </script>
 
 <div class="container mx-auto max-w-4xl px-4 py-8">
-	<div class="mb-8 text-center">
+	<div class="mb-8 text-center" in:fly={{ y: -30, duration: 400 }}>
 		<h1 class="mb-2 text-4xl font-bold text-white">Speed Run Complete! 🏁</h1>
 		<p class="text-xl text-white/70">{quizTitle}</p>
 	</div>
 
 	<!-- Stats Grid -->
-	<div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+	<div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4" in:fly={{ y: -20, duration: 300 }}>
 		<div class="rounded-xl border border-white/10 bg-white/5 p-6 text-center">
 			<div class="text-4xl font-bold text-white">{correctCount ?? 0}/{totalQuestions ?? 0}</div>
 			<div class="mt-1 text-sm text-white/60">Correct</div>
@@ -59,6 +61,7 @@
 	<!-- Rank and Score -->
 	<div
 		class="mb-8 rounded-2xl border border-amber-500/30 bg-linear-to-r from-amber-500/20 to-orange-500/20 p-8 text-center"
+		in:fly={{ y: 20, delay: 100, duration: 400 }}
 	>
 		<div class="mb-2 text-sm font-semibold tracking-wider text-amber-400 uppercase">Your Rank</div>
 		<div class="mb-2 text-7xl font-black text-white">#{rank ?? '-'}</div>
@@ -68,7 +71,10 @@
 	</div>
 
 	<!-- Leaderboard -->
-	<div class="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+	<div
+		class="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6"
+		in:fly={{ y: 20, delay: 200, duration: 400 }}
+	>
 		<h2 class="mb-6 text-2xl font-bold text-white">🏆 Leaderboard</h2>
 
 		<div class="space-y-3">
@@ -76,7 +82,10 @@
 				{@const isCurrentUserClass = entry.isCurrentUser
 					? 'bg-amber-500/20 border border-amber-500/50'
 					: 'bg-white/5'}
-				<div class="flex items-center gap-4 rounded-xl p-4 {isCurrentUserClass}">
+				<div
+					class="flex items-center gap-4 rounded-xl p-4 {isCurrentUserClass}"
+					in:fly={{ y: 20, delay: index * 50, duration: 300 }}
+				>
 					<!-- Rank -->
 					<div
 						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10 font-bold text-white"
@@ -118,7 +127,7 @@
 	</div>
 
 	<!-- Actions -->
-	<div class="flex gap-4">
+	<div class="flex gap-4" in:fly={{ y: 20, delay: 300 + leaderboard.length * 50, duration: 300 }}>
 		<button
 			onclick={onRestart}
 			class="flex-1 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"

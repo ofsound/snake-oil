@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { scale, fly } from 'svelte/transition';
+	import { elasticOut } from 'svelte/easing';
+
 	import { STREAK_MILESTONES } from '$lib/speed-run/types';
 	import type { SpeedRunQuestion } from '$lib/speed-run/types';
 
@@ -40,7 +43,10 @@
 
 {#if question?.variantType === 'image_choice'}
 	<!-- Image Choice Reveal with 2-second animation -->
-	<div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+	<div
+		class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
+		in:scale={{ duration: 300, easing: elasticOut, start: 0.8 }}
+	>
 		<div
 			class="mb-4 text-center text-2xl font-bold {isCorrect ? 'text-green-400' : 'text-red-400'}"
 		>
@@ -99,9 +105,12 @@
 	</div>
 {:else}
 	<!-- Standard Text Reveal -->
-	<div class="rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm">
+	<div
+		class="rounded-2xl border border-white/10 bg-white/5 p-8 text-center backdrop-blur-sm"
+		in:fly={{ y: 20, duration: 300 }}
+	>
 		<!-- Result Icon -->
-		<div class="mb-4">
+		<div class="mb-4" in:scale={{ delay: 100, duration: 400, easing: elasticOut, start: 0.5 }}>
 			{#if isCorrect}
 				<div
 					class="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-green-500/20"
@@ -156,6 +165,7 @@
 		{#if milestone && isCorrect}
 			<div
 				class="mb-6 inline-block animate-bounce rounded-full bg-linear-to-r from-orange-500 to-red-500 px-6 py-3 text-lg font-bold text-white"
+				in:scale={{ delay: 200, duration: 500, easing: elasticOut, start: 0.3 }}
 			>
 				{milestone.emoji}
 				{milestone.message}

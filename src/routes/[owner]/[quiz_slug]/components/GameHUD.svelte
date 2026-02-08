@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { scale } from 'svelte/transition';
+	import { elasticOut } from 'svelte/easing';
+
 	import { formatTimeLong } from '$lib/speed-run/scoring';
 	interface Props {
 		progress: { current: number; total: number };
@@ -10,6 +13,21 @@
 
 	let { progress, globalTimeMs, questionRemainingMs, questionTimeLimitMs, streak }: Props =
 		$props();
+
+	// Track previous streak to detect increases
+	let previousStreak = $state(0);
+	let showStreakBounce = $state(false);
+
+	$effect(() => {
+		const currentStreak = streak;
+		if (currentStreak > previousStreak && currentStreak > 0) {
+			showStreakBounce = true;
+			setTimeout(() => {
+				showStreakBounce = false;
+			}, 500);
+		}
+		previousStreak = currentStreak;
+	});
 
 	// Calculate progress percentage
 	const progressPercent = $derived((progress.current / progress.total) * 100);
@@ -92,12 +110,15 @@
 
 		<!-- Streak counter -->
 		{#if streak > 0}
-			<div
-				class="flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-red-500 px-4 py-2"
-			>
-				<span class="text-xl">🔥</span>
-				<span class="font-bold text-white">{streak}</span>
-			</div>
+			{#key showStreakBounce}
+				<div
+					class="flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-red-500 px-4 py-2"
+					in:scale={{ duration: 400, easing: elasticOut, start: 0.5 }}
+				>
+					<span class="text-xl">🔥</span>
+					<span class="font-bold text-white">{streak}</span>
+				</div>
+			{/key}
 		{:else}
 			<div></div>
 		{/if}

@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { tick } from 'svelte';
+	import { fly } from 'svelte/transition';
+
 	import Card from './Card.svelte';
 	import Button from './Button.svelte';
 	import SoundbiteEditor from './SoundbiteEditor.svelte';
@@ -8,6 +11,18 @@
 
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
+
+	// Action to scroll newly added soundbites into view
+	function scrollIntoView(node: HTMLElement, shouldScroll: boolean) {
+		if (shouldScroll) {
+			tick().then(() => {
+				setTimeout(() => {
+					node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				}, 100);
+			});
+		}
+		return {};
+	}
 
 	interface Props {
 		soundbites: SoundbiteState[];
@@ -53,6 +68,7 @@
 	let nextId = $state(
 		Math.max(...soundbites.map((s) => (typeof s.id === 'number' ? s.id : 0)), 0) + 1
 	);
+	let lastAddedId = $state<number | string | null>(null);
 
 	function addSoundbite() {
 		const defaultVariantType = getDefaultVariantType();
@@ -76,6 +92,7 @@
 		};
 		soundbites = [...soundbites, newSoundbite];
 		onChange(soundbites);
+		lastAddedId = newSoundbite.id;
 		nextId += 1;
 	}
 
@@ -99,7 +116,15 @@
 	<div class="flex flex-col gap-6">
 		{#each soundbites as soundbite, localIndex (soundbite.id)}
 			{@const globalIndex = startIndex + localIndex}
-			<div class="flex">
+			{@const isNewlyAdded = lastAddedId === soundbite.id}
+			<div
+				class="flex"
+				transition:fly={{ x: -20, duration: 300 }}
+				use:scrollIntoView={isNewlyAdded}
+				onintroend={() => {
+					if (isNewlyAdded) lastAddedId = null;
+				}}
+			>
 				<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{globalIndex + 1}.</div>
 				<Card variant="neutral" padding="md" class="relative flex-1">
 					<button
