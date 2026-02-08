@@ -32,7 +32,7 @@
 			>
 
 			<div class="flex gap-3">
-				<Button variant="accent" size="sm" href="/quizzes">Quizzes</Button>
+				<Button variant="accent" size="sm" href="/quizzes">quizzes</Button>
 				{#if data.user?.name}
 					<Button variant="primary" size="sm" href="/profile">
 						{data.user.name} <span class="hidden text-xs">(profile)</span>
