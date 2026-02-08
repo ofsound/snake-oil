@@ -17,24 +17,19 @@
 	let user = $derived(data.user);
 </script>
 
-<!-- Clean, minimal hero for logged-in users -->
-<section class="w-full bg-white py-8 dark:bg-gray-900">
-	<div class="mx-auto max-w-4xl px-6">
+<PageContainer>
+	<section class="mx-auto w-full max-w-4xl dark:bg-gray-900">
 		<div class="flex flex-col items-center text-center">
-			<!-- Welcome badge -->
-
-			<!-- Mini Stats -->
 			<div
-				class="rounded-2xl border border-gray-200 bg-gray-50 p-6 dark:border-gray-700 dark:bg-gray-800"
+				class="rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-800"
 			>
 				{#if (user?.quizCount ?? 0) > 0}
 					<p class="text-sm text-gray-600 dark:text-gray-400">
 						<span>✨</span>
-						<span>Welcome back, {user?.name}</span>
-
+						<span>Welcome back, <span class="font-bold">{user?.name}</span>!</span>
 						You've created
 						<span class="font-bold text-emerald-600 dark:text-emerald-400">{user?.quizCount}</span>
-						quiz{(user?.quizCount ?? 0) === 1 ? '' : 'zes'} so far
+						quiz{(user?.quizCount ?? 0) === 1 ? '' : 'zes'} so far.
 					</p>
 				{:else}
 					<p class="text-sm text-gray-600 dark:text-gray-400">Ready to create your first quiz?</p>
@@ -44,35 +39,32 @@
 					</div>
 				{/if}
 			</div>
-
-			<!-- Big CTA Button -->
-			<div class="mt-10">
+			<div class="bg-purple mt-10 w-full">
 				<Button
 					href={resolve('/create')}
 					variant="glow"
 					size="2xl"
-					class="shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/50"
+					class="mx-auto block w-max px-18 py-12 shadow-md shadow-emerald-500/30 hover:shadow-emerald-500/50"
 				>
-					✨ Create a Quiz ✨
+					Create a Quiz &nbsp; ✨
 				</Button>
 			</div>
 		</div>
-	</div>
-</section>
+	</section>
 
-<!-- Recent Quizzes Section -->
-<PageContainer class="py-12">
-	<div class="mx-auto max-w-4xl">
-		<div class="mb-6 flex items-center justify-between">
-			<h2 class="text-xl font-bold text-gray-900 dark:text-white">Recent Quizzes</h2>
-			<Button href="/quizzes" variant="accent" size="sm">View All</Button>
-		</div>
+	<div class="mx-auto mt-16 max-w-4xl">
+		<h2 class="my-6 mt-10 text-center text-xl font-bold text-gray-900 dark:text-white">
+			Recent Quizzes
+		</h2>
 
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-3">
 				{#each quizzes as quiz (quiz.id)}
 					<QuizRow {quiz} showOwner={true} />
 				{/each}
+			</div>
+			<div class="mt-10 text-center">
+				<Button href="/quizzes" variant="accent" size="lg">Browse All</Button>
 			</div>
 		{:else}
 			<div

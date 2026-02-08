@@ -11,8 +11,8 @@
 
 	const variantClasses: Record<string, string> = {
 		elevated: 'bg-white shadow-sm',
-		flat: 'bg-white',
-		neutral: 'bg-neutral-50 border-neutral-200/70',
+		flat: 'bg-white dark:bg-gray-800 dark:border-gray-700',
+		neutral: 'bg-neutral-50 border-neutral-200/70 dark:border-neutral-700/50 dark:bg-neutral-800',
 		ghost: '',
 		interactive: 'bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
 	};
