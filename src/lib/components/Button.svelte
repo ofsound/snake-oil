@@ -3,7 +3,7 @@
 
 	import type { Snippet } from 'svelte';
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'outline' | 'ghost';
+		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'outline' | 'ghost' | 'admin';
 		size?: 'xs' | 'sm' | 'md' | 'lg';
 		type?: 'button' | 'submit' | 'reset';
 		disabled?: boolean;
@@ -42,7 +42,8 @@
 		outline:
 			'bg-white border border-neutral-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700',
 		ghost:
-			'bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+			'bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
+		admin: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600'
 	};
 
 	const sizeClasses: Record<string, string> = {

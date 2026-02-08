@@ -107,7 +107,9 @@
 	<AuthFormInput type="text" placeholder="Name" bind:value={name} required disabled={loading} />
 
 	<div>
+		<label for="username" class="sr-only">Username (for your profile URL)</label>
 		<input
+			id="username"
 			type="text"
 			placeholder="Username (for your profile URL)"
 			value={slug}

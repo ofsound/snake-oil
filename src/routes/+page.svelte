@@ -10,10 +10,12 @@
 	let quizzes = $derived(data.quizzes ?? []);
 </script>
 
-<a
+<Button
 	href={resolve('/create')}
-	class="mx-auto my-12 mb-20 block w-max cursor-pointer rounded-md bg-emerald-500 p-14 px-20 text-xl font-semibold text-white text-shadow-sm hover:bg-emerald-400"
-	>Create a Quiz</a
+	variant="primary"
+	size="lg"
+	class="mx-auto my-12 mb-20 block w-max p-14 px-20 text-xl font-semibold text-shadow-sm"
+	>Create a Quiz</Button
 >
 
 <div class="my-8">

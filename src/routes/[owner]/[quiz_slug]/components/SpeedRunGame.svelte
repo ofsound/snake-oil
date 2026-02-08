@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
+
 	import StartScreen from './StartScreen.svelte';
 	import CountdownOverlay from './CountdownOverlay.svelte';
 	import QuestionCard from './QuestionCard.svelte';
@@ -6,8 +8,6 @@
 	import ResultsScreen from './ResultsScreen.svelte';
 	import GameHUD from './GameHUD.svelte';
 	import AudioPlayer from './AudioPlayer.svelte';
-
-	import { calculateSpeedRunScore, calculateMaxStreak } from '$lib/speed-run/scoring';
 
 	import type {
 		GamePhase,

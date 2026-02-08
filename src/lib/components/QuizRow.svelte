@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 
+	import Button from './Button.svelte';
+
 	interface Tag {
 		id: string;
 		label: string;
@@ -110,22 +112,22 @@
 	<div class="flex flex-col items-end gap-1">
 		<div class="flex items-center gap-2">
 			{#if linkToManage}
-				<a
-					data-view-link
+				<Button
 					href={resolve(`/${ownerSlug}/${quiz.slug}`)}
-					class="rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600"
+					variant="primary"
+					size="xs"
 					onclick={(e) => e.stopPropagation()}
 				>
 					{viewLabel}
-				</a>
-				<a
-					data-manage-link
+				</Button>
+				<Button
 					href={resolve(`/${ownerSlug}/${quiz.slug}/edit`)}
-					class="rounded-md bg-indigo-500 px-2 py-1 text-xs font-medium text-white hover:bg-indigo-600"
+					variant="accent"
+					size="xs"
 					onclick={(e) => e.stopPropagation()}
 				>
 					Edit
-				</a>
+				</Button>
 			{/if}
 			<div class="text-xs">
 				{new Date(quiz.createdAt).toLocaleDateString()}

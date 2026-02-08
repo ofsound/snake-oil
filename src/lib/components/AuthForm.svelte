@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from './Button.svelte';
 	import Card from './Card.svelte';
 	import Heading from './Heading.svelte';
 
@@ -30,13 +31,9 @@
 			{@render children()}
 		</div>
 
-		<button
-			type="submit"
-			disabled={loading}
-			class="mt-4 w-full cursor-pointer rounded-md bg-indigo-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-		>
+		<Button type="submit" disabled={loading} variant="accent" fullWidth>
 			{loading ? 'Please wait...' : title}
-		</button>
+		</Button>
 	</form>
 
 	<div

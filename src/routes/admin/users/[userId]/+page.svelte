@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { formatDistanceToNow } from 'date-fns';
 
+	import Button from '$lib/components/Button.svelte';
+
 	let { data } = $props();
 
 	let suspendReason = $state('');
@@ -38,28 +40,18 @@
 		</div>
 		<div class="flex gap-2">
 			{#if data.canManageRole}
-				<button
-					onclick={() => (showRoleModal = true)}
-					class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+				<Button onclick={() => (showRoleModal = true)} variant="admin" size="sm">Change Role</Button
 				>
-					Change Role
-				</button>
 			{/if}
 			{#if data.canSuspend}
 				{#if data.targetUser.isSuspended}
-					<button
-						onclick={() => (showUnsuspendModal = true)}
-						class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+					<Button onclick={() => (showUnsuspendModal = true)} variant="primary" size="sm"
+						>Unsuspend User</Button
 					>
-						Unsuspend User
-					</button>
 				{:else}
-					<button
-						onclick={() => (showSuspendModal = true)}
-						class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+					<Button onclick={() => (showSuspendModal = true)} variant="danger" size="sm"
+						>Suspend User</Button
 					>
-						Suspend User
-					</button>
 				{/if}
 			{/if}
 		</div>
@@ -292,20 +284,15 @@
 					></textarea>
 				</div>
 				<div class="flex justify-end gap-3">
-					<button
+					<Button
 						type="button"
 						onclick={() => (showSuspendModal = false)}
-						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+						variant="outline"
+						size="sm">Cancel</Button
 					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						disabled={!suspendReason.trim()}
-						class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+					<Button type="submit" disabled={!suspendReason.trim()} variant="danger" size="sm"
+						>Suspend User</Button
 					>
-						Suspend User
-					</button>
 				</div>
 			</form>
 		</div>
@@ -323,19 +310,13 @@
 				>? They will regain access to the platform.
 			</p>
 			<form method="POST" action="?/unsuspend" class="flex justify-end gap-3">
-				<button
+				<Button
 					type="button"
 					onclick={() => (showUnsuspendModal = false)}
-					class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+					variant="outline"
+					size="sm">Cancel</Button
 				>
-					Cancel
-				</button>
-				<button
-					type="submit"
-					class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-				>
-					Unsuspend User
-				</button>
+				<Button type="submit" variant="primary" size="sm">Unsuspend User</Button>
 			</form>
 		</div>
 	</div>
@@ -364,19 +345,10 @@
 					</select>
 				</div>
 				<div class="flex justify-end gap-3">
-					<button
-						type="button"
-						onclick={() => (showRoleModal = false)}
-						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+					<Button type="button" onclick={() => (showRoleModal = false)} variant="outline" size="sm"
+						>Cancel</Button
 					>
-						Cancel
-					</button>
-					<button
-						type="submit"
-						class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-					>
-						Update Role
-					</button>
+					<Button type="submit" variant="admin" size="sm">Update Role</Button>
 				</div>
 			</form>
 		</div>

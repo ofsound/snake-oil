@@ -3,6 +3,8 @@
 
 	import { formatDistanceToNow } from 'date-fns';
 
+	import Button from '$lib/components/Button.svelte';
+
 	let { data } = $props();
 
 	let showDeleteModal = $state(false);
@@ -103,12 +105,7 @@
 				</select>
 			</div>
 
-			<button
-				type="submit"
-				class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-			>
-				Filter
-			</button>
+			<Button type="submit" variant="admin" size="sm">Filter</Button>
 		</form>
 	</div>
 
@@ -306,20 +303,18 @@
 					/>
 				</div>
 				<div class="flex justify-end gap-3">
-					<button
+					<Button
 						type="button"
 						onclick={() => (showDeleteModal = false)}
-						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+						variant="outline"
+						size="sm">Cancel</Button
 					>
-						Cancel
-					</button>
-					<button
+					<Button
 						type="submit"
 						disabled={deleteConfirmTitle !== quizToDelete.title}
-						class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+						variant="danger"
+						size="sm">Delete Quiz</Button
 					>
-						Delete Quiz
-					</button>
 				</div>
 			</form>
 		</div>

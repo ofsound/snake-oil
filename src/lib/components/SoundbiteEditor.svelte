@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Component } from 'svelte';
+
 	import VariantSelector from './VariantSelector.svelte';
 	import SimpleGuessEditor from './variant-editors/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './variant-editors/MultipleChoiceEditor.svelte';
@@ -9,7 +11,6 @@
 
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
-	import type { Component } from 'svelte';
 
 	interface Props {
 		soundbite: SoundbiteState;

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
@@ -59,12 +60,14 @@
 				<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
 					Use advanced filtering and sorting to find the perfect quiz.
 				</p>
-				<a
+				<Button
 					href={resolvePath(`/quizzes?tags=${data.tag.slug}`)}
-					class="inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700"
+					variant="accent"
+					size="sm"
+					fullWidth
 				>
 					Browse with Filters →
-				</a>
+				</Button>
 			</Card>
 
 			<!-- Related Tags -->
