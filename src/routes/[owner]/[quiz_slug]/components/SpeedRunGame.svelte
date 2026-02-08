@@ -405,6 +405,11 @@
 			};
 		}
 
+		// Scroll to top BEFORE changing phase to prevent visual jump
+		if (typeof window !== 'undefined') {
+			window.scrollTo({ top: 0, behavior: 'instant' });
+		}
+
 		phase = 'results';
 	}
 
@@ -520,7 +525,7 @@
 	</div>
 {:else if phase === 'results'}
 	{#if finalResult}
-		<div transition:fade={{ duration: 400 }}>
+		<div class="container mx-auto max-w-4xl px-4 py-6" transition:fade={{ duration: 300 }}>
 			<ResultsScreen
 				quizTitle={quiz.title}
 				correctCount={finalResult.correctCount}
