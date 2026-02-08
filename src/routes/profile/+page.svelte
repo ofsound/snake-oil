@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
 	import Button from '$lib/components/Button.svelte';
@@ -7,10 +8,26 @@
 	import PageContainer from '$lib/components/PageContainer.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 
+	import { authClient } from '$lib/auth-client';
+
 	import type { PageProps } from './$types';
+
 	let { data }: PageProps = $props();
 
-	// Server load already validates authentication, just use the data directly
+	let loading = $state(false);
+
+	async function handleSignOut() {
+		loading = true;
+		try {
+			await authClient.signOut();
+			goto(resolve('/'), { invalidateAll: true });
+		} catch (err: unknown) {
+			console.error('Sign out error:', err);
+		} finally {
+			loading = false;
+		}
+	}
+
 	let user = $derived(data.user);
 	let profile = $derived(data.profile);
 	let quizzes = $derived(data.quizzes ?? []);
@@ -48,6 +65,12 @@
 							day: 'numeric'
 						})}
 					</div>
+				</div>
+
+				<div class="mt-4 flex items-baseline rounded-md">
+					<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
+						Log out
+					</Button>
 				</div>
 			</div>
 		</div>
