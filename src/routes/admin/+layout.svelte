@@ -52,7 +52,7 @@
 	<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 		<div class="flex flex-col gap-8 lg:flex-row">
 			<!-- Sidebar Navigation -->
-			<nav class="flex-shrink-0 lg:w-64">
+			<nav class="shrink-0 lg:w-64">
 				<div class="overflow-hidden rounded-lg bg-white shadow">
 					<div class="p-4">
 						<h2 class="text-xs font-semibold tracking-wider text-gray-500 uppercase">Menu</h2>
