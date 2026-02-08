@@ -101,7 +101,22 @@
 	<!-- Regular Quiz Mode -->
 	<PageContainer>
 		<header class="pb-6">
-			<Heading level={1} class="mb-1.5">{data.quiz.title}</Heading>
+			<div class="flex items-baseline justify-between">
+				<Heading level={1} class="mb-1.5">{data.quiz.title}</Heading>
+				<!-- Tags -->
+				{#if data.tags && data.tags.length > 0}
+					<div class="flex flex-wrap gap-2">
+						{#each data.tags as tag (tag.id)}
+							<a
+								href="/quizzes/tag/{tag.slug}"
+								class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+							>
+								#{tag.label}
+							</a>
+						{/each}
+					</div>
+				{/if}
+			</div>
 			<div class="text-sm">
 				{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 				by
@@ -116,20 +131,6 @@
 			<div class="mt-10">
 				{data.quiz.description}
 			</div>
-
-			<!-- Tags -->
-			{#if data.tags && data.tags.length > 0}
-				<div class="mt-6 flex flex-wrap gap-2">
-					{#each data.tags as tag (tag.id)}
-						<a
-							href="/quizzes/tag/{tag.slug}"
-							class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
-						>
-							#{tag.label}
-						</a>
-					{/each}
-				</div>
-			{/if}
 		</header>
 
 		{#if hasResults && results}

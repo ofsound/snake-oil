@@ -203,30 +203,33 @@
 </script>
 
 <PageContainer>
-	<nav class="mb-7 flex">
-		<form
-			method="POST"
-			action="?/delete"
-			class="flex-1 text-right"
-			use:enhance={({ cancel }) => {
-				if (!confirm('Are you sure you want to delete this quiz?')) {
-					cancel();
-					return;
-				}
-				return async ({ result, update }) => {
-					// If redirect, navigate to the location
-					if (result.type === 'redirect') {
-						await goto(resolvePath(result.location));
+	<header class="mb-6 flex items-baseline justify-between">
+		<Heading level={1}>{data.quiz.title}</Heading>
+		<nav class="flex">
+			<form
+				method="POST"
+				action="?/delete"
+				class="flex-1 text-right"
+				use:enhance={({ cancel }) => {
+					if (!confirm('Are you sure you want to delete this quiz?')) {
+						cancel();
 						return;
 					}
-					// For other result types (success, failure), update the page
-					await update();
-				};
-			}}
-		>
-			<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
-		</form>
-	</nav>
+					return async ({ result, update }) => {
+						// If redirect, navigate to the location
+						if (result.type === 'redirect') {
+							await goto(resolvePath(result.location));
+							return;
+						}
+						// For other result types (success, failure), update the page
+						await update();
+					};
+				}}
+			>
+				<Button type="submit" variant="danger" size="xs">Delete Quiz</Button>
+			</form>
+		</nav>
+	</header>
 
 	<form
 		method="POST"

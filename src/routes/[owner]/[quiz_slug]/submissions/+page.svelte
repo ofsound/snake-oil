@@ -74,7 +74,7 @@
 
 <PageContainer>
 	<header class="mb-6">
-		<Heading level={1}>{data.quiz.title} Submissions</Heading>
+		<Heading level={1}>{data.quiz.title}</Heading>
 	</header>
 
 	{#if !data.hasSpeedRun}
