@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import type { SpeedRunQuestion } from '$lib/speed-run/types';
 
 	interface Props {
@@ -18,29 +19,47 @@
 	let isCelebrating = $state(false);
 	let isShaking = $state(false);
 
+	let errorTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	let celebrationTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	let answerTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	function triggerError() {
+		showError = true;
+		isShaking = true;
+		guessInput = '';
+
+		if (errorTimeoutId) clearTimeout(errorTimeoutId);
+
+		errorTimeoutId = setTimeout(() => {
+			showError = false;
+			isShaking = false;
+			errorTimeoutId = null;
+		}, 1500);
+	}
+
+	function triggerCelebration() {
+		isCelebrating = true;
+
+		if (celebrationTimeoutId) clearTimeout(celebrationTimeoutId);
+
+		celebrationTimeoutId = setTimeout(() => {
+			isCelebrating = false;
+			celebrationTimeoutId = null;
+		}, 500);
+	}
+
+	onDestroy(() => {
+		if (errorTimeoutId) clearTimeout(errorTimeoutId);
+		if (celebrationTimeoutId) clearTimeout(celebrationTimeoutId);
+		if (answerTimeoutId) clearTimeout(answerTimeoutId);
+	});
+
 	function handleOptionClick(optionId: string) {
 		if (hasAnswered) return;
 
 		hasAnswered = true;
 		onAudioFadeOut?.();
 		onAnswer(optionId);
-	}
-
-	function triggerError() {
-		showError = true;
-		isShaking = true;
-		guessInput = '';
-		setTimeout(() => {
-			showError = false;
-			isShaking = false;
-		}, 1500);
-	}
-
-	function triggerCelebration() {
-		isCelebrating = true;
-		setTimeout(() => {
-			isCelebrating = false;
-		}, 500);
 	}
 
 	async function handleSimpleGuessSubmit() {
@@ -58,8 +77,12 @@
 			hasAnswered = true;
 			triggerCelebration();
 			onAudioFadeOut?.();
-			setTimeout(() => {
+
+			if (answerTimeoutId) clearTimeout(answerTimeoutId);
+
+			answerTimeoutId = setTimeout(() => {
 				onAnswer(guess, true, result.correctAnswer);
+				answerTimeoutId = null;
 			}, 500);
 		} else {
 			triggerError();
