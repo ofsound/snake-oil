@@ -425,8 +425,7 @@
 						<div class="flex">
 							<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
 							<Card variant="neutral" padding="md" class="relative flex-1">
-								<div class="flex items-center justify-between">
-									<p class="text mb-4 font-medium">{soundbite.trackName}</p>
+								<div class="flex items-center justify-end">
 									<label class="flex items-center gap-2 text-xs font-medium">
 										<input type="checkbox" name={`soundbite[${index}].removed`} value="true" />
 										Remove
@@ -440,7 +439,9 @@
 									fileInputRequired={false}
 									fileInputLabel="Replace MP3 (optional)"
 									onChange={(updates) => updateExistingSoundbite(soundbite.id, updates)}
-								/>
+								>
+									<p class="font-medium" slot="after-variant-selector">{soundbite.trackName}</p>
+								</SoundbiteEditor>
 							</Card>
 						</div>
 					{/if}

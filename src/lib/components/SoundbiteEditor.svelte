@@ -125,6 +125,8 @@
 		allowedTypes={allowedVariantTypes}
 	/>
 
+	<slot name="after-variant-selector" />
+
 	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={`file-${soundbite.id}`}>
