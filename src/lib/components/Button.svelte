@@ -3,8 +3,18 @@
 
 	import type { Snippet } from 'svelte';
 	interface Props {
-		variant?: 'primary' | 'secondary' | 'accent' | 'danger' | 'outline' | 'ghost' | 'admin';
-		size?: 'xs' | 'sm' | 'md' | 'lg';
+		variant?:
+			| 'primary'
+			| 'secondary'
+			| 'accent'
+			| 'danger'
+			| 'outline'
+			| 'ghost'
+			| 'admin'
+			| 'glow'
+			| 'glass'
+			| 'gradient';
+		size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 		type?: 'button' | 'submit' | 'reset';
 		disabled?: boolean;
 		loading?: boolean;
@@ -13,6 +23,7 @@
 		href?: string;
 		target?: string;
 		rel?: string;
+		class?: string;
 		onclick?: (e: MouseEvent) => void;
 		children: Snippet;
 	}
@@ -28,6 +39,7 @@
 		href,
 		target,
 		rel,
+		class: className = '',
 		onclick,
 		children
 	}: Props = $props();
@@ -43,14 +55,20 @@
 			'bg-white border border-neutral-200 text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700',
 		ghost:
 			'bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
-		admin: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600'
+		admin: 'bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600',
+		glow: 'relative bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/30 transition-all duration-300',
+		glass: 'glass text-white hover:bg-white/15 border-white/20 transition-all duration-300',
+		gradient:
+			'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-cyan-500 text-white hover:opacity-90 transition-opacity duration-300'
 	};
 
 	const sizeClasses: Record<string, string> = {
 		xs: 'px-2 py-1 text-xs',
 		sm: 'px-3 py-1.5 text-sm',
-		md: 'px-4 py-1.5 text-md',
-		lg: 'px-4 py-3 text-sm'
+		md: 'px-4 py-1.5 text-base',
+		lg: 'px-6 py-3 text-base',
+		xl: 'px-8 py-4 text-lg',
+		'2xl': 'px-12 py-5 text-xl'
 	};
 
 	const baseClasses =
@@ -68,7 +86,8 @@
 			variantClasses[variantKey],
 			sizeClasses[size],
 			fullWidth ? 'w-full' : '',
-			loading ? 'relative' : ''
+			loading ? 'relative' : '',
+			className
 		]
 			.filter(Boolean)
 			.join(' ');
