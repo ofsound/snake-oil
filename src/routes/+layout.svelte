@@ -14,6 +14,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 
 	import './layout.css';
+
 	let { data, children }: LayoutProps = $props();
 
 	let loading = $state(false);
@@ -75,9 +76,7 @@
 		</div>
 	</header>
 
-	<div class="mx-auto w-full max-w-5xl grow p-8 transition-colors duration-200">
-		{@render children()}
-	</div>
+	{@render children()}
 
 	<footer class="mt-4 flex justify-end p-4">
 		<ThemeToggle />

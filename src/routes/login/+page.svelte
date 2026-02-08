@@ -4,6 +4,7 @@
 
 	import AuthForm from '$lib/components/AuthForm.svelte';
 	import AuthFormInput from '$lib/components/AuthFormInput.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 
 	import { authClient } from '$lib/auth-client';
 	import { validateRedirectUrl, resolvePath } from '$lib/utils';
@@ -54,28 +55,35 @@
 	}
 </script>
 
-<AuthForm
-	title="Sign In"
-	{loading}
-	{error}
-	onsubmit={(e) => {
-		e.preventDefault();
-		handleSignIn();
-	}}
->
-	<AuthFormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
-	<AuthFormInput type="password" placeholder="Password" bind:value={password} disabled={loading} />
+<PageContainer>
+	<AuthForm
+		title="Sign In"
+		{loading}
+		{error}
+		onsubmit={(e) => {
+			e.preventDefault();
+			handleSignIn();
+		}}
+	>
+		<AuthFormInput type="email" placeholder="Email" bind:value={email} disabled={loading} />
+		<AuthFormInput
+			type="password"
+			placeholder="Password"
+			bind:value={password}
+			disabled={loading}
+		/>
 
-	{#snippet footer()}
-		<p>
-			Don't have an account?
-			<a
-				href={resolvePath(
-					`/signup?redirect=${encodeURIComponent(page.url.searchParams.get('redirect') || '')}`
-				)}
-			>
-				Sign up here
-			</a>
-		</p>
-	{/snippet}
-</AuthForm>
+		{#snippet footer()}
+			<p>
+				Don't have an account?
+				<a
+					href={resolvePath(
+						`/signup?redirect=${encodeURIComponent(page.url.searchParams.get('redirect') || '')}`
+					)}
+				>
+					Sign up here
+				</a>
+			</p>
+		{/snippet}
+	</AuthForm>
+</PageContainer>

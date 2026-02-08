@@ -6,16 +6,6 @@
 	import type { MultipleChoiceOption } from '$lib/variant-types';
 	// Module-level cache to maintain consistent shuffle order per soundbite
 	const shuffleCache = new SvelteMap<string, MultipleChoiceOption[]>();
-
-	function getShuffledOptions(
-		soundbiteId: string,
-		options: MultipleChoiceOption[]
-	): MultipleChoiceOption[] {
-		if (!shuffleCache.has(soundbiteId)) {
-			shuffleCache.set(soundbiteId, shuffleOptions(options));
-		}
-		return shuffleCache.get(soundbiteId)!;
-	}
 </script>
 
 <script lang="ts">
@@ -31,8 +21,16 @@
 
 	let { soundbiteId, options, selectedOptionId, onselect, disabled = false }: Props = $props();
 
-	// Get shuffled options from cache (creates if not exists)
-	let shuffledOptions = $derived(getShuffledOptions(soundbiteId, options));
+	// State to hold shuffled options
+	let shuffledOptions = $state<MultipleChoiceOption[]>([]);
+
+	// Use effect to populate cache (side effects are allowed here)
+	$effect(() => {
+		if (!shuffleCache.has(soundbiteId)) {
+			shuffleCache.set(soundbiteId, shuffleOptions(options));
+		}
+		shuffledOptions = shuffleCache.get(soundbiteId)!;
+	});
 </script>
 
 <div class="flex flex-col gap-2">

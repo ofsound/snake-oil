@@ -3,8 +3,9 @@
 	import { page } from '$app/state';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
-	import QuizList from '$lib/components/QuizList.svelte';
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
+	import QuizList from '$lib/components/QuizList.svelte';
 	import TagFilterSidebar from '$lib/components/TagFilterSidebar.svelte';
 
 	import { resolvePath } from '$lib/utils';
@@ -79,99 +80,105 @@
 	});
 </script>
 
-<!-- Mobile Tag Filter Toggle (shown on small screens) -->
-<div class="mb-4 lg:hidden">
-	<details class="group">
-		<summary
-			class="flex cursor-pointer items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
-		>
-			<span class="font-medium">Filter by Tags</span>
-			<span class="transition-transform group-open:rotate-180">
-				<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 9l-7 7-7-7"
-					/>
-				</svg>
-			</span>
-		</summary>
-		<div
-			class="mt-2 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
-		>
+<PageContainer>
+	<!-- Mobile Tag Filter Toggle (shown on small screens) -->
+	<div class="mb-4 lg:hidden">
+		<details class="group">
+			<summary
+				class="flex cursor-pointer items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+			>
+				<span class="font-medium">Filter by Tags</span>
+				<span class="transition-transform group-open:rotate-180">
+					<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M19 9l-7 7-7-7"
+						/>
+					</svg>
+				</span>
+			</summary>
+			<div
+				class="mt-2 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+			>
+				<TagFilterSidebar
+					tags={data.popularTags}
+					{activeTags}
+					totalTagsCount={data.totalTagsCount}
+				/>
+			</div>
+		</details>
+	</div>
+
+	<div class="flex gap-6">
+		<!-- Sidebar (desktop only) -->
+		<div class="hidden lg:block">
 			<TagFilterSidebar tags={data.popularTags} {activeTags} totalTagsCount={data.totalTagsCount} />
 		</div>
-	</details>
-</div>
 
-<div class="flex gap-6">
-	<!-- Sidebar (desktop only) -->
-	<div class="hidden lg:block">
-		<TagFilterSidebar tags={data.popularTags} {activeTags} totalTagsCount={data.totalTagsCount} />
-	</div>
+		<!-- Main Content -->
+		<div class="min-w-0 flex-1">
+			<div class="mb-6">
+				<ModeToggle value={mode} onChange={handleModeChange} />
+			</div>
 
-	<!-- Main Content -->
-	<div class="min-w-0 flex-1">
-		<div class="mb-6">
-			<ModeToggle value={mode} onChange={handleModeChange} />
-		</div>
-
-		<!-- Active Filters Banner -->
-		{#if data.activeTags.length > 0}
-			<div
-				class="mb-6 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 dark:border-indigo-800 dark:bg-indigo-900/20"
-			>
-				<div class="flex flex-wrap items-center gap-2">
-					<span class="text-sm font-medium text-indigo-900 dark:text-indigo-300">
-						Filtered by:
-					</span>
-					{#each data.activeTags as tag (tag.slug)}
+			<!-- Active Filters Banner -->
+			{#if data.activeTags.length > 0}
+				<div
+					class="mb-6 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 dark:border-indigo-800 dark:bg-indigo-900/20"
+				>
+					<div class="flex flex-wrap items-center gap-2">
+						<span class="text-sm font-medium text-indigo-900 dark:text-indigo-300">
+							Filtered by:
+						</span>
+						{#each data.activeTags as tag (tag.slug)}
+							<button
+								type="button"
+								class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-700"
+								onclick={() => removeTag(tag.slug)}
+							>
+								#{tag.label}
+								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M6 18L18 6M6 6l12 12"
+									/>
+								</svg>
+							</button>
+						{/each}
 						<button
 							type="button"
-							class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-700"
-							onclick={() => removeTag(tag.slug)}
+							class="ml-2 text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+							onclick={clearAllTags}
 						>
-							#{tag.label}
-							<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
+							Clear all
 						</button>
-					{/each}
-					<button
-						type="button"
-						class="ml-2 text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-						onclick={clearAllTags}
-					>
-						Clear all
-					</button>
+					</div>
 				</div>
-			</div>
-		{/if}
+			{/if}
 
-		<QuizList
-			quizzes={data.quizzes}
-			currentPage={data.currentPage}
-			totalPages={data.totalPages}
-			sort={data.sort}
-			order={data.order}
-			description={description()}
-			basePath="/quizzes"
-			sortOptions={[
-				{ value: 'title', label: 'Title' },
-				{ value: 'username', label: 'Creator' },
-				{ value: 'date', label: 'Date' }
-			]}
-			onSortDefaultOrder={getDefaultOrder}
-			emptyState={{
-				message: emptyMessage(),
-				link: data.activeTags.length > 0 ? { text: 'Clear filters', href: '/quizzes' } : undefined
-			}}
-		/>
+			<QuizList
+				quizzes={data.quizzes}
+				currentPage={data.currentPage}
+				totalPages={data.totalPages}
+				sort={data.sort}
+				order={data.order}
+				description={description()}
+				basePath="/quizzes"
+				sortOptions={[
+					{ value: 'title', label: 'Title' },
+					{ value: 'username', label: 'Creator' },
+					{ value: 'date', label: 'Date' }
+				]}
+				onSortDefaultOrder={getDefaultOrder}
+				emptyState={{
+					message: emptyMessage(),
+					link: data.activeTags.length > 0 ? { text: 'Clear filters', href: '/quizzes' } : undefined
+				}}
+			/>
+		</div>
 	</div>
-</div>
+</PageContainer>

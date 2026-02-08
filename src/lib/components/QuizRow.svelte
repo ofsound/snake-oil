@@ -36,10 +36,7 @@
 	// Owner slug is required for the new URL structure
 	const ownerSlug = $derived(quiz.owner?.slug ?? '');
 
-	const rowHref = $derived(
-		resolve(linkToManage ? `/${ownerSlug}/${quiz.slug}/edit` : `/${ownerSlug}/${quiz.slug}`)
-	);
-	const viewLabel = $derived(quiz.speedRun ? 'View Speed Run' : 'View Quiz');
+	const rowHref = $derived(resolve(`/${ownerSlug}/${quiz.slug}`));
 
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
@@ -113,16 +110,16 @@
 		<div class="flex items-center gap-2">
 			{#if linkToManage}
 				<Button
-					href={resolve(`/${ownerSlug}/${quiz.slug}`)}
+					href={resolve(`/${ownerSlug}/${quiz.slug}/submissions`)}
 					variant="primary"
 					size="xs"
 					onclick={(e) => e.stopPropagation()}
 				>
-					{viewLabel}
+					Submissions
 				</Button>
 				<Button
 					href={resolve(`/${ownerSlug}/${quiz.slug}/edit`)}
-					variant="accent"
+					variant="primary"
 					size="xs"
 					onclick={(e) => e.stopPropagation()}
 				>

@@ -8,6 +8,7 @@
 	import FormInput from '$lib/components/FormInput.svelte';
 	import FormTextarea from '$lib/components/FormTextarea.svelte';
 	import Heading from '$lib/components/Heading.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import TagInput from '$lib/components/TagInput.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
@@ -108,318 +109,323 @@
 	);
 </script>
 
-<Heading level={1} class="mb-6">Create Quiz</Heading>
+<PageContainer>
+	<Heading level={1} class="mb-6">Create Quiz</Heading>
 
-<form
-	method="POST"
-	enctype="multipart/form-data"
-	class="flex flex-col gap-8"
-	use:enhance={({ formData }) => {
-		submitting = true;
+	<form
+		method="POST"
+		enctype="multipart/form-data"
+		class="flex flex-col gap-8"
+		use:enhance={({ formData }) => {
+			submitting = true;
 
-		// Build complete form data using centralized utility
-		const completeFormData = buildQuizFormData({
-			title,
-			description,
-			slug,
-			quizMode,
-			speedRunConfig: quizMode === 'speed_run' ? speedRunConfig : undefined,
-			soundbites: soundbites.map((sb) => ({
-				id: sb.id,
-				state: sb,
-				type: 'new' as const
-			})),
-			tags: selectedTags
-		});
+			// Build complete form data using centralized utility
+			const completeFormData = buildQuizFormData({
+				title,
+				description,
+				slug,
+				quizMode,
+				speedRunConfig: quizMode === 'speed_run' ? speedRunConfig : undefined,
+				soundbites: soundbites.map((sb) => ({
+					id: sb.id,
+					state: sb,
+					type: 'new' as const
+				})),
+				tags: selectedTags
+			});
 
-		// Merge into the formData that enhance provides
-		// Only skip basic fields that are already in the form HTML
-		const skipKeys = [
-			'title',
-			'description',
-			'slug',
-			'visibility',
-			'quizMode',
-			'speedRunConfig',
-			'tags'
-		];
-		completeFormData.forEach((value, key) => {
-			if (!skipKeys.includes(key)) {
-				formData.append(key, value);
+			// Merge into the formData that enhance provides
+			// Only skip basic fields that are already in the form HTML
+			const skipKeys = [
+				'title',
+				'description',
+				'slug',
+				'visibility',
+				'quizMode',
+				'speedRunConfig',
+				'tags'
+			];
+			completeFormData.forEach((value, key) => {
+				if (!skipKeys.includes(key)) {
+					formData.append(key, value);
+				}
+			});
+
+			// Add tags as JSON
+			if (selectedTags.length > 0) {
+				formData.append('tags', JSON.stringify(selectedTags.map((t) => t.id)));
 			}
-		});
 
-		// Add tags as JSON
-		if (selectedTags.length > 0) {
-			formData.append('tags', JSON.stringify(selectedTags.map((t) => t.id)));
-		}
-
-		return async ({ update }) => {
-			submitting = false;
-			await update();
-		};
-	}}
->
-	<!-- Quiz Mode Selection -->
-	<Card variant="flat" padding="md" class="flex flex-col gap-4">
-		<FormField label="Quiz Type" id="quizMode">
-			<div class="grid grid-cols-2 gap-4">
-				<button
-					type="button"
-					class="relative rounded-xl border-2 p-6 text-left transition-all"
-					class:border-emerald-500={quizMode === 'standard'}
-					class:bg-emerald-50={quizMode === 'standard'}
-					class:border-gray-200={quizMode !== 'standard'}
-					class:bg-white={quizMode !== 'standard'}
-					onclick={() => handleModeChange('standard')}
-				>
-					<div class="flex items-center gap-3">
-						<div
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
-						>
-							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-								/>
-							</svg>
-						</div>
-						<div>
-							<div class="font-semibold text-gray-900">Standard Quiz</div>
-							<div class="text-sm text-gray-600">Answer all questions, then submit.</div>
-						</div>
-					</div>
-					{#if quizMode === 'standard'}
-						<div class="absolute top-4 right-4">
-							<svg class="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-								<path
-									fill-rule="evenodd"
-									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-									clip-rule="evenodd"
-								/>
-							</svg>
-						</div>
-					{/if}
-				</button>
-
-				<button
-					type="button"
-					class="relative rounded-xl border-2 p-6 text-left transition-all"
-					class:border-amber-500={quizMode === 'speed_run'}
-					class:bg-amber-50={quizMode === 'speed_run'}
-					class:border-gray-200={quizMode !== 'speed_run'}
-					class:bg-white={quizMode !== 'speed_run'}
-					onclick={() => handleModeChange('speed_run')}
-				>
-					<div class="flex items-center gap-3">
-						<div
-							class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600"
-						>
-							<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M13 10V3L4 14h7v7l9-11h-7z"
-								/>
-							</svg>
-						</div>
-						<div>
-							<div class="font-semibold text-gray-900">Speed Run ⚡</div>
-							<div class="text-sm text-gray-600">
-								Race against the clock! One question at a time.
+			return async ({ update }) => {
+				submitting = false;
+				await update();
+			};
+		}}
+	>
+		<!-- Quiz Mode Selection -->
+		<Card variant="flat" padding="md" class="flex flex-col gap-4">
+			<FormField label="Quiz Type" id="quizMode">
+				<div class="grid grid-cols-2 gap-4">
+					<button
+						type="button"
+						class="relative rounded-xl border-2 p-6 text-left transition-all"
+						class:border-emerald-500={quizMode === 'standard'}
+						class:bg-emerald-50={quizMode === 'standard'}
+						class:border-gray-200={quizMode !== 'standard'}
+						class:bg-white={quizMode !== 'standard'}
+						onclick={() => handleModeChange('standard')}
+					>
+						<div class="flex items-center gap-3">
+							<div
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
+							>
+								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+									/>
+								</svg>
+							</div>
+							<div>
+								<div class="font-semibold text-gray-900">Standard Quiz</div>
+								<div class="text-sm text-gray-600">Answer all questions, then submit.</div>
 							</div>
 						</div>
+						{#if quizMode === 'standard'}
+							<div class="absolute top-4 right-4">
+								<svg class="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+									<path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</div>
+						{/if}
+					</button>
+
+					<button
+						type="button"
+						class="relative rounded-xl border-2 p-6 text-left transition-all"
+						class:border-amber-500={quizMode === 'speed_run'}
+						class:bg-amber-50={quizMode === 'speed_run'}
+						class:border-gray-200={quizMode !== 'speed_run'}
+						class:bg-white={quizMode !== 'speed_run'}
+						onclick={() => handleModeChange('speed_run')}
+					>
+						<div class="flex items-center gap-3">
+							<div
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600"
+							>
+								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M13 10V3L4 14h7v7l9-11h-7z"
+									/>
+								</svg>
+							</div>
+							<div>
+								<div class="font-semibold text-gray-900">Speed Run ⚡</div>
+								<div class="text-sm text-gray-600">
+									Race against the clock! One question at a time.
+								</div>
+							</div>
+						</div>
+						{#if quizMode === 'speed_run'}
+							<div class="absolute top-4 right-4">
+								<svg class="h-6 w-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+									<path
+										fill-rule="evenodd"
+										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+										clip-rule="evenodd"
+									/>
+								</svg>
+							</div>
+						{/if}
+					</button>
+				</div>
+			</FormField>
+
+			{#if quizMode === 'speed_run'}
+				<div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+					<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
+							<FormInput
+								id="questionTimeLimit"
+								type="number"
+								min="3"
+								max="60"
+								bind:value={speedRunConfig.defaultQuestionTimeLimit}
+							/>
+						</FormField>
+
+						<FormField label="Reveal Delay (ms)" id="revealDelayMs">
+							<FormInput
+								id="revealDelayMs"
+								type="number"
+								min="1000"
+								max="10000"
+								step="500"
+								bind:value={speedRunConfig.revealDelayMs}
+							/>
+						</FormField>
+
+						<FormField label="Audio Loop Gap (ms)" id="audioLoopGapMs">
+							<FormInput
+								id="audioLoopGapMs"
+								type="number"
+								min="0"
+								max="5000"
+								step="500"
+								bind:value={speedRunConfig.audioLoopGapMs}
+							/>
+						</FormField>
 					</div>
-					{#if quizMode === 'speed_run'}
-						<div class="absolute top-4 right-4">
-							<svg class="h-6 w-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-								<path
-									fill-rule="evenodd"
-									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-									clip-rule="evenodd"
-								/>
-							</svg>
+
+					<div class="mt-4 flex items-center gap-2">
+						<input
+							type="checkbox"
+							id="enableStreakBonus"
+							bind:checked={speedRunConfig.enableStreakBonus}
+							class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+						/>
+						<label for="enableStreakBonus" class="text-sm text-amber-900">
+							Enable streak bonuses and notifications
+						</label>
+					</div>
+
+					{#if unsupportedVariantCount > 0}
+						<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
+							<p class="text-sm text-red-700">
+								<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
+								variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
+								Please change them to continue.
+							</p>
 						</div>
 					{/if}
-				</button>
-			</div>
-		</FormField>
 
-		{#if quizMode === 'speed_run'}
-			<div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-				<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
-				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-					<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
-						<FormInput
-							id="questionTimeLimit"
-							type="number"
-							min="3"
-							max="60"
-							bind:value={speedRunConfig.defaultQuestionTimeLimit}
-						/>
-					</FormField>
-
-					<FormField label="Reveal Delay (ms)" id="revealDelayMs">
-						<FormInput
-							id="revealDelayMs"
-							type="number"
-							min="1000"
-							max="10000"
-							step="500"
-							bind:value={speedRunConfig.revealDelayMs}
-						/>
-					</FormField>
-
-					<FormField label="Audio Loop Gap (ms)" id="audioLoopGapMs">
-						<FormInput
-							id="audioLoopGapMs"
-							type="number"
-							min="0"
-							max="5000"
-							step="500"
-							bind:value={speedRunConfig.audioLoopGapMs}
-						/>
-					</FormField>
+					<p class="mt-3 text-sm text-amber-700">
+						<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
+						questions. Simple Guess allows unlimited attempts until time runs out!
+					</p>
 				</div>
-
-				<div class="mt-4 flex items-center gap-2">
-					<input
-						type="checkbox"
-						id="enableStreakBonus"
-						bind:checked={speedRunConfig.enableStreakBonus}
-						class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
-					/>
-					<label for="enableStreakBonus" class="text-sm text-amber-900">
-						Enable streak bonuses and notifications
-					</label>
-				</div>
-
-				{#if unsupportedVariantCount > 0}
-					<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
-						<p class="text-sm text-red-700">
-							<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
-							variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
-							Please change them to continue.
-						</p>
-					</div>
-				{/if}
-
-				<p class="mt-3 text-sm text-amber-700">
-					<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
-					questions. Simple Guess allows unlimited attempts until time runs out!
-				</p>
-			</div>
-		{/if}
-	</Card>
-
-	<Card variant="flat" padding="md" class="flex flex-col gap-4">
-		<FormField label="Title" id="title">
-			<FormInput
-				id="title"
-				name="title"
-				type="text"
-				placeholder="e.g. Mystery Intros"
-				bind:value={title}
-				required
-			/>
-		</FormField>
-
-		<FormField label="URL" id="slug">
-			<FormInput
-				id="slug"
-				name="slug"
-				type="text"
-				placeholder="mystery-intros"
-				bind:value={manualSlug}
-				oninput={() => {
-					slugEdited = true;
-				}}
-			/>
-		</FormField>
-
-		<FormField label="Description" id="description">
-			<FormTextarea
-				id="description"
-				name="description"
-				rows={4}
-				bind:value={description}
-				required
-			/>
-		</FormField>
-
-		<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
-		<input type="hidden" name="quizMode" value={quizMode} />
-		{#if quizMode === 'speed_run'}
-			{@const speedRunConfigNumeric = {
-				defaultQuestionTimeLimit: speedRunConfig.defaultQuestionTimeLimit
-					? parseInt(speedRunConfig.defaultQuestionTimeLimit, 10)
-					: null,
-				revealDelayMs: parseInt(speedRunConfig.revealDelayMs, 10),
-				audioLoopGapMs: parseInt(speedRunConfig.audioLoopGapMs, 10),
-				enableStreakBonus: speedRunConfig.enableStreakBonus
-			}}
-			<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfigNumeric)} />
-		{/if}
-		<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
-	</Card>
-
-	<!-- Tags Section -->
-	<Card variant="flat" padding="md">
-		<FormField label="Tags" id="tags">
-			<TagInput bind:tags={selectedTags} placeholder="Add tags to help people find your quiz..." />
-			<p class="mt-2 text-xs text-gray-500">
-				Type to search existing tags or press Enter to create new ones. Tags help users discover
-				your quiz.
-			</p>
-		</FormField>
-	</Card>
-
-	<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
-
-	<SoundbiteFormSection
-		bind:soundbites
-		onChange={handleSoundbitesChange}
-		startIndex={0}
-		allowedVariantTypes={quizMode === 'speed_run'
-			? ['multiple_choice', 'simple_guess', 'image_choice']
-			: undefined}
-	/>
-
-	{#if successMessage}
-		{@const isSpeedRun = quizMode === 'speed_run'}
-		<div
-			class="rounded-md border px-4 py-3 text-sm"
-			class:border-green-200={!isSpeedRun}
-			class:bg-green-50={!isSpeedRun}
-			class:text-green-700={!isSpeedRun}
-			class:border-orange-200={isSpeedRun}
-			class:bg-orange-50={isSpeedRun}
-			class:text-orange-700={isSpeedRun}
-		>
-			{successMessage}
-			{#if form?.slug && data.user?.slug}
-				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>
-					{isSpeedRun ? 'View speed run' : 'View quiz'}
-				</a>
-				<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}/edit`)}
-					>{isSpeedRun ? 'Edit speed run' : 'Edit quiz'}</a
-				>
 			{/if}
-		</div>
-	{/if}
+		</Card>
 
-	{#if errorMessage}
-		<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-			{errorMessage}
-		</div>
-	{/if}
+		<Card variant="flat" padding="md" class="flex flex-col gap-4">
+			<FormField label="Title" id="title">
+				<FormInput
+					id="title"
+					name="title"
+					type="text"
+					placeholder="e.g. Mystery Intros"
+					bind:value={title}
+					required
+				/>
+			</FormField>
 
-	<div class="mt-6 flex justify-end border-t border-neutral-200 pt-6">
-		<Button type="submit" variant="primary" size="md" loading={submitting}>
-			{submitting ? 'Creating...' : quizMode === 'speed_run' ? 'Create Speed Run' : 'Create Quiz'}
-		</Button>
-	</div>
-</form>
+			<FormField label="URL" id="slug">
+				<FormInput
+					id="slug"
+					name="slug"
+					type="text"
+					placeholder="mystery-intros"
+					bind:value={manualSlug}
+					oninput={() => {
+						slugEdited = true;
+					}}
+				/>
+			</FormField>
+
+			<FormField label="Description" id="description">
+				<FormTextarea
+					id="description"
+					name="description"
+					rows={4}
+					bind:value={description}
+					required
+				/>
+			</FormField>
+
+			<input type="hidden" name="visibility" value={isPublic ? 'public' : 'unlisted'} />
+			<input type="hidden" name="quizMode" value={quizMode} />
+			{#if quizMode === 'speed_run'}
+				{@const speedRunConfigNumeric = {
+					defaultQuestionTimeLimit: speedRunConfig.defaultQuestionTimeLimit
+						? parseInt(speedRunConfig.defaultQuestionTimeLimit, 10)
+						: null,
+					revealDelayMs: parseInt(speedRunConfig.revealDelayMs, 10),
+					audioLoopGapMs: parseInt(speedRunConfig.audioLoopGapMs, 10),
+					enableStreakBonus: speedRunConfig.enableStreakBonus
+				}}
+				<input type="hidden" name="speedRunConfig" value={JSON.stringify(speedRunConfigNumeric)} />
+			{/if}
+			<Toggle bind:checked={isPublic} label="Visibility" leftLabel="Unlisted" rightLabel="Public" />
+		</Card>
+
+		<!-- Tags Section -->
+		<Card variant="flat" padding="md">
+			<FormField label="Tags" id="tags">
+				<TagInput
+					bind:tags={selectedTags}
+					placeholder="Add tags to help people find your quiz..."
+				/>
+				<p class="mt-2 text-xs text-gray-500">
+					Type to search existing tags or press Enter to create new ones. Tags help users discover
+					your quiz.
+				</p>
+			</FormField>
+		</Card>
+
+		<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
+
+		<SoundbiteFormSection
+			bind:soundbites
+			onChange={handleSoundbitesChange}
+			startIndex={0}
+			allowedVariantTypes={quizMode === 'speed_run'
+				? ['multiple_choice', 'simple_guess', 'image_choice']
+				: undefined}
+		/>
+
+		{#if successMessage}
+			{@const isSpeedRun = quizMode === 'speed_run'}
+			<div
+				class="rounded-md border px-4 py-3 text-sm"
+				class:border-green-200={!isSpeedRun}
+				class:bg-green-50={!isSpeedRun}
+				class:text-green-700={!isSpeedRun}
+				class:border-orange-200={isSpeedRun}
+				class:bg-orange-50={isSpeedRun}
+				class:text-orange-700={isSpeedRun}
+			>
+				{successMessage}
+				{#if form?.slug && data.user?.slug}
+					<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>
+						{isSpeedRun ? 'View speed run' : 'View quiz'}
+					</a>
+					<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}/edit`)}
+						>{isSpeedRun ? 'Edit speed run' : 'Edit quiz'}</a
+					>
+				{/if}
+			</div>
+		{/if}
+
+		{#if errorMessage}
+			<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+				{errorMessage}
+			</div>
+		{/if}
+
+		<div class="mt-6 flex justify-end border-t border-neutral-200 pt-6">
+			<Button type="submit" variant="primary" size="md" loading={submitting}>
+				{submitting ? 'Creating...' : quizMode === 'speed_run' ? 'Create Speed Run' : 'Create Quiz'}
+			</Button>
+		</div>
+	</form>
+</PageContainer>

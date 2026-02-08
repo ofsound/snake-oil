@@ -8,6 +8,7 @@
 	import FormField from '$lib/components/FormField.svelte';
 	import FormInput from '$lib/components/FormInput.svelte';
 	import Heading from '$lib/components/Heading.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 
 	let { data, form } = $props();
 
@@ -68,251 +69,253 @@
 	}
 </script>
 
-<div class="container mx-auto max-w-6xl px-4 py-8">
-	<Heading level={1} class="mb-2">Tag Manager</Heading>
-	<p class="mb-8 text-gray-600 dark:text-gray-400">
-		Manage quiz tags, view statistics, and organize your taxonomy
-	</p>
+<PageContainer>
+	<div class="container mx-auto max-w-6xl px-4 py-8">
+		<Heading level={1} class="mb-2">Tag Manager</Heading>
+		<p class="mb-8 text-gray-600 dark:text-gray-400">
+			Manage quiz tags, view statistics, and organize your taxonomy
+		</p>
 
-	<!-- Statistics Cards -->
-	<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-		<Card variant="flat" padding="md">
-			<div class="text-center">
-				<div class="text-3xl font-bold text-indigo-600">{data.stats.total}</div>
-				<div class="text-sm text-gray-600">Total Tags</div>
-			</div>
-		</Card>
-		<Card variant="flat" padding="md">
-			<div class="text-center">
-				<div class="text-3xl font-bold text-emerald-600">{data.stats.popular}</div>
-				<div class="text-sm text-gray-600">Popular (10+)</div>
-			</div>
-		</Card>
-		<Card variant="flat" padding="md">
-			<div class="text-center">
-				<div class="text-3xl font-bold text-amber-600">{data.stats.unused}</div>
-				<div class="text-sm text-gray-600">Unused</div>
-			</div>
-		</Card>
-		<Card variant="flat" padding="md">
-			<div class="text-center">
-				<div class="text-3xl font-bold text-purple-600">
-					{data.pagination.totalPages}
+		<!-- Statistics Cards -->
+		<div class="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<Card variant="flat" padding="md">
+				<div class="text-center">
+					<div class="text-3xl font-bold text-indigo-600">{data.stats.total}</div>
+					<div class="text-sm text-gray-600">Total Tags</div>
 				</div>
-				<div class="text-sm text-gray-600">Pages</div>
-			</div>
-		</Card>
-	</div>
+			</Card>
+			<Card variant="flat" padding="md">
+				<div class="text-center">
+					<div class="text-3xl font-bold text-emerald-600">{data.stats.popular}</div>
+					<div class="text-sm text-gray-600">Popular (10+)</div>
+				</div>
+			</Card>
+			<Card variant="flat" padding="md">
+				<div class="text-center">
+					<div class="text-3xl font-bold text-amber-600">{data.stats.unused}</div>
+					<div class="text-sm text-gray-600">Unused</div>
+				</div>
+			</Card>
+			<Card variant="flat" padding="md">
+				<div class="text-center">
+					<div class="text-3xl font-bold text-purple-600">
+						{data.pagination.totalPages}
+					</div>
+					<div class="text-sm text-gray-600">Pages</div>
+				</div>
+			</Card>
+		</div>
 
-	<!-- Actions Bar -->
-	<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-		<div class="flex flex-wrap gap-2">
-			<Button variant="primary" onclick={() => (showCreateModal = true)}>Create New Tag</Button>
-			{#if selectedTagsForMerge.length >= 2}
-				<Button variant="accent" onclick={openMergeModal}>
-					Merge Selected ({selectedTagsForMerge.length})
-				</Button>
-			{/if}
-			<form method="POST" action="?/recalculate" use:enhance class="inline">
-				<Button type="submit" variant="outline" size="sm">Recalculate Counts</Button>
+		<!-- Actions Bar -->
+		<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+			<div class="flex flex-wrap gap-2">
+				<Button variant="primary" onclick={() => (showCreateModal = true)}>Create New Tag</Button>
+				{#if selectedTagsForMerge.length >= 2}
+					<Button variant="accent" onclick={openMergeModal}>
+						Merge Selected ({selectedTagsForMerge.length})
+					</Button>
+				{/if}
+				<form method="POST" action="?/recalculate" use:enhance class="inline">
+					<Button type="submit" variant="outline" size="sm">Recalculate Counts</Button>
+				</form>
+			</div>
+
+			<div class="flex flex-wrap gap-2">
+				<a
+					href={getFilterUrl('all')}
+					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'all' ||
+					!data.filter
+						? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
+						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+				>
+					All
+				</a>
+				<a
+					href={getFilterUrl('popular')}
+					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'popular'
+						? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+				>
+					Popular
+				</a>
+				<a
+					href={getFilterUrl('unused')}
+					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'unused'
+						? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
+						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+				>
+					Unused
+				</a>
+			</div>
+
+			<form class="flex gap-2" method="GET">
+				{#if data.sortBy}<input type="hidden" name="sort" value={data.sortBy} />{/if}
+				{#if data.order}<input type="hidden" name="order" value={data.order} />{/if}
+				{#if data.filter}<input type="hidden" name="filter" value={data.filter} />{/if}
+				<FormInput
+					type="search"
+					name="search"
+					placeholder="Search tags..."
+					bind:value={searchQuery}
+					class="w-48"
+				/>
+				<Button type="submit" variant="outline" size="sm">Search</Button>
 			</form>
 		</div>
 
-		<div class="flex flex-wrap gap-2">
-			<a
-				href={getFilterUrl('all')}
-				class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'all' ||
-				!data.filter
-					? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
-					: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
-			>
-				All
-			</a>
-			<a
-				href={getFilterUrl('popular')}
-				class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'popular'
-					? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-					: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
-			>
-				Popular
-			</a>
-			<a
-				href={getFilterUrl('unused')}
-				class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'unused'
-					? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
-					: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
-			>
-				Unused
-			</a>
-		</div>
-
-		<form class="flex gap-2" method="GET">
-			{#if data.sortBy}<input type="hidden" name="sort" value={data.sortBy} />{/if}
-			{#if data.order}<input type="hidden" name="order" value={data.order} />{/if}
-			{#if data.filter}<input type="hidden" name="filter" value={data.filter} />{/if}
-			<FormInput
-				type="search"
-				name="search"
-				placeholder="Search tags..."
-				bind:value={searchQuery}
-				class="w-48"
-			/>
-			<Button type="submit" variant="outline" size="sm">Search</Button>
-		</form>
-	</div>
-
-	<!-- Tag List -->
-	<Card variant="flat" padding="none" class="overflow-hidden">
-		<table class="w-full">
-			<thead class="bg-gray-50 dark:bg-gray-800">
-				<tr>
-					<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">
-						<input
-							type="checkbox"
-							class="rounded border-gray-300"
-							onchange={(e) => {
-								if (e.currentTarget.checked) {
-									selectedTagsForMerge = data.tags.map((t) => t.id);
-								} else {
-									selectedTagsForMerge = [];
-								}
-							}}
-						/>
-					</th>
-					<th class="px-4 py-3 text-left">
-						<a
-							href={getSortUrl('label')}
-							class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
-						>
-							Label
-							{#if data.sortBy === 'label'}
-								<span>{data.order === 'asc' ? '↑' : '↓'}</span>
-							{/if}
-						</a>
-					</th>
-					<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Slug</th>
-					<th class="px-4 py-3 text-left">
-						<a
-							href={getSortUrl('useCount')}
-							class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
-						>
-							Use Count
-							{#if data.sortBy === 'useCount' || !data.sortBy}
-								<span>{data.order === 'asc' ? '↑' : '↓'}</span>
-							{/if}
-						</a>
-					</th>
-					<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Created</th>
-					<th class="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
-				</tr>
-			</thead>
-			<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-				{#each data.tags as tag (tag.id)}
-					<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-						<td class="px-4 py-3">
+		<!-- Tag List -->
+		<Card variant="flat" padding="none" class="overflow-hidden">
+			<table class="w-full">
+				<thead class="bg-gray-50 dark:bg-gray-800">
+					<tr>
+						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">
 							<input
 								type="checkbox"
 								class="rounded border-gray-300"
-								checked={selectedTagsForMerge.includes(tag.id)}
-								onchange={() => toggleTagForMerge(tag.id)}
+								onchange={(e) => {
+									if (e.currentTarget.checked) {
+										selectedTagsForMerge = data.tags.map((t) => t.id);
+									} else {
+										selectedTagsForMerge = [];
+									}
+								}}
 							/>
-						</td>
-						<td class="px-4 py-3 font-medium">{tag.label}</td>
-						<td class="px-4 py-3 text-sm text-gray-600">{tag.slug}</td>
-						<td class="px-4 py-3">
-							<span
-								class="inline-flex rounded-full px-2 py-1 text-xs font-medium {tag.useCount >= 10
-									? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-									: tag.useCount === 0
-										? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-										: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}"
+						</th>
+						<th class="px-4 py-3 text-left">
+							<a
+								href={getSortUrl('label')}
+								class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
 							>
-								{tag.useCount}
-							</span>
-						</td>
-						<td class="px-4 py-3 text-sm text-gray-600">
-							{new Date(tag.createdAt).toLocaleDateString()}
-						</td>
-						<td class="px-4 py-3 text-right">
-							<div class="flex justify-end gap-2">
-								<Button variant="ghost" size="sm" onclick={() => openEditModal(tag)}>Edit</Button>
-								<Button variant="ghost" size="sm" onclick={() => openDeleteModal(tag)}>
-									<span class="text-red-600 hover:text-red-700">Delete</span>
-								</Button>
-							</div>
-						</td>
+								Label
+								{#if data.sortBy === 'label'}
+									<span>{data.order === 'asc' ? '↑' : '↓'}</span>
+								{/if}
+							</a>
+						</th>
+						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Slug</th>
+						<th class="px-4 py-3 text-left">
+							<a
+								href={getSortUrl('useCount')}
+								class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+							>
+								Use Count
+								{#if data.sortBy === 'useCount' || !data.sortBy}
+									<span>{data.order === 'asc' ? '↑' : '↓'}</span>
+								{/if}
+							</a>
+						</th>
+						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Created</th>
+						<th class="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
 					</tr>
-				{:else}
-					<tr>
-						<td colspan="6" class="px-4 py-8 text-center text-gray-500">
-							No tags found. Create your first tag to get started.
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</Card>
+				</thead>
+				<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+					{#each data.tags as tag (tag.id)}
+						<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+							<td class="px-4 py-3">
+								<input
+									type="checkbox"
+									class="rounded border-gray-300"
+									checked={selectedTagsForMerge.includes(tag.id)}
+									onchange={() => toggleTagForMerge(tag.id)}
+								/>
+							</td>
+							<td class="px-4 py-3 font-medium">{tag.label}</td>
+							<td class="px-4 py-3 text-sm text-gray-600">{tag.slug}</td>
+							<td class="px-4 py-3">
+								<span
+									class="inline-flex rounded-full px-2 py-1 text-xs font-medium {tag.useCount >= 10
+										? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+										: tag.useCount === 0
+											? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+											: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}"
+								>
+									{tag.useCount}
+								</span>
+							</td>
+							<td class="px-4 py-3 text-sm text-gray-600">
+								{new Date(tag.createdAt).toLocaleDateString()}
+							</td>
+							<td class="px-4 py-3 text-right">
+								<div class="flex justify-end gap-2">
+									<Button variant="ghost" size="sm" onclick={() => openEditModal(tag)}>Edit</Button>
+									<Button variant="ghost" size="sm" onclick={() => openDeleteModal(tag)}>
+										<span class="text-red-600 hover:text-red-700">Delete</span>
+									</Button>
+								</div>
+							</td>
+						</tr>
+					{:else}
+						<tr>
+							<td colspan="6" class="px-4 py-8 text-center text-gray-500">
+								No tags found. Create your first tag to get started.
+							</td>
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		</Card>
 
-	<!-- Pagination -->
-	{#if data.pagination.totalPages > 1}
-		<div class="mt-6 flex items-center justify-between">
-			<div class="text-sm text-gray-600">
-				Showing {(data.pagination.page - 1) * data.pagination.itemsPerPage + 1} to {Math.min(
-					data.pagination.page * data.pagination.itemsPerPage,
-					data.pagination.totalItems
-				)} of {data.pagination.totalItems} tags
+		<!-- Pagination -->
+		{#if data.pagination.totalPages > 1}
+			<div class="mt-6 flex items-center justify-between">
+				<div class="text-sm text-gray-600">
+					Showing {(data.pagination.page - 1) * data.pagination.itemsPerPage + 1} to {Math.min(
+						data.pagination.page * data.pagination.itemsPerPage,
+						data.pagination.totalItems
+					)} of {data.pagination.totalItems} tags
+				</div>
+				<div class="flex gap-2">
+					{#if data.pagination.page > 1}
+						{@const prevParams = new SvelteURLSearchParams()}
+						{#if data.search}{prevParams.set('search', data.search)}{/if}
+						{#if data.filter}{prevParams.set('filter', data.filter)}{/if}
+						{#if data.sortBy}{prevParams.set('sort', data.sortBy)}{/if}
+						{#if data.order}{prevParams.set('order', data.order)}{/if}
+						{prevParams.set('page', String(data.pagination.page - 1))}
+						<a
+							href="?{prevParams.toString()}"
+							class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+						>
+							Previous
+						</a>
+					{/if}
+					{#if data.pagination.page < data.pagination.totalPages}
+						{@const nextParams = new SvelteURLSearchParams()}
+						{#if data.search}{nextParams.set('search', data.search)}{/if}
+						{#if data.filter}{nextParams.set('filter', data.filter)}{/if}
+						{#if data.sortBy}{nextParams.set('sort', data.sortBy)}{/if}
+						{#if data.order}{nextParams.set('order', data.order)}{/if}
+						{nextParams.set('page', String(data.pagination.page + 1))}
+						<a
+							href="?{nextParams.toString()}"
+							class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+						>
+							Next
+						</a>
+					{/if}
+				</div>
 			</div>
-			<div class="flex gap-2">
-				{#if data.pagination.page > 1}
-					{@const prevParams = new SvelteURLSearchParams()}
-					{#if data.search}{prevParams.set('search', data.search)}{/if}
-					{#if data.filter}{prevParams.set('filter', data.filter)}{/if}
-					{#if data.sortBy}{prevParams.set('sort', data.sortBy)}{/if}
-					{#if data.order}{prevParams.set('order', data.order)}{/if}
-					{prevParams.set('page', String(data.pagination.page - 1))}
-					<a
-						href="?{prevParams.toString()}"
-						class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-					>
-						Previous
-					</a>
-				{/if}
-				{#if data.pagination.page < data.pagination.totalPages}
-					{@const nextParams = new SvelteURLSearchParams()}
-					{#if data.search}{nextParams.set('search', data.search)}{/if}
-					{#if data.filter}{nextParams.set('filter', data.filter)}{/if}
-					{#if data.sortBy}{nextParams.set('sort', data.sortBy)}{/if}
-					{#if data.order}{nextParams.set('order', data.order)}{/if}
-					{nextParams.set('page', String(data.pagination.page + 1))}
-					<a
-						href="?{nextParams.toString()}"
-						class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-					>
-						Next
-					</a>
-				{/if}
-			</div>
-		</div>
-	{/if}
+		{/if}
 
-	<!-- Popular Tags Sidebar -->
-	{#if data.popularTags.length > 0}
-		<div class="mt-8">
-			<Heading level={2} class="mb-4 text-lg">Most Popular Tags</Heading>
-			<div class="flex flex-wrap gap-2">
-				{#each data.popularTags as tag (tag.id)}
-					<a
-						href="/quizzes/tag/{tag.slug}"
-						class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
-					>
-						{tag.label}
-						<span class="ml-1 text-xs opacity-75">({tag.useCount})</span>
-					</a>
-				{/each}
+		<!-- Popular Tags Sidebar -->
+		{#if data.popularTags.length > 0}
+			<div class="mt-8">
+				<Heading level={2} class="mb-4 text-lg">Most Popular Tags</Heading>
+				<div class="flex flex-wrap gap-2">
+					{#each data.popularTags as tag (tag.id)}
+						<a
+							href="/quizzes/tag/{tag.slug}"
+							class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+						>
+							{tag.label}
+							<span class="ml-1 text-xs opacity-75">({tag.useCount})</span>
+						</a>
+					{/each}
+				</div>
 			</div>
-		</div>
-	{/if}
-</div>
+		{/if}
+	</div>
+</PageContainer>
 
 <!-- Create Tag Modal -->
 {#if showCreateModal}

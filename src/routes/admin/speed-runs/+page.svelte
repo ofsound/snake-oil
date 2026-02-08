@@ -4,6 +4,7 @@
 	import { formatDistanceToNow } from 'date-fns';
 
 	import Button from '$lib/components/Button.svelte';
+	import PageContainer from '$lib/components/PageContainer.svelte';
 
 	let { data } = $props();
 
@@ -49,255 +50,259 @@
 	}
 </script>
 
-<div class="space-y-6">
-	<div>
-		<h1 class="text-2xl font-bold text-gray-900">Speed Run Results</h1>
-		<p class="mt-1 text-sm text-gray-500">Manage speed run results and leaderboards</p>
-	</div>
-
-	<!-- Filters -->
-	<div class="rounded-lg bg-white p-4 shadow">
-		<form
-			class="flex flex-wrap items-end gap-4"
-			onsubmit={(e) => {
-				e.preventDefault();
-				updateFilters(e.currentTarget);
-			}}
-		>
-			<div>
-				<label for="filter-quiz" class="mb-1 block text-sm font-medium text-gray-700">Quiz</label>
-				<select
-					id="filter-quiz"
-					name="quiz"
-					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-				>
-					<option value="all" selected={data.filters.quiz === 'all'}>All Quizzes</option>
-					{#each data.quizzes as quiz (quiz.id)}
-						<option value={quiz.id} selected={data.filters.quiz === quiz.id}>
-							{quiz.title}
-						</option>
-					{/each}
-				</select>
-			</div>
-
-			<div>
-				<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
-				<select
-					id="filter-sort"
-					name="sort"
-					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-				>
-					<option value="created" selected={data.filters.sort === 'created'}>Date</option>
-					<option value="score" selected={data.filters.sort === 'score'}>Score</option>
-					<option value="time" selected={data.filters.sort === 'time'}>Time</option>
-				</select>
-			</div>
-
-			<div>
-				<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700">Order</label>
-				<select
-					id="filter-order"
-					name="order"
-					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-				>
-					<option value="desc" selected={data.filters.order === 'desc'}>Best First</option>
-					<option value="asc" selected={data.filters.order === 'asc'}>Worst First</option>
-				</select>
-			</div>
-
-			<div class="flex items-center">
-				<label class="flex items-center">
-					<input
-						type="checkbox"
-						name="suspicious"
-						checked={data.filters.suspicious}
-						class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-					/>
-					<span class="ml-2 text-sm text-gray-700">Suspicious only (&lt;1s/question)</span>
-				</label>
-			</div>
-
-			<Button type="submit" variant="admin" size="sm">Filter</Button>
-		</form>
-	</div>
-
-	<!-- Clear Leaderboards Section -->
-	<div class="rounded-lg bg-white p-4 shadow">
-		<h2 class="mb-3 text-lg font-medium text-gray-900">Clear Leaderboards</h2>
-		<div class="flex flex-wrap gap-2">
-			{#each data.quizzes as quiz (quiz.id)}
-				<button
-					onclick={() => openClearModal(quiz)}
-					class="rounded bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200"
-				>
-					Clear {quiz.title}
-				</button>
-			{/each}
+<PageContainer>
+	<div class="space-y-6">
+		<div>
+			<h1 class="text-2xl font-bold text-gray-900">Speed Run Results</h1>
+			<p class="mt-1 text-sm text-gray-500">Manage speed run results and leaderboards</p>
 		</div>
-	</div>
 
-	<!-- Results Table -->
-	<div class="overflow-hidden rounded-lg bg-white shadow">
-		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
-					<tr>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Date</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Quiz</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Player</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Score</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Time</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Status</th
-						>
-						<th
-							class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-							>Actions</th
-						>
-					</tr>
-				</thead>
-				<tbody class="divide-y divide-gray-200 bg-white">
-					{#if data.results.length === 0}
+		<!-- Filters -->
+		<div class="rounded-lg bg-white p-4 shadow">
+			<form
+				class="flex flex-wrap items-end gap-4"
+				onsubmit={(e) => {
+					e.preventDefault();
+					updateFilters(e.currentTarget);
+				}}
+			>
+				<div>
+					<label for="filter-quiz" class="mb-1 block text-sm font-medium text-gray-700">Quiz</label>
+					<select
+						id="filter-quiz"
+						name="quiz"
+						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+					>
+						<option value="all" selected={data.filters.quiz === 'all'}>All Quizzes</option>
+						{#each data.quizzes as quiz (quiz.id)}
+							<option value={quiz.id} selected={data.filters.quiz === quiz.id}>
+								{quiz.title}
+							</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+					<select
+						id="filter-sort"
+						name="sort"
+						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+					>
+						<option value="created" selected={data.filters.sort === 'created'}>Date</option>
+						<option value="score" selected={data.filters.sort === 'score'}>Score</option>
+						<option value="time" selected={data.filters.sort === 'time'}>Time</option>
+					</select>
+				</div>
+
+				<div>
+					<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700"
+						>Order</label
+					>
+					<select
+						id="filter-order"
+						name="order"
+						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+					>
+						<option value="desc" selected={data.filters.order === 'desc'}>Best First</option>
+						<option value="asc" selected={data.filters.order === 'asc'}>Worst First</option>
+					</select>
+				</div>
+
+				<div class="flex items-center">
+					<label class="flex items-center">
+						<input
+							type="checkbox"
+							name="suspicious"
+							checked={data.filters.suspicious}
+							class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+						/>
+						<span class="ml-2 text-sm text-gray-700">Suspicious only (&lt;1s/question)</span>
+					</label>
+				</div>
+
+				<Button type="submit" variant="admin" size="sm">Filter</Button>
+			</form>
+		</div>
+
+		<!-- Clear Leaderboards Section -->
+		<div class="rounded-lg bg-white p-4 shadow">
+			<h2 class="mb-3 text-lg font-medium text-gray-900">Clear Leaderboards</h2>
+			<div class="flex flex-wrap gap-2">
+				{#each data.quizzes as quiz (quiz.id)}
+					<button
+						onclick={() => openClearModal(quiz)}
+						class="rounded bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200"
+					>
+						Clear {quiz.title}
+					</button>
+				{/each}
+			</div>
+		</div>
+
+		<!-- Results Table -->
+		<div class="overflow-hidden rounded-lg bg-white shadow">
+			<div class="overflow-x-auto">
+				<table class="min-w-full divide-y divide-gray-200">
+					<thead class="bg-gray-50">
 						<tr>
-							<td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
-								No speed run results found
-							</td>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Date</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Quiz</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Player</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Score</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Time</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Status</th
+							>
+							<th
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								>Actions</th
+							>
 						</tr>
-					{:else}
-						{#each data.results as result (result.id)}
-							<tr class="hover:bg-gray-50 {result.isSuspicious ? 'bg-red-50' : ''}">
-								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-									<time title={new Date(result.createdAt).toLocaleString()}>
-										{formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
-									</time>
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									<a
-										href="/{result.speedRun.quiz.owner.slug}/{result.speedRun.quiz.slug}"
-										target="_blank"
-										class="text-sm font-medium text-blue-600 hover:text-blue-900"
-									>
-										{result.speedRun.quiz.title}
-									</a>
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									{#if result.user}
-										<a
-											href="/admin/users/{result.user.id}"
-											class="text-sm text-blue-600 hover:text-blue-900"
-										>
-											{result.user.name || result.user.slug}
-										</a>
-									{:else}
-										<span class="text-sm text-gray-500">{result.displayName}</span>
-									{/if}
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									<div class="text-sm font-medium text-gray-900">
-										{result.correctCount}/{result.totalQuestions}
-									</div>
-									<div class="text-xs text-gray-500">
-										Score: {result.score.toLocaleString()}
-									</div>
-								</td>
-								<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
-									{formatTime(result.totalTimeMs)}
-								</td>
-								<td class="px-6 py-4 whitespace-nowrap">
-									{#if result.isSuspicious}
-										<span
-											class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
-										>
-											Suspicious
-										</span>
-									{:else}
-										<span
-											class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-										>
-											Valid
-										</span>
-									{/if}
-								</td>
-								<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-									<button
-										onclick={() => openDeleteModal(result)}
-										class="text-red-600 hover:text-red-900"
-									>
-										Delete
-									</button>
+					</thead>
+					<tbody class="divide-y divide-gray-200 bg-white">
+						{#if data.results.length === 0}
+							<tr>
+								<td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+									No speed run results found
 								</td>
 							</tr>
-						{/each}
-					{/if}
-				</tbody>
-			</table>
-		</div>
+						{:else}
+							{#each data.results as result (result.id)}
+								<tr class="hover:bg-gray-50 {result.isSuspicious ? 'bg-red-50' : ''}">
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+										<time title={new Date(result.createdAt).toLocaleString()}>
+											{formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
+										</time>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<a
+											href="/{result.speedRun.quiz.owner.slug}/{result.speedRun.quiz.slug}"
+											target="_blank"
+											class="text-sm font-medium text-blue-600 hover:text-blue-900"
+										>
+											{result.speedRun.quiz.title}
+										</a>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										{#if result.user}
+											<a
+												href="/admin/users/{result.user.id}"
+												class="text-sm text-blue-600 hover:text-blue-900"
+											>
+												{result.user.name || result.user.slug}
+											</a>
+										{:else}
+											<span class="text-sm text-gray-500">{result.displayName}</span>
+										{/if}
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										<div class="text-sm font-medium text-gray-900">
+											{result.correctCount}/{result.totalQuestions}
+										</div>
+										<div class="text-xs text-gray-500">
+											Score: {result.score.toLocaleString()}
+										</div>
+									</td>
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+										{formatTime(result.totalTimeMs)}
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap">
+										{#if result.isSuspicious}
+											<span
+												class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+											>
+												Suspicious
+											</span>
+										{:else}
+											<span
+												class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+											>
+												Valid
+											</span>
+										{/if}
+									</td>
+									<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+										<button
+											onclick={() => openDeleteModal(result)}
+											class="text-red-600 hover:text-red-900"
+										>
+											Delete
+										</button>
+									</td>
+								</tr>
+							{/each}
+						{/if}
+					</tbody>
+				</table>
+			</div>
 
-		<!-- Pagination -->
-		{#if data.pagination.totalPages > 1}
-			<div
-				class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-			>
-				<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-					<div>
-						<p class="text-sm text-gray-700">
-							Showing <span class="font-medium"
-								>{(data.pagination.page - 1) * data.pagination.pageSize + 1}</span
-							>
-							to
-							<span class="font-medium"
-								>{Math.min(
-									data.pagination.page * data.pagination.pageSize,
-									data.pagination.totalResults
-								)}</span
-							>
-							of <span class="font-medium">{data.pagination.totalResults}</span> results
-						</p>
-					</div>
-					<div>
-						<nav
-							class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
-							aria-label="Pagination"
-						>
-							{#if data.pagination.page > 1}
-								<a
-									href="/admin/speed-runs?page={data.pagination.page - 1}"
-									class="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
+			<!-- Pagination -->
+			{#if data.pagination.totalPages > 1}
+				<div
+					class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
+				>
+					<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+						<div>
+							<p class="text-sm text-gray-700">
+								Showing <span class="font-medium"
+									>{(data.pagination.page - 1) * data.pagination.pageSize + 1}</span
 								>
-									Previous
-								</a>
-							{/if}
-							{#if data.pagination.page < data.pagination.totalPages}
-								<a
-									href="/admin/speed-runs?page={data.pagination.page + 1}"
-									class="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
+								to
+								<span class="font-medium"
+									>{Math.min(
+										data.pagination.page * data.pagination.pageSize,
+										data.pagination.totalResults
+									)}</span
 								>
-									Next
-								</a>
-							{/if}
-						</nav>
+								of <span class="font-medium">{data.pagination.totalResults}</span> results
+							</p>
+						</div>
+						<div>
+							<nav
+								class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
+								aria-label="Pagination"
+							>
+								{#if data.pagination.page > 1}
+									<a
+										href="/admin/speed-runs?page={data.pagination.page - 1}"
+										class="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
+									>
+										Previous
+									</a>
+								{/if}
+								{#if data.pagination.page < data.pagination.totalPages}
+									<a
+										href="/admin/speed-runs?page={data.pagination.page + 1}"
+										class="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
+									>
+										Next
+									</a>
+								{/if}
+							</nav>
+						</div>
 					</div>
 				</div>
-			</div>
-		{/if}
-	</div>
-</div>
+			{/if}
+		</div>
+	</div></PageContainer
+>
 
 <!-- Delete Result Modal -->
 {#if showDeleteModal && resultToDelete}
