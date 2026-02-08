@@ -115,14 +115,14 @@ export const SpeedRunCheckAnswerRequestSchema = z.object({
 
 export type SpeedRunCheckAnswerResponse =
 	| {
-		success: true;
-		isCorrect: boolean;
-		correctAnswer: string;
-	}
+			success: true;
+			isCorrect: boolean;
+			correctAnswer: string;
+	  }
 	| {
-		success: false;
-		error: string;
-	};
+			success: false;
+			error: string;
+	  };
 
 // POST /api/speed-run/submit
 const SpeedRunAnswerSchema = z.object({
@@ -143,18 +143,18 @@ export const SpeedRunSubmitRequestSchema = z.object({
 
 export type SpeedRunSubmitResponse =
 	| {
-		success: true;
-		result: {
-			id: string;
-			correctCount: number;
-			totalTimeMs: number;
-			score: number;
-			streakMax: number;
-		};
-		rank: number;
-		top10: SpeedRunLeaderboardEntry[];
-	}
+			success: true;
+			result: {
+				id: string;
+				correctCount: number;
+				totalTimeMs: number;
+				score: number;
+				streakMax: number;
+			};
+			rank: number;
+			top10: SpeedRunLeaderboardEntry[];
+	  }
 	| {
-		success: false;
-		error: string;
-	};
+			success: false;
+			error: string;
+	  };

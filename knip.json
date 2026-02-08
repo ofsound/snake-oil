@@ -1,6 +1,3 @@
 {
-	"ignore": [
-		"drizzle.config.ts",
-		"scripts/make-admin.cjs"
-	]
+	"ignore": ["drizzle.config.ts", "scripts/make-admin.cjs"]
 }

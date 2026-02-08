@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { fly } from 'svelte/transition';
 
-	import { resolve } from '$app/paths';
 	import { formatTimeMs } from '$lib/speed-run/scoring';
 
 	import type { SpeedRunLeaderboardEntry } from '$lib/speed-run/types';
+
 	interface Props {
 		quizTitle: string;
 		correctCount: number;
@@ -15,6 +15,11 @@
 		rank: number;
 		leaderboard: SpeedRunLeaderboardEntry[];
 		onRestart: () => void;
+		nextQuiz?: {
+			slug: string;
+			title: string;
+			ownerSlug: string;
+		} | null;
 	}
 
 	let {
@@ -26,7 +31,8 @@
 		maxStreak,
 		rank,
 		leaderboard,
-		onRestart
+		onRestart,
+		nextQuiz
 	}: Props = $props();
 
 	const accuracy = $derived(Math.round((correctCount / totalQuestions) * 100));
@@ -154,12 +160,14 @@
 			>
 				Play Again ⚡
 			</button>
-			<a
-				href={resolve('/')}
-				class="flex-1 rounded-xl border-2 border-white/20 bg-white/5 px-8 py-4 text-center text-xl font-bold text-white transition-all hover:bg-white/10"
-			>
-				More Quizzes
-			</a>
+			{#if nextQuiz}
+				<a
+					href="/{nextQuiz.ownerSlug}/{nextQuiz.slug}"
+					class="flex-1 rounded-xl bg-white px-8 py-4 text-center text-xl font-bold text-slate-900 transition-all hover:scale-105 hover:bg-white/90"
+				>
+					Play Next: {nextQuiz.title}
+				</a>
+			{/if}
 		</div>
 	</div>
 {/if}

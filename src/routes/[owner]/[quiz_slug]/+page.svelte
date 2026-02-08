@@ -95,6 +95,7 @@
 			questions={data.speedRunQuestions}
 			initialLeaderboard={data.leaderboard}
 			user={data.user}
+			nextQuiz={data.nextSpeedRunQuiz}
 		/>
 	</div>
 {:else}
@@ -204,7 +205,7 @@
 					{/each}
 				</section>
 
-				<div class="flex justify-center">
+				<div class="flex flex-col items-center gap-3">
 					<Button
 						href="/{data.quiz.owner.slug}/{data.quiz.slug}"
 						variant="outline"
@@ -215,6 +216,16 @@
 					>
 						Take Quiz Again
 					</Button>
+
+					{#if data.nextRegularQuiz}
+						<Button
+							href="/{data.nextRegularQuiz.ownerSlug}/{data.nextRegularQuiz.slug}"
+							variant="primary"
+							size="md"
+						>
+							Play Next: {data.nextRegularQuiz.title}
+						</Button>
+					{/if}
 				</div>
 			</div>
 		{:else}

@@ -33,9 +33,14 @@
 		questions: SpeedRunQuestion[];
 		initialLeaderboard: SpeedRunLeaderboardEntry[];
 		user: { id: string; name: string | null; email: string } | null | undefined;
+		nextQuiz?: {
+			slug: string;
+			title: string;
+			ownerSlug: string;
+		} | null;
 	}
 
-	let { quiz, speedRun, questions, initialLeaderboard, user }: Props = $props();
+	let { quiz, speedRun, questions, initialLeaderboard, user, nextQuiz }: Props = $props();
 
 	// Game state
 	let phase = $state<GamePhase>('idle');
@@ -536,6 +541,7 @@
 				rank={finalResult.rank}
 				{leaderboard}
 				onRestart={handleRestart}
+				{nextQuiz}
 			/>
 		</div>
 	{:else}

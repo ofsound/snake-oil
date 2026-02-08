@@ -21,5 +21,6 @@
 		{value}
 		oninput={(e) => oninput(e.currentTarget.value)}
 		{disabled}
+		required
 	/>
 </div>

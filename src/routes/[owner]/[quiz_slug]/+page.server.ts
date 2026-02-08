@@ -17,6 +17,7 @@ import {
 	type VariantConfig
 } from '$lib/server/db/schema';
 import { buildAnswerDetail, calculateScore } from '$lib/server/variant-utils';
+import { getNextQuiz } from '$lib/server/next-quiz';
 
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
@@ -237,6 +238,21 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.innerJoin(tags, eq(quizTags.tagId, tags.id))
 		.where(eq(quizTags.quizId, quiz.id));
 
+	// Fetch next quizzes for "Play Next" feature
+	const nextRegularQuiz = await getNextQuiz(db, {
+		ownerId: quiz.ownerId,
+		currentQuizId: quiz.id,
+		userId: locals.user?.id,
+		mode: 'regular'
+	});
+
+	const nextSpeedRunQuiz = await getNextQuiz(db, {
+		ownerId: quiz.ownerId,
+		currentQuizId: quiz.id,
+		userId: locals.user?.id,
+		mode: 'speedrun'
+	});
+
 	return {
 		quiz: {
 			id: quiz.id,
@@ -264,6 +280,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		speedRunQuestions,
 		leaderboard,
 		tags: quizTagsData,
+		nextRegularQuiz,
+		nextSpeedRunQuiz,
 		user: locals.user
 			? { id: locals.user.id, name: locals.user.name, email: locals.user.email }
 			: null
