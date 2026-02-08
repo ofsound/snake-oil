@@ -19,7 +19,7 @@
 
 <!-- Full gradient hero for non-logged-in users -->
 <section
-	class="animate-gradient-slow relative min-h-[70vh] w-full overflow-hidden bg-gradient-to-br from-violet-600 via-cyan-500 via-fuchsia-600 to-blue-600 dark:from-indigo-950 dark:via-blue-900 dark:via-purple-900 dark:to-indigo-950"
+	class="animate-gradient-slow relative min-h-[70vh] w-full overflow-hidden bg-linear-to-br from-violet-600 via-cyan-500 to-blue-600 dark:from-indigo-950 dark:via-blue-900 dark:to-indigo-950"
 >
 	<!-- Floating orbs for depth -->
 	<div
@@ -55,7 +55,7 @@
 			>
 				Create Beautiful
 				<span
-					class="block bg-gradient-to-r from-emerald-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent"
+					class="bg-linear-to-rrom-emerald-300 block via-cyan-300 to-blue-300 bg-clip-text text-transparent"
 				>
 					Quizzes in Minutes
 				</span>
@@ -104,7 +104,7 @@
 
 	<!-- Bottom gradient fade to white -->
 	<div
-		class="absolute right-0 bottom-0 left-0 h-32 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-900 dark:via-gray-900/80"
+		class="absolute right-0 bottom-0 left-0 h-32 bg-linear-to-t from-white via-white/80 to-transparent dark:from-gray-900 dark:via-gray-900/80"
 	></div>
 </section>
 
@@ -145,7 +145,7 @@
 
 		<!-- CTA for non-logged-in users -->
 		<div class="mt-12 text-center">
-			<GlassCard padding="xl" class="bg-gradient-to-br from-violet-600/10 to-cyan-600/10">
+			<GlassCard padding="xl" class="bg-linear-to-br from-violet-600/10 to-cyan-600/10">
 				<div class="mb-4 text-4xl">✨</div>
 				<h3 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
 					Ready to create your own?
@@ -166,11 +166,11 @@
 <!-- Decorative section divider -->
 <div class="relative h-32 overflow-hidden">
 	<div
-		class="absolute inset-0 bg-gradient-to-r from-violet-100 via-fuchsia-100 to-cyan-100 opacity-50 dark:from-violet-950/30 dark:via-fuchsia-950/30 dark:to-cyan-950/30"
+		class="absolute inset-0 bg-linear-to-r from-violet-100 via-fuchsia-100 to-cyan-100 opacity-50 dark:from-violet-950/30 dark:via-fuchsia-950/30 dark:to-cyan-950/30"
 	></div>
 	<div class="absolute inset-0 flex items-center justify-center">
 		<div
-			class="h-px w-1/3 bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-700"
+			class="h-px w-1/3 bg-linear-to-r from-transparent via-gray-300 to-transparent dark:via-gray-700"
 		></div>
 	</div>
 </div>
@@ -186,19 +186,19 @@
 
 			<div class="grid gap-6 sm:grid-cols-3">
 				<div
-					class="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30"
+					class="rounded-2xl bg-linear-to-br from-emerald-50 to-teal-50 p-6 dark:from-emerald-950/30 dark:to-teal-950/30"
 				>
 					<div class="mb-2 text-3xl font-bold text-emerald-600 dark:text-emerald-400">10k+</div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">Quizzes Created</div>
 				</div>
 				<div
-					class="rounded-2xl bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6 dark:from-violet-950/30 dark:to-fuchsia-950/30"
+					class="rounded-2xl bg-linear-to-br from-violet-50 to-fuchsia-50 p-6 dark:from-violet-950/30 dark:to-fuchsia-950/30"
 				>
 					<div class="mb-2 text-3xl font-bold text-violet-600 dark:text-violet-400">500k+</div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">Quiz Takers</div>
 				</div>
 				<div
-					class="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 dark:from-amber-950/30 dark:to-orange-950/30"
+					class="rounded-2xl bg-linear-to-br from-amber-50 to-orange-50 p-6 dark:from-amber-950/30 dark:to-orange-950/30"
 				>
 					<div class="mb-2 text-3xl font-bold text-amber-600 dark:text-amber-400">4.9★</div>
 					<div class="text-sm text-gray-600 dark:text-gray-400">Creator Rating</div>
