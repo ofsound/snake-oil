@@ -7,9 +7,9 @@
 	import SequenceEditor from './variant-editors/SequenceEditor.svelte';
 	import RankEditor from './variant-editors/RankEditor.svelte';
 
-	import type { Component } from 'svelte';
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
+	import type { Component } from 'svelte';
 
 	interface Props {
 		soundbite: SoundbiteState;

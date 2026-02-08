@@ -9,9 +9,9 @@
 
 	import { authClient } from '$lib/auth-client';
 
-	import favicon from '$lib/assets/favicon.svg';
-
 	import type { LayoutProps } from './$types';
+
+	import favicon from '$lib/assets/favicon.svg';
 
 	import './layout.css';
 	let { data, children }: LayoutProps = $props();

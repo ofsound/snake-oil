@@ -5,6 +5,7 @@
  * Default: ben@modernthings.net
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { neon } = require('@neondatabase/serverless');
 
 const ADMIN_EMAIL = process.argv[2] || 'ben@modernthings.net';

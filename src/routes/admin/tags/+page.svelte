@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+	import { fade, fly } from 'svelte/transition';
+
 	import Button from '$lib/components/Button.svelte';
 	import Card from '$lib/components/Card.svelte';
 	import FormField from '$lib/components/FormField.svelte';
 	import FormInput from '$lib/components/FormInput.svelte';
 	import Heading from '$lib/components/Heading.svelte';
-	import { fade, fly } from 'svelte/transition';
 
 	let { data, form } = $props();
 
@@ -14,6 +16,7 @@
 	let showDeleteModal = $state(false);
 	let showMergeModal = $state(false);
 	let selectedTag = $state<(typeof data.tags)[0] | null>(null);
+	// svelte-ignore state_referenced_locally
 	let searchQuery = $state(data.search ?? '');
 	let submitting = $state(false);
 	let selectedTagsForMerge = $state<string[]>([]);
@@ -45,7 +48,7 @@
 	}
 
 	function getSortUrl(field: string) {
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 		if (data.search) params.set('search', data.search);
 		if (data.filter && data.filter !== 'all') params.set('filter', data.filter);
 		params.set('sort', field);
@@ -55,7 +58,7 @@
 	}
 
 	function getFilterUrl(filter: string) {
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 		if (data.search) params.set('search', data.search);
 		if (data.sortBy) params.set('sort', data.sortBy);
 		if (data.order) params.set('order', data.order);
@@ -261,7 +264,7 @@
 			</div>
 			<div class="flex gap-2">
 				{#if data.pagination.page > 1}
-					{@const prevParams = new URLSearchParams()}
+					{@const prevParams = new SvelteURLSearchParams()}
 					{#if data.search}{prevParams.set('search', data.search)}{/if}
 					{#if data.filter}{prevParams.set('filter', data.filter)}{/if}
 					{#if data.sortBy}{prevParams.set('sort', data.sortBy)}{/if}
@@ -275,7 +278,7 @@
 					</a>
 				{/if}
 				{#if data.pagination.page < data.pagination.totalPages}
-					{@const nextParams = new URLSearchParams()}
+					{@const nextParams = new SvelteURLSearchParams()}
 					{#if data.search}{nextParams.set('search', data.search)}{/if}
 					{#if data.filter}{nextParams.set('filter', data.filter)}{/if}
 					{#if data.sortBy}{nextParams.set('sort', data.sortBy)}{/if}
@@ -314,8 +317,17 @@
 <!-- Create Tag Modal -->
 {#if showCreateModal}
 	<div
+		role="button"
+		tabindex="0"
+		aria-label="Close create tag modal"
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 		onclick={() => (showCreateModal = false)}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				showCreateModal = false;
+			}
+		}}
 		transition:fade={{ duration: 200 }}
 	>
 		<div transition:fly={{ y: 20, duration: 200 }}>
@@ -358,8 +370,17 @@
 <!-- Edit Tag Modal -->
 {#if showEditModal && selectedTag}
 	<div
+		role="button"
+		tabindex="0"
+		aria-label="Close edit tag modal"
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 		onclick={() => (showEditModal = false)}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				showEditModal = false;
+			}
+		}}
 		transition:fade={{ duration: 200 }}
 	>
 		<div transition:fly={{ y: 20, duration: 200 }}>
@@ -404,8 +425,17 @@
 <!-- Delete Tag Modal -->
 {#if showDeleteModal && selectedTag}
 	<div
+		role="button"
+		tabindex="0"
+		aria-label="Close delete tag modal"
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 		onclick={() => (showDeleteModal = false)}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				showDeleteModal = false;
+			}
+		}}
 		transition:fade={{ duration: 200 }}
 	>
 		<div transition:fly={{ y: 20, duration: 200 }}>
@@ -452,8 +482,17 @@
 <!-- Merge Tags Modal -->
 {#if showMergeModal && selectedTagsForMerge.length >= 2}
 	<div
+		role="button"
+		tabindex="0"
+		aria-label="Close merge tags modal"
 		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 		onclick={() => (showMergeModal = false)}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				showMergeModal = false;
+			}
+		}}
 		transition:fade={{ duration: 200 }}
 	>
 		<div transition:fly={{ y: 20, duration: 200 }}>

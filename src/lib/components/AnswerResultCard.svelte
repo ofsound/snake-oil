@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { getCorrectAnswerText, calculateKendallTauPercentage } from '$lib/variant-display';
+
 	import type {
 		VariantConfig,
 		AnswerDetail,
@@ -8,7 +10,6 @@
 		SequenceConfig,
 		RankConfig
 	} from '$lib/variant-types';
-	import { getCorrectAnswerText, calculateKendallTauPercentage } from '$lib/variant-display';
 
 	type Props = {
 		answerDetail: AnswerDetail;

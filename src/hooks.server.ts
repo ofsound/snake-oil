@@ -2,11 +2,11 @@ import { building } from '$app/environment';
 import { error } from '@sveltejs/kit';
 
 import { svelteKitHandler } from 'better-auth/svelte-kit';
+import { eq } from 'drizzle-orm';
 
 import { auth } from '$lib/auth';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
-import { eq } from 'drizzle-orm';
 
 import type { Handle } from '@sveltejs/kit';
 

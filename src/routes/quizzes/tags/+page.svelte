@@ -11,6 +11,7 @@
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
 
+	// svelte-ignore state_referenced_locally
 	let searchInput = $state(data.searchQuery ?? '');
 
 	function handleSearch() {
@@ -227,7 +228,7 @@
 				{#if data.currentPage > 1}
 					<a
 						href={(() => {
-							const params = new URLSearchParams(page.url.searchParams);
+							const params = new SvelteURLSearchParams(page.url.searchParams);
 							params.set('page', String(data.currentPage - 1));
 							return resolvePath(`/quizzes/tags?${params.toString()}`);
 						})()}
@@ -239,7 +240,7 @@
 				{#if data.currentPage < data.totalPages}
 					<a
 						href={(() => {
-							const params = new URLSearchParams(page.url.searchParams);
+							const params = new SvelteURLSearchParams(page.url.searchParams);
 							params.set('page', String(data.currentPage + 1));
 							return resolvePath(`/quizzes/tags?${params.toString()}`);
 						})()}

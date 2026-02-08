@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
 	import { formatDistanceToNow } from 'date-fns';
 
 	let { data } = $props();
@@ -13,7 +15,7 @@
 
 	function updateFilters(form: HTMLFormElement) {
 		const formData = new FormData(form);
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 
 		const action = formData.get('action')?.toString();
 		const targetType = formData.get('targetType')?.toString();
@@ -41,8 +43,11 @@
 			}}
 		>
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Action Type</label>
+				<label for="filter-action" class="mb-1 block text-sm font-medium text-gray-700"
+					>Action Type</label
+				>
 				<select
+					id="filter-action"
 					name="action"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -56,8 +61,11 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Target Type</label>
+				<label for="filter-target-type" class="mb-1 block text-sm font-medium text-gray-700"
+					>Target Type</label
+				>
 				<select
+					id="filter-target-type"
 					name="targetType"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>

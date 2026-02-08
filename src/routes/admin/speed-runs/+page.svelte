@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
 	import { formatDistanceToNow } from 'date-fns';
 
 	let { data } = $props();
@@ -29,7 +31,7 @@
 
 	function updateFilters(form: HTMLFormElement) {
 		const formData = new FormData(form);
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 
 		const quiz = formData.get('quiz')?.toString();
 		const sort = formData.get('sort')?.toString();
@@ -61,8 +63,9 @@
 			}}
 		>
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Quiz</label>
+				<label for="filter-quiz" class="mb-1 block text-sm font-medium text-gray-700">Quiz</label>
 				<select
+					id="filter-quiz"
 					name="quiz"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -76,8 +79,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+				<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
 				<select
+					id="filter-sort"
 					name="sort"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -88,8 +92,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Order</label>
+				<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700">Order</label>
 				<select
+					id="filter-order"
 					name="order"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -354,12 +359,13 @@
 			<form method="POST" action="?/clearLeaderboard" class="space-y-4">
 				<input type="hidden" name="speedRunId" value={quizToClear.id} />
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-700">
+					<label for="clear-confirm-title" class="mb-1 block text-sm font-medium text-gray-700">
 						Type the quiz title to confirm: <code class="rounded bg-gray-100 px-1"
 							>{quizToClear.title}</code
 						>
 					</label>
 					<input
+						id="clear-confirm-title"
 						type="text"
 						name="confirmTitle"
 						bind:value={clearConfirmTitle}

@@ -16,9 +16,8 @@
 	import { slugify } from '$lib/utils';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
-	import type { SoundbiteState } from '$lib/types/soundbite';
-	import type { VariantType } from '$lib/variant-types';
 	import type { ActionData, PageData } from './$types';
+	import type { SoundbiteState } from '$lib/types/soundbite';
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let title = $state('');

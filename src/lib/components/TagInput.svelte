@@ -27,6 +27,7 @@
 	}: Props = $props();
 
 	let inputValue = $state('');
+	// svelte-ignore non_reactive_update
 	let inputElement: HTMLInputElement;
 	let suggestions: Tag[] = $state([]);
 	let isOpen = $state(false);
@@ -201,13 +202,25 @@
 		}
 	}
 
-	function getHighlightedText(text: string, query: string) {
-		if (!query) return text;
-		const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
-		return text.replace(
-			regex,
-			'<mark class="bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-200">$1</mark>'
-		);
+	type HighlightSegment = { text: string; highlight: boolean };
+
+	function getHighlightSegments(text: string, query: string): HighlightSegment[] {
+		if (!query.trim()) return [{ text, highlight: false }];
+		const segments: HighlightSegment[] = [];
+		let lastIndex = 0;
+		let match: RegExpExecArray | null;
+		const re = new RegExp(escapeRegex(query), 'gi');
+		while ((match = re.exec(text)) !== null) {
+			if (match.index > lastIndex) {
+				segments.push({ text: text.slice(lastIndex, match.index), highlight: false });
+			}
+			segments.push({ text: match[0], highlight: true });
+			lastIndex = match.index + match[0].length;
+		}
+		if (lastIndex < text.length) {
+			segments.push({ text: text.slice(lastIndex), highlight: false });
+		}
+		return segments.length ? segments : [{ text, highlight: false }];
 	}
 
 	function escapeRegex(str: string) {
@@ -224,10 +237,19 @@
 <div class="relative w-full" bind:this={containerElement}>
 	<!-- Input Container -->
 	<div
-		class="group flex min-h-[3rem] flex-wrap items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:focus-within:border-indigo-400 dark:focus-within:ring-indigo-400/10 dark:hover:border-gray-600"
+		role="button"
+		tabindex={disabled ? -1 : 0}
+		aria-label="Focus tag input"
+		class="group flex min-h-12 flex-wrap items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:focus-within:border-indigo-400 dark:focus-within:ring-indigo-400/10 dark:hover:border-gray-600"
 		class:opacity-50={disabled}
 		class:cursor-not-allowed={disabled}
 		onclick={handleContainerClick}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				handleContainerClick();
+			}
+		}}
 	>
 		{#each tags as tag, i (tag.id)}
 			<span
@@ -331,7 +353,16 @@
 								onmouseenter={() => (activeIndex = i)}
 							>
 								<span class="font-medium">
-									{@html getHighlightedText(suggestion.label, inputValue)}
+									{#each getHighlightSegments(suggestion.label, inputValue) as segment, segIdx (suggestion.id + segIdx)}
+										{#if segment.highlight}
+											<mark
+												class="bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-200"
+												>{segment.text}</mark
+											>
+										{:else}
+											{segment.text}
+										{/if}
+									{/each}
 								</span>
 								{#if suggestion.useCount && suggestion.useCount > 0}
 									<span class="text-xs text-gray-500">

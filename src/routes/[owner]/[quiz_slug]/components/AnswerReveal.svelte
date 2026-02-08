@@ -12,8 +12,15 @@
 		question?: SpeedRunQuestion;
 	}
 
-	let { isCorrect, guess, correctAnswer, revealDelayMs, streak, isLastQuestion, question }: Props =
-		$props();
+	let {
+		isCorrect,
+		guess,
+		correctAnswer,
+		revealDelayMs: _revealDelayMs,
+		streak,
+		isLastQuestion,
+		question
+	}: Props = $props();
 
 	let countdown = $state(3);
 

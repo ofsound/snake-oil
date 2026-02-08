@@ -1,7 +1,7 @@
 import { asc, desc, count, eq, like, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { tags, quizzes, quizTags, user, speedRuns } from '$lib/server/db/schema';
+import { tags, quizzes, quizTags, user } from '$lib/server/db/schema';
 
 import type { PageServerLoad } from './$types';
 

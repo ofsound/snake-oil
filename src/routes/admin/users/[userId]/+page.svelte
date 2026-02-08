@@ -7,6 +7,7 @@
 	let showSuspendModal = $state(false);
 	let showUnsuspendModal = $state(false);
 	let showRoleModal = $state(false);
+	// svelte-ignore state_referenced_locally
 	let selectedRole = $state(data.targetUser.role);
 
 	function getRoleBadgeClass(role: string): string {
@@ -67,7 +68,7 @@
 	<!-- User Profile Card -->
 	<div class="rounded-lg bg-white p-6 shadow">
 		<div class="flex items-start gap-6">
-			<div class="flex-shrink-0">
+			<div class="shrink-0">
 				{#if data.targetUser.image}
 					<img
 						class="h-24 w-24 rounded-full"
@@ -277,9 +278,11 @@
 			</p>
 			<form method="POST" action="?/suspend" class="space-y-4">
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-700">Reason for suspension *</label
+					<label for="suspend-reason" class="mb-1 block text-sm font-medium text-gray-700"
+						>Reason for suspension *</label
 					>
 					<textarea
+						id="suspend-reason"
 						name="reason"
 						bind:value={suspendReason}
 						required
@@ -348,8 +351,9 @@
 			</p>
 			<form method="POST" action="?/updateRole" class="space-y-4">
 				<div>
-					<label class="mb-1 block text-sm font-medium text-gray-700">Role</label>
+					<label for="user-role" class="mb-1 block text-sm font-medium text-gray-700">Role</label>
 					<select
+						id="user-role"
 						name="role"
 						bind:value={selectedRole}
 						class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"

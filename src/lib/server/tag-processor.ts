@@ -1,15 +1,15 @@
 import { eq, and, inArray } from 'drizzle-orm';
 
 import type { Db } from './db/index.js';
-import { quizzes, quizTags, tags, tagCooccurrence } from './db/schema.js';
+import { quizTags, tags, tagCooccurrence } from './db/schema.js';
 import { decrementTagCounts, decrementTagCooccurrences, getQuizTagIds } from './tag-utils.js';
 
-export interface TagProcessingResult {
+interface TagProcessingResult {
 	success: boolean;
 	error?: string;
 }
 
-export interface TagChangeSet {
+interface TagChangeSet {
 	added: string[];
 	removed: string[];
 	unchanged: string[];
@@ -219,26 +219,4 @@ async function incrementCooccurrence(db: Db, tagId: string, relatedTagId: string
 			updatedAt: new Date()
 		});
 	}
-}
-
-/**
- * Handle tag removal when a quiz is deleted
- * Call this BEFORE deleting the quiz
- */
-export async function handleQuizDeletionTags(db: Db, quizId: string): Promise<void> {
-	const quiz = await db.query.quizzes.findFirst({
-		where: eq(quizzes.id, quizId),
-		columns: { visibility: true }
-	});
-
-	if (quiz?.visibility === 'public') {
-		const tagIds = await getQuizTagIds(db, quizId);
-		if (tagIds.length > 0) {
-			await decrementTagCounts(db, tagIds);
-			await decrementTagCooccurrences(db, tagIds);
-		}
-	}
-
-	// Delete all tag associations
-	await db.delete(quizTags).where(eq(quizTags.quizId, quizId));
 }

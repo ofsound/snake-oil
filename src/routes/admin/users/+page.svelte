@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
 	import { formatDistanceToNow } from 'date-fns';
 
 	let { data } = $props();
@@ -20,7 +22,7 @@
 
 	function updateSearch(form: HTMLFormElement) {
 		const formData = new FormData(form);
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 
 		const search = formData.get('search')?.toString();
 		const role = formData.get('role')?.toString();
@@ -56,8 +58,11 @@
 			}}
 		>
 			<div class="min-w-[200px] flex-1">
-				<label class="mb-1 block text-sm font-medium text-gray-700">Search</label>
+				<label for="filter-search" class="mb-1 block text-sm font-medium text-gray-700"
+					>Search</label
+				>
 				<input
+					id="filter-search"
 					type="text"
 					name="search"
 					value={data.filters.search}
@@ -67,8 +72,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Role</label>
+				<label for="filter-role" class="mb-1 block text-sm font-medium text-gray-700">Role</label>
 				<select
+					id="filter-role"
 					name="role"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -80,8 +86,11 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Status</label>
+				<label for="filter-status" class="mb-1 block text-sm font-medium text-gray-700"
+					>Status</label
+				>
 				<select
+					id="filter-status"
 					name="status"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -93,8 +102,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+				<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
 				<select
+					id="filter-sort"
 					name="sort"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -105,8 +115,9 @@
 			</div>
 
 			<div>
-				<label class="mb-1 block text-sm font-medium text-gray-700">Order</label>
+				<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700">Order</label>
 				<select
+					id="filter-order"
 					name="order"
 					class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 				>
@@ -168,7 +179,7 @@
 							<tr class="hover:bg-gray-50">
 								<td class="px-6 py-4 whitespace-nowrap">
 									<div class="flex items-center">
-										<div class="h-10 w-10 flex-shrink-0">
+										<div class="h-10 w-10 shrink-0">
 											{#if user.image}
 												<img
 													class="h-10 w-10 rounded-full"

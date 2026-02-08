@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
+
 	import { resolvePath } from '$lib/utils';
 
 	interface Tag {
@@ -20,7 +22,7 @@
 
 	let { tags, activeTags = $bindable([]), totalTagsCount, maxTags = 5, onChange }: Props = $props();
 
-	let isExpanded = $state(false);
+	let _isExpanded = $state(false);
 
 	function toggleTag(tagSlug: string) {
 		if (activeTags.includes(tagSlug)) {
@@ -39,7 +41,7 @@
 	}
 
 	function updateUrl() {
-		const params = new URLSearchParams(page.url.searchParams);
+		const params = new SvelteURLSearchParams(page.url.searchParams);
 		if (activeTags.length > 0) {
 			params.set('tags', activeTags.join(','));
 		} else {
@@ -73,7 +75,7 @@
 	}
 </script>
 
-<div class="w-[250px] flex-shrink-0">
+<div class="w-[250px] shrink-0">
 	<div class="sticky top-4 space-y-4">
 		<!-- Header -->
 		<div class="flex items-center justify-between">

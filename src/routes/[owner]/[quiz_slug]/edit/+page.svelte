@@ -18,9 +18,9 @@
 	import { resolvePath } from '$lib/utils';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
-	import type { VariantConfig } from '$lib/variant-types';
-	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { ActionData, PageData } from './$types';
+	import type { SoundbiteState } from '$lib/types/soundbite';
+	import type { VariantConfig } from '$lib/variant-types';
 	let { data, form }: { data: PageData; form: ActionData | undefined } = $props();
 
 	let newSoundbites = $state<SoundbiteState[]>([]);
@@ -151,7 +151,7 @@
 	// Initial values are set above to prevent flash on page load
 	$effect(() => {
 		const quizId = data.quiz.id;
-		const soundbiteCount = data.soundbites.length;
+		const _soundbiteCount = data.soundbites.length;
 
 		if (lastQuizId && lastQuizId !== quizId) {
 			// Navigating to a different quiz - update all fields

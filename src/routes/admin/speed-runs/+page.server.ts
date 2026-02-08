@@ -3,7 +3,12 @@ import { eq, desc, asc, count, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
-import { speedRunResults, speedRuns, quizzes, user } from '$lib/server/db/schema';
+import {
+	speedRunResults,
+	speedRuns,
+	quizzes as _quizzes,
+	user as _user
+} from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
 
 import type { PageServerLoad, Actions } from './$types';
