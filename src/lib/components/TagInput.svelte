@@ -54,7 +54,7 @@
 
 		isLoading = true;
 		try {
-			const response = await fetch(`/api/tags/suggest?q=${encodeURIComponent(query)}&limit=8`);
+			const response = await fetch(`/api/tags?q=${encodeURIComponent(query)}&limit=8`);
 			if (response.ok) {
 				const data = await response.json();
 				suggestions = data.tags.filter((t: Tag) => !tags.some((st) => st.id === t.id));
