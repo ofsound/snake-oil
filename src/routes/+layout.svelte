@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 
 	import { ModeWatcher } from 'mode-watcher';
 
 	import Button from '$lib/components/Button.svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+
+	import { authClient } from '$lib/auth-client';
 
 	import type { LayoutProps } from './$types';
 
@@ -13,6 +16,21 @@
 	import './layout.css';
 
 	let { data, children }: LayoutProps = $props();
+
+	let loading = $state(false);
+
+	async function handleSignOut() {
+		loading = true;
+		try {
+			await authClient.signOut();
+			// Redirect to home after successful logout
+			goto(resolve('/'), { invalidateAll: true });
+		} catch (err: unknown) {
+			console.error('Sign out error:', err);
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
@@ -31,12 +49,25 @@
 				>snakeoil.app</a
 			>
 
-			<div class="flex gap-4">
-				<Button variant="accent" size="sm" href="/quizzes" class="mr-auto ml-4">Quizzes</Button>
-
+			<div class="flex gap-3">
+				<a
+					href="/quizzes"
+					class="self-center text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+					>Quizzes</a
+				>
+				{#if data.user?.role === 'admin' || data.user?.role === 'moderator'}
+					<a
+						href="/admin"
+						class="self-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+						>Admin</a
+					>
+				{/if}
 				{#if data.user?.name}
 					<Button variant="primary" size="sm" href="/profile">
-						{data.user.name} <span class="hidden text-xs">(profile)</span>
+						{data.user.name} <span class="text-xs">(profile)</span>
+					</Button>
+					<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
+						log out
 					</Button>
 				{:else}
 					<Button variant="secondary" size="sm" href="/login">sign in</Button>

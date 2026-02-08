@@ -89,8 +89,8 @@
 			{/if}
 		</div>
 		<div class="text-sm text-gray-600 dark:text-gray-200">{quiz.description}</div>
-		{#if quiz.tags && quiz.tags.length > 0}
-			<div class="mt-2 flex flex-wrap gap-1.5">
+		<div class="mt-2 flex min-h-5 flex-wrap gap-1.5">
+			{#if quiz.tags && quiz.tags.length > 0}
 				{#each quiz.tags.slice(0, 3) as tag (tag.slug)}
 					<a
 						href="/quizzes/tag/{tag.slug}"
@@ -103,8 +103,8 @@
 				{#if quiz.tags.length > 3}
 					<span class="text-xs text-gray-500">+{quiz.tags.length - 3} more</span>
 				{/if}
-			</div>
-		{/if}
+			{/if}
+		</div>
 	</div>
 	<div class="flex flex-col items-end gap-1">
 		<div class="flex items-center gap-2">

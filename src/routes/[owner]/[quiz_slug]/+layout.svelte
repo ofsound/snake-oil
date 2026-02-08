@@ -24,14 +24,16 @@
 				<span
 					class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-100 px-2.5 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300"
 				>
-					{data.quiz.hasSpeedRun ? 'Speed Run' : 'Quiz'}
+					<!-- {data.quiz.hasSpeedRun ? 'Speed Run' : 'Quiz'} -->
+					View
 				</span>
 			{:else}
 				<a
 					href={resolvePath(basePath)}
 					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-indigo-400"
 				>
-					{data.quiz.hasSpeedRun ? 'Speed Run' : 'Quiz'}
+					<!-- {data.quiz.hasSpeedRun ? 'Speed Run' : 'Quiz'} -->
+					View
 				</a>
 			{/if}
 

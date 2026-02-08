@@ -203,11 +203,7 @@
 </script>
 
 <PageContainer>
-	<header class="mb-6">
-		<Heading level={1}>Edit Quiz</Heading>
-	</header>
-
-	<nav class="mb-10 flex border-b border-neutral-200">
+	<nav class="mb-7 flex">
 		<form
 			method="POST"
 			action="?/delete"
