@@ -21,13 +21,11 @@ export interface SoundbiteState {
 	imageChoiceFiles: (File | null)[];
 	sequenceTracks: SequenceTrack[];
 	sequenceCorrectTrackIndex: number;
-	sequencePrompt: string;
 	sequenceFiles: File[];
 	rankItems: RankItem[];
 	rankCorrectOrder: number[];
-	rankPrompt: string;
 	rankFiles: File[];
-	question: string;
+	prompt: string;
 	questionTimeLimit?: number;
 }
 

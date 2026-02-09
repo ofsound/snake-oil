@@ -10,7 +10,7 @@
 	import RankEditor from './variant-editors/RankEditor.svelte';
 
 	import type { SoundbiteState } from '$lib/types/soundbite';
-	import type { VariantType } from '$lib/variant-types';
+	import { VARIANT_PROMPT_PLACEHOLDERS, type VariantType } from '$lib/variant-types';
 
 	export interface Props {
 		soundbite: SoundbiteState;
@@ -42,7 +42,7 @@
 	const fieldPrefix = $derived(`soundbite[${index}]`);
 	const variantTypeName = $derived(`${fieldPrefix}.variantType`);
 	const variantConfigName = $derived(`${fieldPrefix}.variantConfig`);
-	const questionName = $derived(`${fieldPrefix}.question`);
+	const promptName = $derived(`${fieldPrefix}.prompt`);
 	const fileInputName = $derived(`${fieldPrefix}.file`);
 	const idName = $derived(`${fieldPrefix}.id`);
 	const removedName = $derived(`${fieldPrefix}.removed`);
@@ -95,15 +95,13 @@
 			return JSON.stringify({
 				type: 'sequence',
 				tracks: soundbite.sequenceTracks,
-				correctTrackIndex: soundbite.sequenceCorrectTrackIndex,
-				prompt: soundbite.sequencePrompt
+				correctTrackIndex: soundbite.sequenceCorrectTrackIndex
 			});
 		} else if (variantType === 'rank') {
 			return JSON.stringify({
 				type: 'rank',
 				items: soundbite.rankItems,
-				correctOrder: soundbite.rankCorrectOrder,
-				prompt: soundbite.rankPrompt
+				correctOrder: soundbite.rankCorrectOrder
 			});
 		}
 		return JSON.stringify({ type: 'simple_guess', correctAnswers: [] });
@@ -146,17 +144,17 @@
 	{/if}
 
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`question-${soundbite.id}`}>
+		<label class="text-sm font-medium text-gray-700" for={`prompt-${soundbite.id}`}>
 			Prompt (optional)
 		</label>
 		<textarea
-			id={`question-${soundbite.id}`}
-			name={questionName}
+			id={`prompt-${soundbite.id}`}
+			name={promptName}
 			rows="2"
 			class="sm w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
-			placeholder="e.g., What guitar is being played?"
-			value={soundbite.question}
-			oninput={(e) => onChange({ question: e.currentTarget.value })}
+			placeholder={VARIANT_PROMPT_PLACEHOLDERS[soundbite.variantType]}
+			value={soundbite.prompt}
+			oninput={(e) => onChange({ prompt: e.currentTarget.value })}
 		></textarea>
 		<p class="hidden text-xs text-gray-500">Appears below the audio player to guide quiz takers.</p>
 	</div>

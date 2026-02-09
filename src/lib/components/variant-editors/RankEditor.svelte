@@ -3,15 +3,13 @@
 
 	import { dndzone } from 'svelte-dnd-action';
 
-	import FormField from '$lib/components/FormField.svelte';
-	import { MAX_ITEMS_PER_VARIANT } from '$lib/constants/variants';
+	import { MAX_RANK_ITEMS } from '$lib/constants/variants';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'rank-editor' }: VariantEditorProps = $props();
 
 	const items = $derived(soundbite.rankItems);
 	const correctOrder = $derived(soundbite.rankCorrectOrder);
-	const prompt = $derived(soundbite.rankPrompt);
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isUploading = $state(false);
@@ -106,7 +104,7 @@
 		}
 
 		// Merge with existing items
-		const updatedItems = [...items, ...newItems].slice(0, MAX_ITEMS_PER_VARIANT);
+		const updatedItems = [...items, ...newItems].slice(0, MAX_RANK_ITEMS);
 		onChange({ rankItems: updatedItems });
 
 		// If this is the first upload, set correctOrder to identity
@@ -232,7 +230,7 @@
 			</div>
 		{/if}
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum {MAX_ITEMS_PER_VARIANT} tracks reached</p>
+			<p class="text-xs text-amber-600">Maximum {MAX_RANK_ITEMS} items reached</p>
 		{/if}
 	</div>
 
@@ -318,18 +316,6 @@
 			</p>
 		</div>
 	{/if}
-
-	<!-- Prompt -->
-	<FormField label="Prompt" id={`${editorId}-prompt`}>
-		<textarea
-			id={`${editorId}-prompt`}
-			value={prompt}
-			oninput={(e) => onChange({ rankPrompt: e.currentTarget.value })}
-			rows="2"
-			class="w-full rounded border border-neutral-200 bg-white px-2 py-2 text-sm"
-			placeholder="e.g., Rank these from lowest to highest pitch"
-		></textarea>
-	</FormField>
 
 	{#if items.length < 2}
 		<p class="text-sm text-amber-600">Please upload at least 2 MP3 files</p>

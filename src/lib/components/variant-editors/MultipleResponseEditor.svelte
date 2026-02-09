@@ -1,6 +1,10 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte';
 
+	import {
+		MAX_MULTIPLE_RESPONSE_OPTIONS,
+		MIN_MULTIPLE_RESPONSE_OPTIONS
+	} from '$lib/constants/variants';
 	import { createEmptyOption } from '$lib/variant-client-utils';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
@@ -9,12 +13,12 @@
 	const options = $derived(soundbite.multipleResponseOptions);
 
 	function addOption() {
-		if (options.length >= 10) return;
+		if (options.length >= MAX_MULTIPLE_RESPONSE_OPTIONS) return;
 		onChange({ multipleResponseOptions: [...options, createEmptyOption()] });
 	}
 
 	function removeOption(optionId: string) {
-		if (options.length <= 2) return;
+		if (options.length <= MIN_MULTIPLE_RESPONSE_OPTIONS) return;
 		onChange({ multipleResponseOptions: options.filter((opt) => opt.id !== optionId) });
 	}
 
@@ -58,7 +62,7 @@
 					type="button"
 					class="cursor-pointer text-sm text-gray-800 hover:text-gray-600"
 					onclick={() => removeOption(option.id)}
-					disabled={options.length <= 2}
+					disabled={options.length <= MIN_MULTIPLE_RESPONSE_OPTIONS}
 					title="Remove option"
 				>
 					&times;
@@ -71,7 +75,7 @@
 				size="xs"
 				type="button"
 				onclick={addOption}
-				disabled={options.length >= 10}
+				disabled={options.length >= MAX_MULTIPLE_RESPONSE_OPTIONS}
 			>
 				Add Option
 			</Button>

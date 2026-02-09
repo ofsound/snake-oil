@@ -66,7 +66,7 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		position: soundbite.position,
 		trackUrl: soundbite.track.url,
 		trackName: soundbite.track.name,
-		question: soundbite.question,
+		prompt: soundbite.prompt,
 		variantType: soundbite.variantType,
 		variantConfig: soundbite.variantConfig
 	}));

@@ -45,7 +45,7 @@
 	// svelte-ignore state_referenced_locally
 	let existingSoundbiteState = $state<Record<string, SoundbiteState>>(
 		Object.fromEntries(
-			data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
+			data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.prompt)])
 		)
 	);
 
@@ -84,7 +84,7 @@
 	);
 
 	// Helper to extract state from variant config
-	function extractSoundbiteState(config: VariantConfig, question: string | null): SoundbiteState {
+	function extractSoundbiteState(config: VariantConfig, prompt: string | null): SoundbiteState {
 		const defaultState: SoundbiteState = {
 			id: 0, // Placeholder - actual ID comes from the database record key
 			variantType: 'simple_guess',
@@ -95,13 +95,11 @@
 			imageChoiceFiles: [],
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
-			sequencePrompt: '',
 			sequenceFiles: [],
 			rankItems: [],
 			rankCorrectOrder: [],
-			rankPrompt: '',
 			rankFiles: [],
-			question: question ?? ''
+			prompt: prompt ?? ''
 		};
 
 		if (config.type === 'simple_guess') {
@@ -127,16 +125,14 @@
 				...defaultState,
 				variantType: 'sequence',
 				sequenceTracks: config.tracks,
-				sequenceCorrectTrackIndex: config.correctTrackIndex,
-				sequencePrompt: config.prompt
+				sequenceCorrectTrackIndex: config.correctTrackIndex
 			};
 		} else if (config.type === 'rank') {
 			return {
 				...defaultState,
 				variantType: 'rank',
 				rankItems: config.items,
-				rankCorrectOrder: config.correctOrder,
-				rankPrompt: config.prompt
+				rankCorrectOrder: config.correctOrder
 			};
 		} else if (config.type === 'image_choice') {
 			return {
@@ -162,7 +158,7 @@
 				description = data.quiz.description;
 				isPublic = data.quiz.visibility === 'public';
 				existingSoundbiteState = Object.fromEntries(
-					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
+					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.prompt)])
 				);
 				// Update speed run config from data
 				if (data.isSpeedRun && data.speedRunConfig) {
@@ -184,7 +180,7 @@
 			// This happens after successful form submission when newSoundbites is cleared
 			untrack(() => {
 				existingSoundbiteState = Object.fromEntries(
-					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.question)])
+					data.soundbites.map((sb) => [sb.id, extractSoundbiteState(sb.variantConfig, sb.prompt)])
 				);
 			});
 		}
@@ -432,9 +428,6 @@
 									</label>
 								</div>
 
-								{#snippet afterVariantSelector()}
-									<p class="font-medium">{soundbite.trackName}</p>
-								{/snippet}
 								<SoundbiteEditor
 									soundbite={{ ...state, id: soundbite.id }}
 									{index}
@@ -442,8 +435,11 @@
 									fileInputRequired={false}
 									fileInputLabel="Replace MP3 (optional)"
 									onChange={(updates) => updateExistingSoundbite(soundbite.id, updates)}
-									{afterVariantSelector}
-								/>
+								>
+									{#snippet afterVariantSelector()}
+										<p class="font-medium">{soundbite.trackName}</p>
+									{/snippet}
+								</SoundbiteEditor>
 							</Card>
 						</div>
 					{/if}

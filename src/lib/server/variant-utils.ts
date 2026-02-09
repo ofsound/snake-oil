@@ -10,6 +10,19 @@ import type {
 	AnswerDetail
 } from './db/schema';
 
+import {
+	MAX_MULTIPLE_CHOICE_OPTIONS,
+	MAX_MULTIPLE_RESPONSE_OPTIONS,
+	MAX_SEQUENCE_TRACKS,
+	MAX_RANK_ITEMS,
+	MAX_IMAGE_CHOICE_OPTIONS,
+	MIN_MULTIPLE_CHOICE_OPTIONS,
+	MIN_MULTIPLE_RESPONSE_OPTIONS,
+	MIN_SEQUENCE_TRACKS,
+	MIN_RANK_ITEMS,
+	MIN_IMAGE_CHOICE_OPTIONS
+} from '$lib/constants/variants';
+
 import { calculateKendallTauScore } from '$lib/variant-display';
 
 /**
@@ -26,14 +39,18 @@ function validateSimpleGuess(config: SimpleGuessConfig): boolean {
 
 /**
  * Validate a MultipleChoice config
- * - Must have 2-10 options
+ * - Must have MIN_MULTIPLE_CHOICE_OPTIONS-MAX_MULTIPLE_CHOICE_OPTIONS options
  * - Each option must have id, text
  * - Exactly one option must be marked correct
  */
 function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
 	if (config.type !== 'multiple_choice') return false;
 	if (!Array.isArray(config.options)) return false;
-	if (config.options.length < 2 || config.options.length > 10) return false;
+	if (
+		config.options.length < MIN_MULTIPLE_CHOICE_OPTIONS ||
+		config.options.length > MAX_MULTIPLE_CHOICE_OPTIONS
+	)
+		return false;
 
 	const correctCount = config.options.filter((opt) => opt.isCorrect).length;
 	if (correctCount !== 1) return false;
@@ -48,14 +65,18 @@ function validateMultipleChoice(config: MultipleChoiceConfig): boolean {
 
 /**
  * Validate a MultipleResponse config
- * - Must have 2-10 options
+ * - Must have MIN_MULTIPLE_RESPONSE_OPTIONS-MAX_MULTIPLE_RESPONSE_OPTIONS options
  * - Each option must have id, text
  * - At least one option must be marked correct (can have multiple correct)
  */
 function validateMultipleResponse(config: MultipleResponseConfig): boolean {
 	if (config.type !== 'multiple_response') return false;
 	if (!Array.isArray(config.options)) return false;
-	if (config.options.length < 2 || config.options.length > 10) return false;
+	if (
+		config.options.length < MIN_MULTIPLE_RESPONSE_OPTIONS ||
+		config.options.length > MAX_MULTIPLE_RESPONSE_OPTIONS
+	)
+		return false;
 
 	const correctCount = config.options.filter((opt) => opt.isCorrect).length;
 	if (correctCount < 1) return false; // At least one must be correct
@@ -70,19 +91,18 @@ function validateMultipleResponse(config: MultipleResponseConfig): boolean {
 
 /**
  * Validate a Sequence config
- * - Must have 2-10 tracks
+ * - Must have MIN_SEQUENCE_TRACKS-MAX_SEQUENCE_TRACKS tracks
  * - Each track must have id, name, url
  * - correctTrackIndex must be valid (0 to tracks.length - 1)
- * - Prompt is required
  */
 function validateSequence(config: SequenceConfig): boolean {
 	if (config.type !== 'sequence') return false;
 	if (!Array.isArray(config.tracks)) return false;
-	if (config.tracks.length < 2 || config.tracks.length > 10) return false;
+	if (config.tracks.length < MIN_SEQUENCE_TRACKS || config.tracks.length > MAX_SEQUENCE_TRACKS)
+		return false;
 	if (typeof config.correctTrackIndex !== 'number') return false;
 	if (config.correctTrackIndex < 0 || config.correctTrackIndex >= config.tracks.length)
 		return false;
-	if (typeof config.prompt !== 'string' || config.prompt.trim().length === 0) return false;
 
 	for (const track of config.tracks) {
 		if (typeof track.id !== 'string' || track.id.trim().length === 0) return false;
@@ -95,18 +115,16 @@ function validateSequence(config: SequenceConfig): boolean {
 
 /**
  * Validate a Rank config
- * - Must have 2-10 items
+ * - Must have MIN_RANK_ITEMS-MAX_RANK_ITEMS items
  * - Each item must have id, name, url
  * - correctOrder must be a valid permutation of item indices
- * - Prompt is required
  */
 function validateRank(config: RankConfig): boolean {
 	if (config.type !== 'rank') return false;
 	if (!Array.isArray(config.items)) return false;
-	if (config.items.length < 2 || config.items.length > 10) return false;
+	if (config.items.length < MIN_RANK_ITEMS || config.items.length > MAX_RANK_ITEMS) return false;
 	if (!Array.isArray(config.correctOrder)) return false;
 	if (config.correctOrder.length !== config.items.length) return false;
-	if (typeof config.prompt !== 'string' || config.prompt.trim().length === 0) return false;
 
 	// Validate correctOrder is a valid permutation (contains all indices 0 to n-1 exactly once)
 	const expectedIndices = new Set(config.items.map((_, i) => i));
@@ -127,7 +145,7 @@ function validateRank(config: RankConfig): boolean {
 
 /**
  * Validate an ImageChoice config
- * - Must have 2-10 options
+ * - Must have MIN_IMAGE_CHOICE_OPTIONS-MAX_IMAGE_CHOICE_OPTIONS options
  * - Each option must have id, imageUrl, pathname, label
  * - Exactly one option must be marked correct
  */
@@ -138,7 +156,10 @@ function validateImageChoice(config: ImageChoiceConfig): boolean {
 	if (!Array.isArray(config.options)) {
 		return false;
 	}
-	if (config.options.length < 2 || config.options.length > 10) {
+	if (
+		config.options.length < MIN_IMAGE_CHOICE_OPTIONS ||
+		config.options.length > MAX_IMAGE_CHOICE_OPTIONS
+	) {
 		return false;
 	}
 

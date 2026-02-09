@@ -40,7 +40,7 @@ export const SoundbiteFormSchema = z.object({
 			return z.NEVER;
 		}
 	}),
-	question: z.string().optional(),
+	prompt: z.string().optional(),
 	file: z.instanceof(File).optional(),
 	sequenceFiles: z.array(z.instanceof(File)).default([]),
 	rankFiles: z.array(z.instanceof(File)).default([]),
@@ -141,7 +141,7 @@ function extractSoundbiteFormData(formData: FormData, index: number): Record<str
 		removed: formData.get(`${prefix}.removed`)?.toString(),
 		variantType: formData.get(`${prefix}.variantType`)?.toString(),
 		variantConfig: formData.get(`${prefix}.variantConfig`)?.toString(),
-		question: formData.get(`${prefix}.question`)?.toString(),
+		prompt: formData.get(`${prefix}.prompt`)?.toString(),
 		// Pass files through as unknown - Zod will validate they are File instances
 		file: file instanceof File ? file : undefined,
 		sequenceFiles: sequenceFiles.filter((f): f is File => f instanceof File),

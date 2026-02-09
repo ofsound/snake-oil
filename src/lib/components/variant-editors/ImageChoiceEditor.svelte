@@ -2,7 +2,7 @@
 	import { onDestroy } from 'svelte';
 
 	import { processImageToThumbnail, validateImageFile, getFileHash } from '$lib/image-processing';
-	import { MAX_ITEMS_PER_VARIANT } from '$lib/constants/variants';
+	import { MAX_IMAGE_CHOICE_OPTIONS } from '$lib/constants/variants';
 	import { MAX_IMAGE_SIZE_MB } from '$lib/constants/uploads';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
@@ -45,9 +45,9 @@
 		if (!files || files.length === 0) return;
 
 		// Check if adding these would exceed the limit
-		const remainingSlots = MAX_ITEMS_PER_VARIANT - options.length;
+		const remainingSlots = MAX_IMAGE_CHOICE_OPTIONS - options.length;
 		if (remainingSlots <= 0) {
-			errorMessage = `Maximum ${MAX_ITEMS_PER_VARIANT} images allowed`;
+			errorMessage = `Maximum ${MAX_IMAGE_CHOICE_OPTIONS} images allowed`;
 			return;
 		}
 
@@ -214,7 +214,7 @@
 		{/if}
 
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum {MAX_ITEMS_PER_VARIANT} images reached</p>
+			<p class="text-xs text-amber-600">Maximum {MAX_IMAGE_CHOICE_OPTIONS} images reached</p>
 		{/if}
 	</div>
 

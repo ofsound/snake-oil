@@ -20,6 +20,16 @@ export const VARIANT_LABELS: Record<VariantType, string> = {
 	image_choice: 'Image Choice'
 };
 
+/** Placeholder text for the prompt field, tailored to each variant type */
+export const VARIANT_PROMPT_PLACEHOLDERS: Record<VariantType, string> = {
+	simple_guess: 'e.g., What instrument is being played?',
+	multiple_choice: 'e.g., Which instrument do you hear?',
+	multiple_response: 'e.g., Select all instruments you can identify',
+	sequence: 'e.g., Press the button when you hear the flute',
+	rank: 'e.g., Rank these from lowest to highest pitch',
+	image_choice: 'e.g., Which image matches the audio?'
+};
+
 // Variant Config Types
 export type MultipleChoiceOption = {
 	id: string;
@@ -72,7 +82,6 @@ export type SequenceConfig = {
 	type: 'sequence';
 	tracks: SequenceTrack[];
 	correctTrackIndex: number;
-	prompt: string;
 };
 
 // Rank variant types
@@ -86,7 +95,6 @@ export type RankConfig = {
 	type: 'rank';
 	items: RankItem[];
 	correctOrder: number[];
-	prompt: string;
 };
 
 export type VariantConfig =
@@ -170,15 +178,13 @@ const ImageChoiceConfigSchema = z.object({
 const SequenceConfigSchema = z.object({
 	type: z.literal('sequence'),
 	tracks: z.array(SequenceTrackSchema),
-	correctTrackIndex: z.number(),
-	prompt: z.string()
+	correctTrackIndex: z.number()
 });
 
 const RankConfigSchema = z.object({
 	type: z.literal('rank'),
 	items: z.array(RankItemSchema),
-	correctOrder: z.array(z.number()),
-	prompt: z.string()
+	correctOrder: z.array(z.number())
 });
 
 export const VariantConfigSchema = z.discriminatedUnion('type', [

@@ -131,7 +131,7 @@ export const soundbites = pgTable(
 			.notNull()
 			.references(() => tracks.id, { onDelete: 'cascade' }),
 		position: integer('position').notNull(),
-		question: text('question'), // Optional question shown below audio player
+		prompt: text('prompt'), // Optional prompt shown below audio player
 		variantType: text('variant_type').$type<VariantType>().notNull().default('simple_guess'),
 		variantConfig: jsonb('variant_config').$type<VariantConfig>().notNull()
 	},

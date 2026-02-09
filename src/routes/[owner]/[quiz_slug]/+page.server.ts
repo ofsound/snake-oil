@@ -85,15 +85,13 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			safeConfig = {
 				type: 'sequence',
 				tracks: config.tracks,
-				correctTrackIndex: -1, // Don't reveal correct track
-				prompt: config.prompt
+				correctTrackIndex: -1 // Don't reveal correct track
 			};
 		} else if (config.type === 'rank') {
 			safeConfig = {
 				type: 'rank',
 				items: config.items,
-				correctOrder: [], // Don't reveal correct order
-				prompt: config.prompt
+				correctOrder: [] // Don't reveal correct order
 			};
 		} else if (config.type === 'image_choice') {
 			safeConfig = {
@@ -118,7 +116,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			position: soundbite.position,
 			trackUrl: soundbite.track.url,
 			trackName: soundbite.track.name,
-			question: soundbite.question,
+			prompt: soundbite.prompt,
 			variantType: soundbite.variantType,
 			variantConfig: safeConfig
 		};
@@ -142,7 +140,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				const baseQuestion = {
 					id: sb.id,
 					position: sb.position,
-					question: sb.question,
+					prompt: sb.prompt,
 					track: {
 						id: sb.track.id,
 						name: sb.track.name,

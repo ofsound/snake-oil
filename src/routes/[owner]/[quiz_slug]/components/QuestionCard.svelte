@@ -101,10 +101,10 @@
 	class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
 	class:shake={isShaking}
 >
-	<!-- Question text if present -->
-	{#if question.question}
+	<!-- Prompt text if present -->
+	{#if question.prompt}
 		<div class="mb-6">
-			<h3 class="text-xl font-semibold text-white">{question.question}</h3>
+			<h3 class="text-xl font-semibold text-white">{question.prompt}</h3>
 		</div>
 	{/if}
 

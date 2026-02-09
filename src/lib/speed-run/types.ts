@@ -24,7 +24,7 @@ export type SpeedRunAnswer = {
 type SpeedRunQuestionBase = {
 	id: string;
 	position: number;
-	question: string | null;
+	prompt: string | null;
 	track: {
 		id: string;
 		name: string;

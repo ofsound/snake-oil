@@ -349,12 +349,12 @@ async function processExistingSoundbites(
 
 		// Update soundbite
 		const updateData: {
-			question: string | undefined;
+			prompt: string | undefined;
 			variantType: VariantType;
 			variantConfig: VariantConfig;
 			trackId?: string;
 		} = {
-			question: soundbite.question,
+			prompt: soundbite.prompt,
 			variantType: soundbite.variantType,
 			variantConfig
 		};
@@ -477,7 +477,7 @@ async function processAllSoundbites(
 				quizId,
 				trackId,
 				position,
-				question: soundbite.question ?? null,
+				prompt: soundbite.prompt ?? null,
 				variantType: soundbite.variantType,
 				variantConfig: updatedConfig
 			})

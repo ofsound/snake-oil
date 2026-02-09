@@ -59,13 +59,11 @@
 			imageChoiceFiles: [],
 			sequenceTracks: [],
 			sequenceCorrectTrackIndex: 0,
-			sequencePrompt: '',
 			sequenceFiles: [],
 			rankItems: [],
 			rankCorrectOrder: [],
-			rankPrompt: '',
 			rankFiles: [],
-			question: ''
+			prompt: ''
 		}
 	]);
 

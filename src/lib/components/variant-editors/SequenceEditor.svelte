@@ -1,13 +1,11 @@
 <script lang="ts">
-	import FormField from '$lib/components/FormField.svelte';
-	import { MAX_ITEMS_PER_VARIANT } from '$lib/constants/variants';
+	import { MAX_SEQUENCE_TRACKS } from '$lib/constants/variants';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
 	let { soundbite, onChange, editorId = 'sequence-editor' }: VariantEditorProps = $props();
 
 	const tracks = $derived(soundbite.sequenceTracks);
 	const correctTrackIndex = $derived(soundbite.sequenceCorrectTrackIndex);
-	const prompt = $derived(soundbite.sequencePrompt);
 
 	let fileInput: HTMLInputElement | null = $state(null);
 	let isUploading = $state(false);
@@ -53,7 +51,7 @@
 		}
 
 		// Merge with existing tracks
-		const updatedTracks = [...tracks, ...newTracks].slice(0, MAX_ITEMS_PER_VARIANT);
+		const updatedTracks = [...tracks, ...newTracks].slice(0, MAX_SEQUENCE_TRACKS);
 		onChange({ sequenceTracks: updatedTracks });
 
 		// Notify parent of file changes
@@ -168,7 +166,7 @@
 			</div>
 		{/if}
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum {MAX_ITEMS_PER_VARIANT} tracks reached</p>
+			<p class="text-xs text-amber-600">Maximum {MAX_SEQUENCE_TRACKS} tracks reached</p>
 		{/if}
 	</div>
 
@@ -245,18 +243,6 @@
 			</div>
 		</div>
 	{/if}
-
-	<!-- Prompt -->
-	<FormField label="Prompt" id={`${editorId}-prompt`}>
-		<textarea
-			id={`${editorId}-prompt`}
-			value={prompt}
-			oninput={(e) => onChange({ sequencePrompt: e.currentTarget.value })}
-			rows="2"
-			class="w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
-			placeholder="e.g., Press the button when you hear the flute"
-		></textarea>
-	</FormField>
 
 	{#if tracks.length < 2}
 		<p class="text-sm text-amber-600">Please upload at least 2 MP3 files</p>

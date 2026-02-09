@@ -184,8 +184,8 @@
 									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
-									{#if soundbite.question}
-										<p class="mt-2 text-sm text-gray-600 italic">{soundbite.question}</p>
+									{#if soundbite.prompt}
+										<p class="mt-2 text-sm text-gray-600 italic">{soundbite.prompt}</p>
 									{/if}
 								</div>
 								<AnswerResultCard
@@ -256,8 +256,8 @@
 									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
-									{#if soundbite.question}
-										<p class="mt-5 font-medium">{soundbite.question}</p>
+									{#if soundbite.prompt}
+										<p class="mt-5 font-medium">{soundbite.prompt}</p>
 									{/if}
 								</div>
 
@@ -300,7 +300,6 @@
 											onBuzzer={(trackIndex) => handleSequenceBuzz(soundbite.id, trackIndex)}
 											disabled={sequenceBuzzed[soundbite.id] ?? false}
 										/>
-										<p class="text-center font-medium text-gray-700">{config.prompt}</p>
 										<SequenceInput
 											soundbiteId={soundbite.id}
 											answer={userAnswers[soundbite.id] ?? ''}
@@ -315,7 +314,6 @@
 											onOrderChange={(order) => handleRankOrderChange(soundbite.id, order)}
 											disabled={submitting}
 										/>
-										<p class="text-center font-medium text-gray-700">{config.prompt}</p>
 										<input
 											type="hidden"
 											name="answer-{soundbite.id}"
