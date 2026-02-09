@@ -143,9 +143,16 @@
 		</div>
 	{/if}
 
+	<input type="hidden" name={variantTypeName} value={soundbite.variantType} />
+
+	<!-- Dynamic variant editor -->
+	<VariantEditor {soundbite} {onChange} editorId={`variant-${soundbite.id}`} />
+
+	<input type="hidden" name={variantConfigName} value={getVariantConfigJson()} />
+
 	<div class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-gray-700" for={`prompt-${soundbite.id}`}>
-			Prompt (optional)
+			Prompt <span class="text-gray-400 italic">(optional)</span>
 		</label>
 		<textarea
 			id={`prompt-${soundbite.id}`}
@@ -158,11 +165,4 @@
 		></textarea>
 		<p class="hidden text-xs text-gray-500">Appears below the audio player to guide quiz takers.</p>
 	</div>
-
-	<input type="hidden" name={variantTypeName} value={soundbite.variantType} />
-
-	<!-- Dynamic variant editor -->
-	<VariantEditor {soundbite} {onChange} editorId={`variant-${soundbite.id}`} />
-
-	<input type="hidden" name={variantConfigName} value={getVariantConfigJson()} />
 </div>
