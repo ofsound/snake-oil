@@ -27,7 +27,6 @@
 		type SequenceConfig,
 		type RankConfig,
 		type MultipleMatchConfig,
-		isRankConfig,
 		isImageChoiceConfig,
 		isMultipleResponseConfig,
 		isMultipleChoiceConfig
@@ -165,9 +164,11 @@
 									? JSON.parse(correctAnswer)
 									: null}
 							{@const rankConfig =
-								soundbite.variantType === 'rank' && parsedConfig && isRankConfig(parsedConfig)
-									? parsedConfig
-									: null}
+								soundbite.variantType === 'rank' && parsedConfig
+									? (parsedConfig as RankConfig)
+									: soundbite.variantType === 'rank'
+										? (soundbite.variantConfig as RankConfig)
+										: null}
 							{@const imageChoiceConfig =
 								soundbite.variantType === 'image_choice' &&
 								parsedConfig &&
@@ -186,10 +187,53 @@
 								isMultipleChoiceConfig(parsedConfig)
 									? parsedConfig
 									: null}
+							{@const sequenceConfig =
+								soundbite.variantType === 'sequence' && parsedConfig
+									? (parsedConfig as SequenceConfig)
+									: soundbite.variantType === 'sequence'
+										? (soundbite.variantConfig as SequenceConfig)
+										: null}
+							{@const multipleMatchConfig =
+								soundbite.variantType === 'multiple_match' && parsedConfig
+									? (parsedConfig as MultipleMatchConfig)
+									: soundbite.variantType === 'multiple_match'
+										? (soundbite.variantConfig as MultipleMatchConfig)
+										: null}
 							<div class="rounded-sm bg-neutral-50 p-4">
 								<div class="mb-3">
 									<div class="mb-2 text-base font-medium text-gray-700">{index + 1}.</div>
-									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
+									{#if soundbite.variantType === 'sequence' && sequenceConfig}
+										<!-- Sequence: Show interactive player with user's buzz -->
+										<SequenceAudioPlayer
+											tracks={sequenceConfig.tracks}
+											onBuzzer={() => {}}
+											disabled={true}
+										/>
+										{#if answerDetail.selectedTrackIndex !== undefined}
+											<p class="mt-2 text-sm text-gray-600">
+												You buzzed at: Track {answerDetail.selectedTrackIndex + 1}
+												({sequenceConfig.tracks[answerDetail.selectedTrackIndex]?.name})
+											</p>
+										{/if}
+									{:else if soundbite.variantType === 'rank' && rankConfig}
+										<!-- Rank: Show interactive player (review mode) -->
+										<RankAudioPlayer
+											items={rankConfig.items}
+											soundbiteId={soundbite.id}
+											onOrderChange={() => {}}
+											disabled={true}
+											initialOrder={answerDetail.userOrder}
+										/>
+									{:else if soundbite.variantType === 'multiple_match' && multipleMatchConfig}
+										<!-- Multiple Match: Show interactive player (review mode) -->
+										<MultipleMatchPlayer
+											items={multipleMatchConfig.items}
+											soundbiteId={soundbite.id}
+											onOrderChange={() => {}}
+											disabled={true}
+											initialOrder={answerDetail.userOrder}
+										/>
+									{:else}
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
 									{#if soundbite.prompt}
@@ -201,7 +245,9 @@
 									variantConfig={rankConfig ??
 										imageChoiceConfig ??
 										multipleResponseConfig ??
-										multipleChoiceConfig ?? {
+										multipleChoiceConfig ??
+										sequenceConfig ??
+										multipleMatchConfig ?? {
 											...soundbite.variantConfig,
 											...(soundbite.variantConfig.type === 'simple_guess'
 												? { correctAnswers: correctAnswer.split(', ') }

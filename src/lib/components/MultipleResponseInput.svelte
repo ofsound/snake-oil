@@ -1,25 +1,11 @@
-<script lang="ts" module>
+<script lang="ts">
 	import { SvelteMap } from 'svelte/reactivity';
-
+	import AnswerPrompt from './AnswerPrompt.svelte';
 	import { shuffleOptions } from '$lib/variant-client-utils';
-
 	import type { MultipleResponseOption } from '$lib/variant-types';
+
 	// Module-level cache to maintain consistent shuffle order per soundbite
 	const shuffleCache = new SvelteMap<string, MultipleResponseOption[]>();
-
-	function getShuffledOptions(
-		soundbiteId: string,
-		options: MultipleResponseOption[]
-	): MultipleResponseOption[] {
-		if (!shuffleCache.has(soundbiteId)) {
-			shuffleCache.set(soundbiteId, shuffleOptions(options));
-		}
-		return shuffleCache.get(soundbiteId)!;
-	}
-</script>
-
-<script lang="ts">
-	import AnswerPrompt from './AnswerPrompt.svelte';
 
 	type Props = {
 		soundbiteId: string;
@@ -31,8 +17,15 @@
 
 	let { soundbiteId, options, selectedOptionIds, onselect, disabled = false }: Props = $props();
 
-	// Get shuffled options from cache (creates if not exists)
-	let shuffledOptions = $derived(getShuffledOptions(soundbiteId, options));
+	// Initialize cache in $effect to avoid state mutation during render
+	let shuffledOptions = $state<MultipleResponseOption[]>([]);
+
+	$effect(() => {
+		if (!shuffleCache.has(soundbiteId)) {
+			shuffleCache.set(soundbiteId, shuffleOptions(options));
+		}
+		shuffledOptions = shuffleCache.get(soundbiteId)!;
+	});
 
 	function toggleOption(optionId: string) {
 		if (disabled) return;

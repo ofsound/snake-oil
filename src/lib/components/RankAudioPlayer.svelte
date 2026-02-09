@@ -11,9 +11,10 @@
 		soundbiteId: string;
 		onOrderChange: (order: number[]) => void;
 		disabled?: boolean;
+		initialOrder?: number[]; // For displaying a specific order (e.g., in results)
 	}
 
-	let { items, soundbiteId, onOrderChange, disabled = false }: Props = $props();
+	let { items, soundbiteId, onOrderChange, disabled = false, initialOrder }: Props = $props();
 
 	// Flip animation duration
 	const flipDurationMs = 300;
@@ -62,16 +63,17 @@
 	// Track when items change from parent
 	let prevItemsJson = $state('');
 
-	// Initialize with random shuffle when items are provided
+	// Initialize with provided order or random shuffle when items are provided
 	$effect(() => {
 		const currentItemsJson = JSON.stringify(items.map((i) => i.id));
 		const itemsChanged = currentItemsJson !== prevItemsJson;
 
 		if (itemsChanged && items && items.length > 0) {
-			const randomOrder = generateRandomOrder(items.length);
-			displayItems = buildDisplayItems(randomOrder);
+			// Use initialOrder if provided (for results view), otherwise shuffle
+			const order = initialOrder ?? generateRandomOrder(items.length);
+			displayItems = buildDisplayItems(order);
 			// Send initial order to parent so it's saved even if user doesn't drag
-			onOrderChange(randomOrder);
+			onOrderChange(order);
 			prevItemsJson = currentItemsJson;
 		}
 	});
@@ -126,7 +128,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3" class:opacity-50={disabled}>
+<div class="flex flex-col gap-3">
 	<section
 		use:dndzone={{
 			items: displayItems,

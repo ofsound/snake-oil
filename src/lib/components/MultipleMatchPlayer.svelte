@@ -9,9 +9,10 @@
 		soundbiteId: string;
 		onOrderChange: (order: number[]) => void;
 		disabled?: boolean;
+		initialOrder?: number[]; // For displaying a specific order (e.g., in results)
 	}
 
-	let { items, soundbiteId, onOrderChange, disabled = false }: Props = $props();
+	let { items, soundbiteId, onOrderChange, disabled = false, initialOrder }: Props = $props();
 
 	// Flip animation duration
 	const flipDurationMs = 300;
@@ -33,23 +34,21 @@
 	}
 
 	// Display state
-	// audioOrder: shuffled indices for the left column (audio) - FIXED, never changes
-	// labelOrder: shuffled indices for the right column (draggable labels)
-	let audioOrder = $state<number[]>([]);
+	// Audio is always shown in order: items[0], items[1], items[2]...
+	// labelOrder: shuffled indices for the draggable answer labels
 	let labelOrder = $state<number[]>([]);
 
 	// Track when items change from parent
 	let prevItemsJson = $state('');
 
-	// Initialize with random shuffle when items are provided
+	// Initialize with provided order or random shuffle when items are provided
 	$effect(() => {
 		const currentItemsJson = JSON.stringify(items.map((i) => i.id));
 		const itemsChanged = currentItemsJson !== prevItemsJson;
 
 		if (itemsChanged && items && items.length > 0) {
-			// Both columns get independently shuffled initially
-			audioOrder = generateRandomOrder(items.length);
-			labelOrder = generateRandomOrder(items.length);
+			// Use initialOrder if provided (for results view), otherwise shuffle
+			labelOrder = initialOrder ?? generateRandomOrder(items.length);
 			// Send initial order to parent so it's saved even if user doesn't drag
 			onOrderChange(labelOrder);
 			prevItemsJson = currentItemsJson;
@@ -137,7 +136,7 @@
 	}
 </script>
 
-<div class="flex flex-col gap-3" class:opacity-50={disabled}>
+<div class="flex flex-col gap-3">
 	<!-- Header -->
 	<div class="flex gap-4 border-b pb-2 text-xs font-medium text-gray-500">
 		<div class="flex-1">Audio</div>
@@ -146,16 +145,13 @@
 
 	<!-- Two Column Layout -->
 	<div class="flex gap-4">
-		<!-- Left Column: Static Audio Players -->
+		<!-- Left Column: Static Audio Players (in original order) -->
 		<div class="flex min-w-0 flex-1 flex-col gap-3">
-			{#each audioOrder as audioItemIdx, _index (audioItemIdx)}
+			{#each items as item, index (item.id)}
 				<div class="flex h-[72px] items-center gap-3 rounded-lg border bg-white p-3 shadow-sm">
 					<!-- QuizAudioPlayer -->
 					<div class="min-w-0 flex-1">
-						<QuizAudioPlayer
-							soundbiteId="{soundbiteId}-{audioItemIdx}"
-							url={items[audioItemIdx]?.url ?? ''}
-						/>
+						<QuizAudioPlayer soundbiteId="{soundbiteId}-{index}" url={item.url} />
 					</div>
 				</div>
 			{/each}

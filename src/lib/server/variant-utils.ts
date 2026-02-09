@@ -26,7 +26,7 @@ import {
 	MIN_IMAGE_CHOICE_OPTIONS
 } from '$lib/constants/variants';
 
-import { calculateKendallTauScore } from '$lib/variant-display';
+import { calculateKendallTauScore, calculateMultipleMatchScore } from '$lib/variant-display';
 
 /**
  * Validate a SimpleGuess config
@@ -300,14 +300,12 @@ function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
 
 /**
  * Check if a multiple match answer is correct
- * The "correct order" is just the identity order [0, 1, 2, ..., n-1]
- * Uses Kendall Tau distance - 100% match required for "correct" status
+ * Simple position-based scoring: item at index N should be item N
+ * 100% match required for "correct" status
  */
-function checkMultipleMatchCorrect(userOrder: number[], config: MultipleMatchConfig): boolean {
-	// The correct order is always [0, 1, 2, ..., n-1] because items are stored in correct order
-	const correctOrder = config.items.map((_, i) => i);
-	const score = calculateKendallTauScore(userOrder, correctOrder);
-	return score === 1; // Must be 100% to be considered "correct"
+function checkMultipleMatchCorrect(userOrder: number[], _config: MultipleMatchConfig): boolean {
+	const score = calculateMultipleMatchScore(userOrder);
+	return score === 100; // Must be 100% to be considered "correct"
 }
 
 /**

@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { getCorrectAnswerText, calculateKendallTauPercentage } from '$lib/variant-display';
+	import {
+		getCorrectAnswerText,
+		calculateKendallTauPercentage,
+		calculateMultipleMatchScore
+	} from '$lib/variant-display';
 
 	import type {
 		VariantConfig,
@@ -64,12 +68,12 @@
 	let kendallTauScore = $derived(
 		variantConfig.type === 'rank' && answerDetail.userOrder
 			? calculateKendallTauPercentage(answerDetail.userOrder, variantConfig.correctOrder)
-			: variantConfig.type === 'multiple_match' && answerDetail.userOrder
-				? calculateKendallTauPercentage(
-						answerDetail.userOrder,
-						variantConfig.items.map((_, i) => i)
-					)
-				: 0
+			: 0
+	);
+	let multipleMatchScore = $derived(
+		variantConfig.type === 'multiple_match' && answerDetail.userOrder
+			? calculateMultipleMatchScore(answerDetail.userOrder)
+			: 0
 	);
 </script>
 
@@ -125,35 +129,20 @@
 			{/if}
 		</div>
 	{:else if answerDetail.variantType === 'multiple_match' && variantConfig.type === 'multiple_match'}
-		<!-- Multiple Match variant: Show color-coded list with Kendall Tau score -->
+		<!-- Multiple Match variant: Simple position-based scoring -->
 		<div class="mt-3 flex flex-col gap-1">
 			<p class="mb-1 text-xs text-gray-500">
-				Your matches vs correct matches (Kendall Tau: {kendallTauScore}%):
+				Score: {multipleMatchScore}%
 			</p>
 			{#if answerDetail.userOrder && answerDetail.userOrder.length > 0}
-				{@const correctOrder = variantConfig.items.map((_, i) => i)}
-				{#each correctOrder as correctItemIdx, position (position)}
-					{@const userItemIdx = answerDetail.userOrder[position]}
-					{@const isCorrect = correctItemIdx === userItemIdx}
-					<div
-						class="flex items-center gap-2 rounded px-2 py-1 text-sm"
-						class:bg-green-100={isCorrect}
-						class:text-green-800={isCorrect}
-						class:bg-red-100={!isCorrect}
-						class:text-red-800={!isCorrect}
-					>
+				{#each answerDetail.userOrder as userItemIdx, position (position)}
+					{@const isAtCorrectPosition = userItemIdx === position}
+					<div class="flex items-center gap-2 rounded px-2 py-1 text-sm">
 						<span class="w-6 font-mono font-bold">{position + 1}.</span>
-						<span class="w-20 font-medium text-gray-600"
-							>{variantConfig.items[position]?.answerLabel}:</span
-						>
-						<span class="flex-1">{variantConfig.items[userItemIdx]?.name ?? 'Unknown'}</span>
-						{#if !isCorrect}
-							<span class="text-xs opacity-75"
-								>(should be: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
-							>
-						{:else}
-							<span class="text-xs text-green-700 opacity-75"
-								>(correct: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
+						<span class="flex-1">{variantConfig.items[userItemIdx]?.answerLabel ?? 'Unknown'}</span>
+						{#if !isAtCorrectPosition}
+							<span class="text-xs text-red-600 opacity-75"
+								>(should be: {variantConfig.items[position]?.answerLabel ?? 'Unknown'})</span
 							>
 						{/if}
 					</div>

@@ -94,3 +94,13 @@ export function calculateKendallTauPercentage(userOrder: number[], correctOrder:
 	const score = calculateKendallTauScore(userOrder, correctOrder);
 	return Math.round(score * 100);
 }
+
+/**
+ * Calculate multiple match percentage score
+ * Simple position-based: count items in correct position / total items
+ */
+export function calculateMultipleMatchScore(userOrder: number[]): number {
+	if (userOrder.length === 0) return 0;
+	const correctPositions = userOrder.filter((itemIdx, position) => itemIdx === position).length;
+	return Math.round((correctPositions / userOrder.length) * 100);
+}
