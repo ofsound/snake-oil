@@ -432,6 +432,9 @@
 									</label>
 								</div>
 
+								{#snippet afterVariantSelector()}
+									<p class="font-medium">{soundbite.trackName}</p>
+								{/snippet}
 								<SoundbiteEditor
 									soundbite={{ ...state, id: soundbite.id }}
 									{index}
@@ -439,9 +442,8 @@
 									fileInputRequired={false}
 									fileInputLabel="Replace MP3 (optional)"
 									onChange={(updates) => updateExistingSoundbite(soundbite.id, updates)}
-								>
-									<p class="font-medium" slot="after-variant-selector">{soundbite.trackName}</p>
-								</SoundbiteEditor>
+									{afterVariantSelector}
+								/>
 							</Card>
 						</div>
 					{/if}

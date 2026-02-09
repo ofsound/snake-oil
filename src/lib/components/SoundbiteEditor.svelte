@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 
 	import VariantSelector from './VariantSelector.svelte';
 	import SimpleGuessEditor from './variant-editors/SimpleGuessEditor.svelte';
@@ -12,7 +12,7 @@
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import type { VariantType } from '$lib/variant-types';
 
-	interface Props {
+	export interface Props {
 		soundbite: SoundbiteState;
 		index: number;
 		id?: string;
@@ -22,6 +22,7 @@
 		disabledVariantType?: boolean;
 		allowedVariantTypes?: VariantType[];
 		onChange: (updates: Partial<SoundbiteState>) => void;
+		afterVariantSelector?: Snippet;
 	}
 
 	let {
@@ -33,7 +34,8 @@
 		fileInputLabel = 'MP3 file',
 		disabledVariantType = false,
 		allowedVariantTypes,
-		onChange
+		onChange,
+		afterVariantSelector
 	}: Props = $props();
 
 	// Generate bracket notation field names
@@ -125,7 +127,7 @@
 		allowedTypes={allowedVariantTypes}
 	/>
 
-	<slot name="after-variant-selector" />
+	{@render afterVariantSelector?.()}
 
 	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
 		<div class="flex flex-col gap-2">
