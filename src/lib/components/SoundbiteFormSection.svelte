@@ -149,17 +149,9 @@
 		{/each}
 	</div>
 
-	{#if showHeader}
-		<div class="mt-4 flex justify-end">
-			<Button type="button" variant="outline" size="sm" onclick={addSoundbite}>
-				{addButtonText}
-			</Button>
-		</div>
-	{/if}
-
-	{#if !showHeader}
+	<div class="mt-4 flex justify-end">
 		<Button type="button" variant="outline" size="sm" onclick={addSoundbite}>
 			{addButtonText}
 		</Button>
-	{/if}
+	</div>
 </section>

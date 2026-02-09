@@ -451,6 +451,7 @@
 
 		<SoundbiteFormSection
 			bind:soundbites={newSoundbites}
+			showHeader={false}
 			headerTitle="Add New Questions"
 			addButtonText="Add Question"
 			startIndex={data.soundbites.length}
