@@ -106,20 +106,20 @@
 		<div class="flex items-center gap-2">
 			{#if showEditAndSubmissionsLinks}
 				<Button
-					href={resolve(`/${ownerSlug}/${quiz.slug}/submissions`)}
-					variant="primary"
-					size="xs"
-					onclick={(e) => e.stopPropagation()}
-				>
-					Submissions
-				</Button>
-				<Button
 					href={resolve(`/${ownerSlug}/${quiz.slug}/edit`)}
 					variant="primary"
 					size="xs"
 					onclick={(e) => e.stopPropagation()}
 				>
 					Edit
+				</Button>
+				<Button
+					href={resolve(`/${ownerSlug}/${quiz.slug}/submissions`)}
+					variant="primary"
+					size="xs"
+					onclick={(e) => e.stopPropagation()}
+				>
+					Submissions
 				</Button>
 			{/if}
 			<div class="text-xs">

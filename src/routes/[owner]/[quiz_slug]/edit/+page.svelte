@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { untrack } from 'svelte';
 
 	import Button from '$lib/components/Button.svelte';
@@ -462,6 +463,9 @@
 		{#if successMessage}
 			<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
 				{successMessage}
+				<a class="ml-2 underline" href={resolve(`/${data.quiz.owner.slug}/${data.quiz.slug}`)}>
+					{data.isSpeedRun ? 'View speed run' : 'View quiz'}
+				</a>
 			</div>
 		{/if}
 
