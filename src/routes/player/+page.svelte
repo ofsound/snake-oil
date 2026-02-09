@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 
 	import PageContainer from '$lib/components/PageContainer.svelte';
-	import PersistentPlayer from '$lib/components/audio/PersistentPlayer.svelte';
+	import MultiTrackPlayer from '$lib/components/audio/MultiTrackPlayer.svelte';
 	interface Track {
 		id: string;
 		name: string;
@@ -36,7 +36,7 @@
 					<p class="text-red-700 dark:text-red-300">{error}</p>
 				</div>
 			{:else if tracks && tracks.length > 0}
-				<PersistentPlayer {tracks} {error} />
+				<MultiTrackPlayer {tracks} {error} />
 			{:else}
 				<div class="flex flex-col items-center justify-center py-16 text-center">
 					<svg

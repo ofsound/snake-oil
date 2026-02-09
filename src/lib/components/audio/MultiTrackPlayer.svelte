@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import PlayerTransport from './PlayerTransport.svelte';
-	import SinglePlaylist from './SinglePlaylist.svelte';
+	import TrackPlaylist from './TrackPlaylist.svelte';
 
 	import { MultiTrackAudioEngine } from '$lib/audio/multi-track-audio-engine.svelte';
 	import { formatTime } from '$lib/audio/format-time';
@@ -290,7 +290,7 @@
 	{/if}
 
 	<!-- Playlist Drawer -->
-	<SinglePlaylist
+	<TrackPlaylist
 		{tracks}
 		currentTrackIndex={engine.currentTrackIndex}
 		isVisible={playlistVisible}

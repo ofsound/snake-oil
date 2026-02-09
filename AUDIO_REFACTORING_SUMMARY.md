@@ -31,7 +31,7 @@ Successfully refactored the audio system from two separate, duplicated engines t
    - Removed ~133 lines of duplicated code
    - Maintains identical public API
 
-4. **`src/lib/components/audio/PersistentPlayer.svelte`**
+4. **`src/lib/components/audio/MultiTrackPlayer.svelte`**
    - Updated import to use MultiTrackAudioEngine
    - No other changes needed (API compatible!)
 
