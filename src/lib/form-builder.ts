@@ -82,6 +82,9 @@ function appendSoundbiteToFormData(
 		case 'rank':
 			appendRankFiles(formData, state, index);
 			break;
+		case 'multiple_match':
+			appendMultipleMatchFiles(formData, state, index);
+			break;
 		case 'image_choice':
 			appendImageChoiceFiles(formData, state, index);
 			break;
@@ -104,6 +107,16 @@ function appendRankFiles(formData: FormData, state: SoundbiteState, index: numbe
 	files.forEach((file) => {
 		if (file && file.size > 0) {
 			formData.append(`${prefix}.rankFiles`, file);
+		}
+	});
+}
+
+function appendMultipleMatchFiles(formData: FormData, state: SoundbiteState, index: number): void {
+	const prefix = `soundbite[${index}]`;
+	const files = state.multipleMatchFiles || [];
+	files.forEach((file) => {
+		if (file && file.size > 0) {
+			formData.append(`${prefix}.multipleMatchFiles`, file);
 		}
 	});
 }

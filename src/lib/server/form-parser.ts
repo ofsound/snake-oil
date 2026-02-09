@@ -44,6 +44,7 @@ export const SoundbiteFormSchema = z.object({
 	file: z.instanceof(File).optional(),
 	sequenceFiles: z.array(z.instanceof(File)).default([]),
 	rankFiles: z.array(z.instanceof(File)).default([]),
+	multipleMatchFiles: z.array(z.instanceof(File)).default([]),
 	imageFiles: z.array(z.instanceof(File)).default([])
 });
 
@@ -134,6 +135,7 @@ function extractSoundbiteFormData(formData: FormData, index: number): Record<str
 	const file = formData.get(`${prefix}.file`);
 	const sequenceFiles = formData.getAll(`${prefix}.sequenceFiles`);
 	const rankFiles = formData.getAll(`${prefix}.rankFiles`);
+	const multipleMatchFiles = formData.getAll(`${prefix}.multipleMatchFiles`);
 	const imageFiles = formData.getAll(`${prefix}.imageFiles`);
 
 	return {
@@ -146,6 +148,7 @@ function extractSoundbiteFormData(formData: FormData, index: number): Record<str
 		file: file instanceof File ? file : undefined,
 		sequenceFiles: sequenceFiles.filter((f): f is File => f instanceof File),
 		rankFiles: rankFiles.filter((f): f is File => f instanceof File),
+		multipleMatchFiles: multipleMatchFiles.filter((f): f is File => f instanceof File),
 		imageFiles: imageFiles.filter((f): f is File => f instanceof File)
 	};
 }

@@ -100,6 +100,8 @@
 			rankItems: [],
 			rankCorrectOrder: [],
 			rankFiles: [],
+			multipleMatchItems: [],
+			multipleMatchFiles: [],
 			prompt: prompt ?? ''
 		};
 
@@ -134,6 +136,12 @@
 				variantType: 'rank',
 				rankItems: config.items,
 				rankCorrectOrder: config.correctOrder
+			};
+		} else if (config.type === 'multiple_match') {
+			return {
+				...defaultState,
+				variantType: 'multiple_match',
+				multipleMatchItems: config.items
 			};
 		} else if (config.type === 'image_choice') {
 			return {

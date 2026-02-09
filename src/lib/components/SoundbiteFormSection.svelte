@@ -86,6 +86,8 @@
 			rankItems: [],
 			rankCorrectOrder: [],
 			rankFiles: [],
+			multipleMatchItems: [],
+			multipleMatchFiles: [],
 			prompt: ''
 		};
 		soundbites = [...soundbites, newSoundbite];

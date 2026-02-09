@@ -61,6 +61,14 @@
 					.filter((name) => name.length > 0)
 					.join(', ');
 			}
+		} else if (detail.variantType === 'multiple_match' && detail.userOrder) {
+			const config = soundbite.variantConfig;
+			if (config.type === 'multiple_match') {
+				guessText = detail.userOrder
+					.map((idx) => config.items[idx]?.name ?? '')
+					.filter((name) => name.length > 0)
+					.join(', ');
+			}
 		}
 
 		return {

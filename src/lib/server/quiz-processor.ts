@@ -9,6 +9,7 @@ import { findUniqueSlug } from './db/slug-utils.js';
 import {
 	processSequenceVariant,
 	processRankVariant,
+	processMultipleMatchVariant,
 	processImageChoiceVariant,
 	processSimpleVariant,
 	isError,
@@ -291,8 +292,12 @@ async function processExistingSoundbites(
 
 		let trackId: string | undefined;
 
-		// Handle file upload for non-sequence/rank variants
-		if (soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank') {
+		// Handle file upload for non-sequence/rank/multiple_match variants
+		if (
+			soundbite.variantType !== 'sequence' &&
+			soundbite.variantType !== 'rank' &&
+			soundbite.variantType !== 'multiple_match'
+		) {
 			if (soundbite.file && soundbite.file.size > 0) {
 				const blob = await uploadToBlob(soundbite.file, blobToken);
 				tracker.trackBlob(blob.pathname);
@@ -409,6 +414,13 @@ async function processAllSoundbites(
 			});
 		}
 
+		// Add multiple match files if present
+		if (soundbite.multipleMatchFiles && soundbite.multipleMatchFiles.length > 0) {
+			soundbite.multipleMatchFiles.forEach((file) => {
+				processingFormData.append(`multipleMatchFiles-${position}`, file);
+			});
+		}
+
 		// Add image choice files if present
 		if (soundbite.imageFiles && soundbite.imageFiles.length > 0) {
 			soundbite.imageFiles.forEach((file) => {
@@ -435,6 +447,14 @@ async function processAllSoundbites(
 		} else if (soundbite.variantType === 'rank') {
 			outcome = await processRankVariant(
 				soundbite.variantConfig as Extract<typeof soundbite.variantConfig, { type: 'rank' }>,
+				context
+			);
+		} else if (soundbite.variantType === 'multiple_match') {
+			outcome = await processMultipleMatchVariant(
+				soundbite.variantConfig as Extract<
+					typeof soundbite.variantConfig,
+					{ type: 'multiple_match' }
+				>,
 				context
 			);
 		} else if (soundbite.variantType === 'image_choice') {

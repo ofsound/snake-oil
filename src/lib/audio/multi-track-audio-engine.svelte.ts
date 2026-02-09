@@ -345,42 +345,49 @@ export class MultiTrackAudioEngine extends BaseAudioEngine {
 	/**
 	 * STATE TRANSITION: PLAYING/PAUSED → STOPPED
 	 */
-	stopAndReset(): void {
-		if (!this.audioContext) return;
-
-		this.fadeOut(() => {
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
+	stopAndReset(): Promise<void> {
+		return new Promise((resolve) => {
+			if (!this.audioContext) {
+				resolve();
+				return;
 			}
 
-			if (this.source) {
-				try {
-					this.source.disconnect();
-				} catch (err) {
-					console.error('[MultiTrackAudioEngine] Failed to disconnect source during stop:', err);
+			this.fadeOut(() => {
+				if (this.audioContext && this.gainNode) {
+					const t = this.audioContext.currentTime;
+					this.gainNode.gain.cancelScheduledValues(t);
+					this.gainNode.gain.setValueAtTime(0, t);
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
-			}
 
-			this.isPlaying = false;
-			this.currentTime = 0;
-			this.currentTrackIndex = 0;
-			this.isFirstPlay = true;
-			this.playedIndices = [];
-			this.pausedAt = 0;
+				if (this.source) {
+					try {
+						this.source.disconnect();
+					} catch (err) {
+						console.error('[MultiTrackAudioEngine] Failed to disconnect source during stop:', err);
+					}
+					this.source = null;
+					this.sourceHasStarted = false;
+				}
 
-			if (this.analyser) {
-				this.analyser.smoothingTimeConstant = 0;
-			}
+				this.isPlaying = false;
+				this.currentTime = 0;
+				this.currentTrackIndex = 0;
+				this.isFirstPlay = true;
+				this.playedIndices = [];
+				this.pausedAt = 0;
 
-			// Reset duration to first valid track
-			const firstValidBuffer = this.buffers.find((b) => b !== null);
-			if (firstValidBuffer) {
-				this.duration = firstValidBuffer.duration;
-			}
+				if (this.analyser) {
+					this.analyser.smoothingTimeConstant = 0;
+				}
+
+				// Reset duration to first valid track
+				const firstValidBuffer = this.buffers.find((b) => b !== null);
+				if (firstValidBuffer) {
+					this.duration = firstValidBuffer.duration;
+				}
+
+				resolve();
+			});
 		});
 	}
 

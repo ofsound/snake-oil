@@ -71,6 +71,14 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 			return;
 		}
 
+		// Reset position when loading a new track to ensure we start from beginning
+		if (this.trackUrl !== url) {
+			this.currentTime = 0;
+			this.pausedAt = 0;
+			console.log('[SingleTrackAudioEngine] Loading new track, resetting isFirstPlay to true');
+			this.isFirstPlay = true;
+		}
+
 		// Check if engine was destroyed before we started
 		if (!this.isBrowser) {
 			return;
@@ -207,19 +215,30 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		}
 
 		const state = this.getCurrentState();
+		console.log(
+			'[SingleTrackAudioEngine] togglePlayPause state:',
+			state,
+			'isFirstPlay:',
+			this.isFirstPlay
+		);
 
 		// Route to appropriate state transition
 		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
+			console.log('[SingleTrackAudioEngine] -> transitionToPaused');
 			this.transitionToPaused();
 		} else if (state.playback === PlaybackState.PAUSED) {
+			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromPaused');
 			this.transitionToPlayingFromPaused();
 		} else if (state.isFirstPlay) {
 			// Must check isFirstPlay before contextState - initial play needs full start sequence
+			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromStart (isFirstPlay)');
 			this.isFirstPlay = false;
 			this.transitionToPlayingFromStart();
 		} else if (state.contextState === 'suspended') {
+			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromSuspended');
 			this.transitionToPlayingFromSuspended();
 		} else {
+			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromStart (fallback)');
 			this.transitionToPlayingFromStart();
 		}
 	}
@@ -268,6 +287,7 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 				this.sourceHasStarted = true;
 				this.startTime = audioCtx.currentTime;
 				this.isPlaying = true;
+				this.playbackSessionId++;
 				this.fadeIn();
 
 				if (this.analyser) {
@@ -285,34 +305,42 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 	 *
 	 * iOS Strategy: Fade out, disconnect source, DO NOT suspend context.
 	 */
-	stopAndReset(): void {
-		if (!this.audioContext) return;
-
-		this.fadeOut(() => {
-			if (this.audioContext && this.gainNode) {
-				const t = this.audioContext.currentTime;
-				this.gainNode.gain.cancelScheduledValues(t);
-				this.gainNode.gain.setValueAtTime(0, t);
+	stopAndReset(): Promise<void> {
+		return new Promise((resolve) => {
+			if (!this.audioContext) {
+				resolve();
+				return;
 			}
 
-			if (this.source) {
-				try {
-					this.source.disconnect();
-				} catch (err) {
-					this.reportError('', 'Failed to disconnect source during stop', err, false);
+			this.fadeOut(() => {
+				if (this.audioContext && this.gainNode) {
+					const t = this.audioContext.currentTime;
+					this.gainNode.gain.cancelScheduledValues(t);
+					this.gainNode.gain.setValueAtTime(0, t);
 				}
-				this.source = null;
-				this.sourceHasStarted = false;
-			}
 
-			this.isPlaying = false;
-			this.currentTime = 0;
-			this.isFirstPlay = true;
-			this.pausedAt = 0;
+				if (this.source) {
+					try {
+						this.source.disconnect();
+					} catch (err) {
+						this.reportError('', 'Failed to disconnect source during stop', err, false);
+					}
+					this.source = null;
+					this.sourceHasStarted = false;
+				}
 
-			if (this.analyser) {
-				this.analyser.smoothingTimeConstant = 0;
-			}
+				this.isPlaying = false;
+				this.currentTime = 0;
+				this.isFirstPlay = true;
+				this.pausedAt = 0;
+				this.playbackSessionId++;
+
+				if (this.analyser) {
+					this.analyser.smoothingTimeConstant = 0;
+				}
+
+				resolve();
+			});
 		});
 	}
 

@@ -13,6 +13,7 @@
 	import SequenceAudioPlayer from '$lib/components/SequenceAudioPlayer.svelte';
 	import SequenceInput from '$lib/components/SequenceInput.svelte';
 	import RankAudioPlayer from '$lib/components/RankAudioPlayer.svelte';
+	import MultipleMatchPlayer from '$lib/components/MultipleMatchPlayer.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import QuizAudioPlayer from '$lib/components/audio/QuizAudioPlayer.svelte';
 	import SpeedRunGame from './components/SpeedRunGame.svelte';
@@ -25,6 +26,7 @@
 		type ImageChoiceConfig,
 		type SequenceConfig,
 		type RankConfig,
+		type MultipleMatchConfig,
 		isRankConfig,
 		isImageChoiceConfig,
 		isMultipleResponseConfig,
@@ -44,6 +46,7 @@
 	let multipleResponseSelections = $state<Record<string, string[]>>({});
 	let sequenceBuzzed = $state<Record<string, boolean>>({});
 	let rankOrders = $state<Record<string, number[]>>({});
+	let multipleMatchOrders = $state<Record<string, number[]>>({});
 
 	let isSpeedRun = $derived(!!data.quiz.speedRun);
 	let speedRunConfig = $derived(isSpeedRun ? data.quiz.speedRun : null);
@@ -64,6 +67,11 @@
 
 	function handleRankOrderChange(soundbiteId: string, order: number[]) {
 		rankOrders = { ...rankOrders, [soundbiteId]: order };
+		userAnswers = { ...userAnswers, [soundbiteId]: JSON.stringify(order) };
+	}
+
+	function handleMultipleMatchOrderChange(soundbiteId: string, order: number[]) {
+		multipleMatchOrders = { ...multipleMatchOrders, [soundbiteId]: order };
 		userAnswers = { ...userAnswers, [soundbiteId]: JSON.stringify(order) };
 	}
 
@@ -181,7 +189,7 @@
 							<div class="rounded-sm bg-neutral-50 p-4">
 								<div class="mb-3">
 									<div class="mb-2 text-base font-medium text-gray-700">{index + 1}.</div>
-									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
+									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
 									{#if soundbite.prompt}
@@ -253,7 +261,7 @@
 									>
 										{index + 1}
 									</div>
-									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
+									{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
 									{#if soundbite.prompt}
@@ -312,6 +320,21 @@
 											items={config.items}
 											soundbiteId={soundbite.id}
 											onOrderChange={(order) => handleRankOrderChange(soundbite.id, order)}
+											disabled={submitting}
+										/>
+										<input
+											type="hidden"
+											name="answer-{soundbite.id}"
+											value={userAnswers[soundbite.id] ?? '[]'}
+										/>
+									</div>
+								{:else if soundbite.variantType === 'multiple_match'}
+									{@const config = soundbite.variantConfig as unknown as MultipleMatchConfig}
+									<div class="flex flex-col gap-4">
+										<MultipleMatchPlayer
+											items={config.items}
+											soundbiteId={soundbite.id}
+											onOrderChange={(order) => handleMultipleMatchOrderChange(soundbite.id, order)}
 											disabled={submitting}
 										/>
 										<input

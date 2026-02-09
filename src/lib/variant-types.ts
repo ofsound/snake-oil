@@ -7,6 +7,7 @@ export const VARIANT_TYPES = [
 	'multiple_response',
 	'sequence',
 	'rank',
+	'multiple_match',
 	'image_choice'
 ] as const;
 export type VariantType = (typeof VARIANT_TYPES)[number];
@@ -17,6 +18,7 @@ export const VARIANT_LABELS: Record<VariantType, string> = {
 	multiple_response: 'Multiple Response',
 	sequence: 'Audio Sequence',
 	rank: 'Audio Ranking',
+	multiple_match: 'Multiple Match',
 	image_choice: 'Image Choice'
 };
 
@@ -27,6 +29,7 @@ export const VARIANT_PROMPT_PLACEHOLDERS: Record<VariantType, string> = {
 	multiple_response: 'e.g., Select all instruments you can identify',
 	sequence: 'e.g., Press the button when you hear the flute',
 	rank: 'e.g., Rank these from lowest to highest pitch',
+	multiple_match: 'e.g., Match the audio to the correct instrument label',
 	image_choice: 'e.g., Which image matches the audio?'
 };
 
@@ -97,13 +100,27 @@ export type RankConfig = {
 	correctOrder: number[];
 };
 
+// Multiple Match variant types
+export type MultipleMatchItem = {
+	id: string;
+	name: string;
+	url: string;
+	answerLabel: string;
+};
+
+export type MultipleMatchConfig = {
+	type: 'multiple_match';
+	items: MultipleMatchItem[];
+};
+
 export type VariantConfig =
 	| SimpleGuessConfig
 	| MultipleChoiceConfig
 	| MultipleResponseConfig
 	| ImageChoiceConfig
 	| SequenceConfig
-	| RankConfig;
+	| RankConfig
+	| MultipleMatchConfig;
 
 // Answer Detail Types
 export type AnswerDetail = {
@@ -187,13 +204,26 @@ const RankConfigSchema = z.object({
 	correctOrder: z.array(z.number())
 });
 
+const MultipleMatchItemSchema = z.object({
+	id: z.string(),
+	name: z.string(),
+	url: z.string(),
+	answerLabel: z.string()
+});
+
+const MultipleMatchConfigSchema = z.object({
+	type: z.literal('multiple_match'),
+	items: z.array(MultipleMatchItemSchema)
+});
+
 export const VariantConfigSchema = z.discriminatedUnion('type', [
 	SimpleGuessConfigSchema,
 	MultipleChoiceConfigSchema,
 	MultipleResponseConfigSchema,
 	ImageChoiceConfigSchema,
 	SequenceConfigSchema,
-	RankConfigSchema
+	RankConfigSchema,
+	MultipleMatchConfigSchema
 ]);
 
 // Type guards using Zod for runtime validation
@@ -215,4 +245,8 @@ export function isMultipleChoiceConfig(value: unknown): value is MultipleChoiceC
 
 export function isSimpleGuessConfig(value: unknown): value is SimpleGuessConfig {
 	return SimpleGuessConfigSchema.safeParse(value).success;
+}
+
+export function isMultipleMatchConfig(value: unknown): value is MultipleMatchConfig {
+	return MultipleMatchConfigSchema.safeParse(value).success;
 }

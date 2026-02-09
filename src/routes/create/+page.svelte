@@ -63,6 +63,8 @@
 			rankItems: [],
 			rankCorrectOrder: [],
 			rankFiles: [],
+			multipleMatchItems: [],
+			multipleMatchFiles: [],
 			prompt: ''
 		}
 	]);

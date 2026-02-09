@@ -28,6 +28,8 @@ export {
 	type SequenceTrack,
 	type RankItem,
 	type RankConfig,
+	type MultipleMatchItem,
+	type MultipleMatchConfig,
 	type VariantConfig,
 	type AnswerDetail,
 	type AnswersPayload

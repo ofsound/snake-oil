@@ -31,6 +31,13 @@ export function getCorrectAnswerText(config: VariantConfig): string {
 				.filter((name) => name.length > 0)
 				.join(' → ');
 		}
+		case 'multiple_match': {
+			// Return answer labels in correct order (identity order)
+			return config.items
+				.map((item) => item.answerLabel)
+				.filter((label) => label.length > 0)
+				.join(' → ');
+		}
 		case 'image_choice': {
 			const correctOption = config.options.find((opt) => opt.isCorrect);
 			return correctOption?.label ?? '';

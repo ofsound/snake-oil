@@ -32,6 +32,7 @@ interface PlayerCallbacks {
 	onPause: () => void;
 	onStop: () => void;
 	onEnded: () => void;
+	onTimeUpdate?: (currentTime: number, duration: number) => void;
 }
 
 /** Registry of all active players */
@@ -45,6 +46,57 @@ let currentPlayerId = $state<string | null>(null);
 
 /** Whether the engine failed to initialize */
 let isEngineError = $state(false);
+
+/** Animation frame ID for time updates */
+let timeUpdateFrameId: number | null = null;
+
+/** Last known time values to avoid unnecessary updates */
+let lastCurrentTime = 0;
+let lastDuration = 0;
+
+/**
+ * Start the time update loop for the current player.
+ * Calls onTimeUpdate callback with current playback position.
+ */
+function startTimeUpdates(): void {
+	// Cancel any existing loop
+	if (timeUpdateFrameId !== null) {
+		cancelAnimationFrame(timeUpdateFrameId);
+		timeUpdateFrameId = null;
+	}
+
+	const update = () => {
+		if (!engine || !currentPlayerId) return;
+
+		const newTime = engine.currentTime;
+		const newDuration = engine.duration;
+
+		// Only call callback if values changed significantly
+		if (newTime !== lastCurrentTime || newDuration !== lastDuration) {
+			lastCurrentTime = newTime;
+			lastDuration = newDuration;
+
+			const callbacks = playerRegistry.get(currentPlayerId);
+			callbacks?.onTimeUpdate?.(newTime, newDuration);
+		}
+
+		timeUpdateFrameId = requestAnimationFrame(update);
+	};
+
+	timeUpdateFrameId = requestAnimationFrame(update);
+}
+
+/**
+ * Stop the time update loop.
+ */
+function stopTimeUpdates(): void {
+	if (timeUpdateFrameId !== null) {
+		cancelAnimationFrame(timeUpdateFrameId);
+		timeUpdateFrameId = null;
+	}
+	lastCurrentTime = 0;
+	lastDuration = 0;
+}
 
 /** Get or create the shared engine */
 function getEngine(): SingleTrackAudioEngine | null {
@@ -147,9 +199,10 @@ export const quizAudioContext = {
 
 		// If another player is currently playing, stop it completely
 		if (currentPlayerId && currentPlayerId !== playerId) {
+			stopTimeUpdates();
 			const otherCallbacks = playerRegistry.get(currentPlayerId);
 			if (otherCallbacks) {
-				audioEngine.stopAndReset();
+				await audioEngine.stopAndReset();
 				otherCallbacks.onStop();
 			}
 		}
@@ -164,8 +217,12 @@ export const quizAudioContext = {
 
 			const callbacks = playerRegistry.get(playerId);
 			callbacks?.onPlay();
+
+			// Start time updates for the current player
+			startTimeUpdates();
 		} catch (err) {
 			console.error('[QuizAudioContext] Error playing audio:', err);
+			stopTimeUpdates();
 			currentPlayerId = null;
 		}
 	},
@@ -179,6 +236,7 @@ export const quizAudioContext = {
 		const audioEngine = getEngine();
 		if (!audioEngine) return;
 
+		stopTimeUpdates();
 		audioEngine.stopAndReset();
 		currentPlayerId = null;
 

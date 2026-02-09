@@ -6,6 +6,7 @@ import type {
 	ImageChoiceConfig,
 	SequenceConfig,
 	RankConfig,
+	MultipleMatchConfig,
 	AnswersPayload,
 	AnswerDetail
 } from './db/schema';
@@ -15,11 +16,13 @@ import {
 	MAX_MULTIPLE_RESPONSE_OPTIONS,
 	MAX_SEQUENCE_TRACKS,
 	MAX_RANK_ITEMS,
+	MAX_MULTIPLE_MATCH_ITEMS,
 	MAX_IMAGE_CHOICE_OPTIONS,
 	MIN_MULTIPLE_CHOICE_OPTIONS,
 	MIN_MULTIPLE_RESPONSE_OPTIONS,
 	MIN_SEQUENCE_TRACKS,
 	MIN_RANK_ITEMS,
+	MIN_MULTIPLE_MATCH_ITEMS,
 	MIN_IMAGE_CHOICE_OPTIONS
 } from '$lib/constants/variants';
 
@@ -144,6 +147,31 @@ function validateRank(config: RankConfig): boolean {
 }
 
 /**
+ * Validate a MultipleMatch config
+ * - Must have MIN_MULTIPLE_MATCH_ITEMS-MAX_MULTIPLE_MATCH_ITEMS items
+ * - Each item must have id, name, url, answerLabel
+ * - The order of items defines the correct answer
+ */
+function validateMultipleMatch(config: MultipleMatchConfig): boolean {
+	if (config.type !== 'multiple_match') return false;
+	if (!Array.isArray(config.items)) return false;
+	if (
+		config.items.length < MIN_MULTIPLE_MATCH_ITEMS ||
+		config.items.length > MAX_MULTIPLE_MATCH_ITEMS
+	)
+		return false;
+
+	for (const item of config.items) {
+		if (typeof item.id !== 'string' || item.id.trim().length === 0) return false;
+		if (typeof item.name !== 'string' || item.name.trim().length === 0) return false;
+		if (typeof item.url !== 'string' || item.url.trim().length === 0) return false;
+		if (typeof item.answerLabel !== 'string' || item.answerLabel.trim().length === 0) return false;
+	}
+
+	return true;
+}
+
+/**
  * Validate an ImageChoice config
  * - Must have MIN_IMAGE_CHOICE_OPTIONS-MAX_IMAGE_CHOICE_OPTIONS options
  * - Each option must have id, imageUrl, pathname, label
@@ -203,6 +231,8 @@ export function validateVariantConfig(config: VariantConfig): boolean {
 			return validateSequence(config);
 		case 'rank':
 			return validateRank(config);
+		case 'multiple_match':
+			return validateMultipleMatch(config);
 		default:
 			return false;
 	}
@@ -269,6 +299,18 @@ function checkRankCorrect(userOrder: number[], config: RankConfig): boolean {
 }
 
 /**
+ * Check if a multiple match answer is correct
+ * The "correct order" is just the identity order [0, 1, 2, ..., n-1]
+ * Uses Kendall Tau distance - 100% match required for "correct" status
+ */
+function checkMultipleMatchCorrect(userOrder: number[], config: MultipleMatchConfig): boolean {
+	// The correct order is always [0, 1, 2, ..., n-1] because items are stored in correct order
+	const correctOrder = config.items.map((_, i) => i);
+	const score = calculateKendallTauScore(userOrder, correctOrder);
+	return score === 1; // Must be 100% to be considered "correct"
+}
+
+/**
  * Check if an image choice answer is correct
  */
 export function checkImageChoiceCorrect(
@@ -305,6 +347,8 @@ function checkAnswerCorrect(
 				: false;
 		case 'rank':
 			return userOrder ? checkRankCorrect(userOrder, config) : false;
+		case 'multiple_match':
+			return userOrder ? checkMultipleMatchCorrect(userOrder, config) : false;
 		default:
 			return false;
 	}
@@ -356,6 +400,7 @@ export function buildAnswerDetail(
 		...(config.type === 'sequence' && selectedTrackIndex !== undefined
 			? { selectedTrackIndex }
 			: {}),
-		...(config.type === 'rank' && userOrder ? { userOrder } : {})
+		...(config.type === 'rank' && userOrder ? { userOrder } : {}),
+		...(config.type === 'multiple_match' && userOrder ? { userOrder } : {})
 	};
 }

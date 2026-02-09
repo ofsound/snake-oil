@@ -17,6 +17,9 @@ export const MAX_SEQUENCE_TRACKS = 10;
 /** Maximum number of items for audio ranking */
 export const MAX_RANK_ITEMS = 10;
 
+/** Maximum number of items for multiple match */
+export const MAX_MULTIPLE_MATCH_ITEMS = 10;
+
 /** Maximum number of image options for image choice */
 export const MAX_IMAGE_CHOICE_OPTIONS = 10;
 
@@ -34,6 +37,9 @@ export const MIN_SEQUENCE_TRACKS = 2;
 
 /** Minimum number of items for audio ranking */
 export const MIN_RANK_ITEMS = 2;
+
+/** Minimum number of items for multiple match */
+export const MIN_MULTIPLE_MATCH_ITEMS = 2;
 
 /** Minimum number of image options for image choice */
 export const MIN_IMAGE_CHOICE_OPTIONS = 2;

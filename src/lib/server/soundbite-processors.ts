@@ -5,6 +5,7 @@ import { validateVariantConfig } from './variant-utils';
 import type {
 	SequenceConfig,
 	RankConfig,
+	MultipleMatchConfig,
 	ImageChoiceConfig,
 	VariantConfig
 } from '$lib/variant-types';
@@ -162,6 +163,69 @@ export async function processRankVariant(
 		trackId: track.id,
 		updatedConfig,
 		newFileIndex: context.fileIndex // Rank doesn't consume from simple files array
+	};
+}
+
+export async function processMultipleMatchVariant(
+	config: MultipleMatchConfig,
+	context: ProcessingContext
+): Promise<ProcessingOutcome> {
+	const { formData, blobToken, soundbiteIndex } = context;
+	const uploadedItems = [];
+
+	// Get multiple match files from form data
+	const multipleMatchFiles = getFilesFromFormData(formData, `multipleMatchFiles-${soundbiteIndex}`);
+
+	for (let itemIndex = 0; itemIndex < config.items.length; itemIndex++) {
+		const item = config.items[itemIndex];
+		const file = multipleMatchFiles[itemIndex];
+
+		if (file && file.size > 0) {
+			// Upload to Vercel Blob
+			const blob = await uploadToBlob(file, blobToken);
+			uploadedItems.push({
+				id: item.id,
+				name: item.name,
+				url: blob.url,
+				answerLabel: item.answerLabel
+			});
+		} else {
+			// If no file provided, keep the original URL
+			uploadedItems.push(item);
+		}
+	}
+
+	// Update config with permanent URLs
+	const updatedConfig: MultipleMatchConfig = {
+		...config,
+		items: uploadedItems
+	};
+
+	// Validate the updated multiple_match config
+	if (!validateVariantConfig(updatedConfig)) {
+		console.error(
+			`[Create Quiz] MultipleMatch validation failed for SoundBite ${soundbiteIndex + 1}:`,
+			updatedConfig
+		);
+		return {
+			message: `Invalid configuration for SoundBite ${soundbiteIndex + 1}. Please ensure all multiple match files were uploaded successfully.`
+		};
+	}
+
+	// Create a placeholder track for the soundbite
+	const [track] = await db
+		.insert(tracks)
+		.values({
+			name: `MultipleMatch ${soundbiteIndex + 1}`,
+			url: '',
+			pathname: null
+		})
+		.returning({ id: tracks.id });
+
+	return {
+		trackId: track.id,
+		updatedConfig,
+		newFileIndex: context.fileIndex // MultipleMatch doesn't consume from simple files array
 	};
 }
 

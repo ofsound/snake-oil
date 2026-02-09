@@ -93,6 +93,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				items: config.items,
 				correctOrder: [] // Don't reveal correct order
 			};
+		} else if (config.type === 'multiple_match') {
+			safeConfig = {
+				type: 'multiple_match',
+				items: config.items.map((item) => ({
+					id: item.id,
+					name: item.name,
+					url: item.url,
+					answerLabel: item.answerLabel // Labels must be visible for matching
+				}))
+			};
 		} else if (config.type === 'image_choice') {
 			safeConfig = {
 				type: 'image_choice',
@@ -350,6 +360,17 @@ export const actions: Actions = {
 				selectedTrackIndex = trackIndexStr ? parseInt(trackIndexStr, 10) : -1;
 				guess = trackIndexStr || '-1';
 			} else if (soundbite.variantType === 'rank') {
+				const orderStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
+				try {
+					userOrder = JSON.parse(orderStr);
+					if (!Array.isArray(userOrder)) {
+						userOrder = [];
+					}
+				} catch {
+					userOrder = [];
+				}
+				guess = orderStr || '[]';
+			} else if (soundbite.variantType === 'multiple_match') {
 				const orderStr = String(formData.get(`answer-${soundbiteId}`) ?? '').trim();
 				try {
 					userOrder = JSON.parse(orderStr);

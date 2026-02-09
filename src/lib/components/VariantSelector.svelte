@@ -20,7 +20,8 @@
 		'multiple_response',
 		'image_choice',
 		'sequence',
-		'rank'
+		'rank',
+		'multiple_match'
 	];
 
 	// Filter options if allowedTypes is provided

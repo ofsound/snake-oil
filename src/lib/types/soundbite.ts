@@ -4,7 +4,8 @@ import type {
 	MultipleResponseOption,
 	ImageChoiceOption,
 	SequenceTrack,
-	RankItem
+	RankItem,
+	MultipleMatchItem
 } from '../variant-types';
 
 /**
@@ -25,6 +26,8 @@ export interface SoundbiteState {
 	rankItems: RankItem[];
 	rankCorrectOrder: number[];
 	rankFiles: File[];
+	multipleMatchItems: MultipleMatchItem[];
+	multipleMatchFiles: File[];
 	prompt: string;
 	questionTimeLimit?: number;
 }

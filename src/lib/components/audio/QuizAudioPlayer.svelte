@@ -61,6 +61,10 @@
 			onEnded: () => {
 				isPlaying = false;
 				currentTime = 0;
+			},
+			onTimeUpdate: (time, dur) => {
+				currentTime = time;
+				duration = dur;
 			}
 		});
 
@@ -74,20 +78,17 @@
 	$effect(() => {
 		const isCurrentPlayer = quizAudioContext.currentPlayerId === soundbiteId;
 
-		// If we're no longer the current player, update playing state only
-		// Don't reset currentTime - preserve it for potential resume
+		// If we're no longer the current player, update playing state and reset position
 		if (!isCurrentPlayer && isPlaying) {
 			isPlaying = false;
+			currentTime = 0;
 		}
 	});
 
-	// Sync with shared engine's reactive state when we're the active player
+	// Sync loading and error states from engine (only when current player)
 	$effect(() => {
 		const engine = quizAudioContext.engine;
 		if (quizAudioContext.currentPlayerId === soundbiteId && engine) {
-			// Subscribe to engine's reactive state
-			currentTime = engine.currentTime;
-			duration = engine.duration;
 			isLoading = engine.isLoading;
 			error = engine.error;
 		}

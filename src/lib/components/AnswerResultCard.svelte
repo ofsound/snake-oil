@@ -8,7 +8,8 @@
 		MultipleResponseConfig,
 		ImageChoiceConfig,
 		SequenceConfig,
-		RankConfig
+		RankConfig,
+		MultipleMatchConfig
 	} from '$lib/variant-types';
 
 	type Props = {
@@ -48,6 +49,12 @@
 				.map((idx) => config.items[idx]?.name ?? '')
 				.filter((name) => name.length > 0)
 				.join(' → ');
+		} else if (answerDetail.variantType === 'multiple_match' && answerDetail.userOrder) {
+			const config = variantConfig as MultipleMatchConfig;
+			return answerDetail.userOrder
+				.map((idx) => config.items[idx]?.name ?? '')
+				.filter((name) => name.length > 0)
+				.join(' → ');
 		}
 		return answerDetail.guess;
 	}
@@ -57,7 +64,12 @@
 	let kendallTauScore = $derived(
 		variantConfig.type === 'rank' && answerDetail.userOrder
 			? calculateKendallTauPercentage(answerDetail.userOrder, variantConfig.correctOrder)
-			: 0
+			: variantConfig.type === 'multiple_match' && answerDetail.userOrder
+				? calculateKendallTauPercentage(
+						answerDetail.userOrder,
+						variantConfig.items.map((_, i) => i)
+					)
+				: 0
 	);
 </script>
 
@@ -96,6 +108,44 @@
 						class:text-red-800={!isCorrect}
 					>
 						<span class="w-6 font-mono font-bold">{position + 1}.</span>
+						<span class="flex-1">{variantConfig.items[userItemIdx]?.name ?? 'Unknown'}</span>
+						{#if !isCorrect}
+							<span class="text-xs opacity-75"
+								>(should be: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
+							>
+						{:else}
+							<span class="text-xs text-green-700 opacity-75"
+								>(correct: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
+							>
+						{/if}
+					</div>
+				{/each}
+			{:else}
+				<p class="text-sm text-red-600">No answer submitted</p>
+			{/if}
+		</div>
+	{:else if answerDetail.variantType === 'multiple_match' && variantConfig.type === 'multiple_match'}
+		<!-- Multiple Match variant: Show color-coded list with Kendall Tau score -->
+		<div class="mt-3 flex flex-col gap-1">
+			<p class="mb-1 text-xs text-gray-500">
+				Your matches vs correct matches (Kendall Tau: {kendallTauScore}%):
+			</p>
+			{#if answerDetail.userOrder && answerDetail.userOrder.length > 0}
+				{@const correctOrder = variantConfig.items.map((_, i) => i)}
+				{#each correctOrder as correctItemIdx, position (position)}
+					{@const userItemIdx = answerDetail.userOrder[position]}
+					{@const isCorrect = correctItemIdx === userItemIdx}
+					<div
+						class="flex items-center gap-2 rounded px-2 py-1 text-sm"
+						class:bg-green-100={isCorrect}
+						class:text-green-800={isCorrect}
+						class:bg-red-100={!isCorrect}
+						class:text-red-800={!isCorrect}
+					>
+						<span class="w-6 font-mono font-bold">{position + 1}.</span>
+						<span class="w-20 font-medium text-gray-600"
+							>{variantConfig.items[position]?.answerLabel}:</span
+						>
 						<span class="flex-1">{variantConfig.items[userItemIdx]?.name ?? 'Unknown'}</span>
 						{#if !isCorrect}
 							<span class="text-xs opacity-75"

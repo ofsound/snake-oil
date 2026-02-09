@@ -8,6 +8,7 @@
 	import ImageChoiceEditor from './variant-editors/ImageChoiceEditor.svelte';
 	import SequenceEditor from './variant-editors/SequenceEditor.svelte';
 	import RankEditor from './variant-editors/RankEditor.svelte';
+	import MultipleMatchEditor from './variant-editors/MultipleMatchEditor.svelte';
 
 	import type { SoundbiteState } from '$lib/types/soundbite';
 	import { VARIANT_PROMPT_PLACEHOLDERS, type VariantType } from '$lib/variant-types';
@@ -61,7 +62,8 @@
 		multiple_response: MultipleResponseEditor,
 		image_choice: ImageChoiceEditor,
 		sequence: SequenceEditor,
-		rank: RankEditor
+		rank: RankEditor,
+		multiple_match: MultipleMatchEditor
 	};
 
 	// Get the appropriate editor component
@@ -103,6 +105,11 @@
 				items: soundbite.rankItems,
 				correctOrder: soundbite.rankCorrectOrder
 			});
+		} else if (variantType === 'multiple_match') {
+			return JSON.stringify({
+				type: 'multiple_match',
+				items: soundbite.multipleMatchItems
+			});
 		}
 		return JSON.stringify({ type: 'simple_guess', correctAnswers: [] });
 	}
@@ -127,7 +134,7 @@
 
 	{@render afterVariantSelector?.()}
 
-	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank'}
+	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-gray-700" for={`file-${soundbite.id}`}>
 				{fileInputLabel}

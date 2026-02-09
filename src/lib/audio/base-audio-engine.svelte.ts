@@ -106,6 +106,9 @@ export abstract class BaseAudioEngine {
 	/** Time position when paused (for resuming from exact position) */
 	protected pausedAt = 0;
 
+	/** Playback session ID - incremented when starting new playback to prevent time updates from old sessions */
+	protected playbackSessionId = 0;
+
 	/**
 	 * ============================================================================
 	 * TIMING & ANIMATION
@@ -270,7 +273,7 @@ export abstract class BaseAudioEngine {
 	/**
 	 * Stop playback and reset to beginning of current track.
 	 */
-	abstract stopAndReset(): void;
+	abstract stopAndReset(): Promise<void>;
 
 	/**
 	 * Seek to a specific time position in seconds.
@@ -661,14 +664,19 @@ export abstract class BaseAudioEngine {
 	 * Runs continuously via requestAnimationFrame.
 	 */
 	protected updateTimeLoop(): void {
+		let lastSessionId = 0;
 		const update = () => {
-			// Update currentTime when playing
-			if (this.isPlaying && this.sourceHasStarted) {
+			// Update currentTime when playing and session matches
+			// Session check prevents stale updates from previous playback after switching players
+			if (this.isPlaying && this.sourceHasStarted && this.playbackSessionId === lastSessionId) {
 				this.currentTime = this.getCurrentContextTime() - this.startTime;
 				// Clamp to duration to prevent overshooting
 				if (this.currentTime > this.duration) {
 					this.currentTime = this.duration;
 				}
+			} else if (this.playbackSessionId !== lastSessionId) {
+				// Session changed, update our tracking
+				lastSessionId = this.playbackSessionId;
 			}
 
 			// Check for fade completion based on AudioContext time
