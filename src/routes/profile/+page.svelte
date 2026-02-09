@@ -128,7 +128,7 @@
 	{#if quizzes.length > 0}
 		<div class="mt-4 flex flex-col gap-3">
 			{#each quizzes as quiz (quiz.id)}
-				<QuizRow {quiz} showOwner={false} linkToManage={true} />
+				<QuizRow {quiz} showOwner={false} showEditAndSubmissionsLinks={true} />
 			{/each}
 		</div>
 	{:else}

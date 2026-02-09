@@ -27,10 +27,10 @@
 	interface Props {
 		quiz: Quiz;
 		showOwner?: boolean;
-		linkToManage?: boolean;
+		showEditAndSubmissionsLinks?: boolean;
 	}
 
-	let { quiz, showOwner = false, linkToManage = false }: Props = $props();
+	let { quiz, showOwner = false, showEditAndSubmissionsLinks = false }: Props = $props();
 
 	// New URL format: /[owner]/[quiz_slug]
 	// Owner slug is required for the new URL structure
@@ -41,8 +41,6 @@
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
-		if (target.closest('[data-view-link]')) return;
-		if (target.closest('[data-manage-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -59,8 +57,6 @@
 		event.preventDefault();
 		const target = event.target as HTMLElement;
 		if (target.closest('[data-owner-link]')) return;
-		if (target.closest('[data-view-link]')) return;
-		if (target.closest('[data-manage-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -108,7 +104,7 @@
 	</div>
 	<div class="flex flex-col items-end gap-1">
 		<div class="flex items-center gap-2">
-			{#if linkToManage}
+			{#if showEditAndSubmissionsLinks}
 				<Button
 					href={resolve(`/${ownerSlug}/${quiz.slug}/submissions`)}
 					variant="primary"
