@@ -163,3 +163,71 @@ export function validateImageFile(file: File): string | null {
 
 	return null;
 }
+
+/**
+ * Process image file to 300x300px square profile picture
+ * - Converts HEIC to JPEG if needed
+ * - Center-crops to square
+ * - Outputs as JPEG at 85% quality
+ * - Returns blob ready for upload
+ */
+export async function processProfileImage(file: File): Promise<Blob> {
+	// Handle HEIC conversion first
+	let processedFile = file;
+	if (isHeicFile(file)) {
+		processedFile = await convertHeicToJpeg(file);
+	}
+
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+
+		reader.onload = (e) => {
+			const img = new Image();
+
+			img.onload = () => {
+				const canvas = document.createElement('canvas');
+				canvas.width = 300;
+				canvas.height = 300;
+
+				const ctx = canvas.getContext('2d');
+				if (!ctx) {
+					reject(new Error('Failed to get canvas context'));
+					return;
+				}
+
+				// Center-crop calculations
+				const size = Math.min(img.width, img.height);
+				const x = (img.width - size) / 2;
+				const y = (img.height - size) / 2;
+
+				// Draw cropped image
+				ctx.drawImage(img, x, y, size, size, 0, 0, 300, 300);
+
+				// Convert to JPEG blob
+				canvas.toBlob(
+					(blob) => {
+						if (blob) {
+							resolve(blob);
+						} else {
+							reject(new Error('Canvas toBlob failed'));
+						}
+					},
+					'image/jpeg',
+					0.85
+				);
+			};
+
+			img.onerror = () => {
+				reject(new Error('Failed to load image'));
+			};
+
+			img.src = e.target?.result as string;
+		};
+
+		reader.onerror = () => {
+			reject(new Error('Failed to read file'));
+		};
+
+		reader.readAsDataURL(processedFile);
+	});
+}

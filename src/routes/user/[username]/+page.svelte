@@ -3,6 +3,7 @@
 	import Heading from '$lib/components/Heading.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
+	import RenderTiptapContent from '$lib/components/RenderTiptapContent.svelte';
 
 	import type { PageProps } from './$types';
 	let { data }: PageProps = $props();
@@ -12,28 +13,50 @@
 
 <PageContainer>
 	<Card padding="sm" variant="neutral">
-		{#if user.image}
-			<div class="mb-4 h-32 w-32">
-				<img
-					src={user.image}
-					alt="{user.name || 'User'}'s profile picture"
-					class="h-32 w-32 rounded-full object-cover"
-				/>
+		<div class="flex gap-6">
+			<!-- Profile Image -->
+			<div class="shrink-0">
+				{#if user.image}
+					<img
+						src={user.image}
+						alt="{user.name || 'User'}'s profile picture"
+						class="h-[120px] w-[120px] rounded-lg object-cover"
+					/>
+				{:else}
+					<div
+						class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+					>
+						<span class="text-5xl">👤</span>
+					</div>
+				{/if}
+			</div>
+
+			<!-- User Info -->
+			<div class="flex-1">
+				<Heading level={1} class="mb-1.5">
+					{user.name || 'User Profile'}
+				</Heading>
+				<div class="text-sm">
+					<span class=" text-gray-600">Joined:</span>
+					<span class=" font-medium">
+						{new Date(user.createdAt).toLocaleDateString('en-US', {
+							year: 'numeric',
+							month: 'long',
+							day: 'numeric'
+						})}
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<!-- Bio Section -->
+		{#if user.bio}
+			<div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-600">
+				<div class="prose prose-sm dark:prose-invert max-w-none">
+					<RenderTiptapContent content={user.bio} />
+				</div>
 			</div>
 		{/if}
-		<Heading level={1} class="mb-1.5">
-			{user.name || 'User Profile'}
-		</Heading>
-		<div class="text-sm">
-			<span class=" text-gray-600">Joined:</span>
-			<span class=" font-medium">
-				{new Date(user.createdAt).toLocaleDateString('en-US', {
-					year: 'numeric',
-					month: 'long',
-					day: 'numeric'
-				})}
-			</span>
-		</div>
 	</Card>
 
 	<Heading level={2} class="mt-10 border-b border-gray-200 pb-2">Quizzes</Heading>

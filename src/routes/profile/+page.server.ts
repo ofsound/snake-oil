@@ -27,6 +27,24 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		redirect(302, getLoginUrl(returnUrl));
 	}
 
+	// Fetch full user data including bio
+	const userData = await db.query.user.findFirst({
+		where: eq(user.id, locals.user.id),
+		columns: {
+			id: true,
+			name: true,
+			email: true,
+			bio: true,
+			image: true,
+			slug: true,
+			createdAt: true
+		}
+	});
+
+	if (!userData) {
+		redirect(302, getLoginUrl(url.pathname + url.search));
+	}
+
 	// Parse filter and pagination params
 	const submissionFilter =
 		(url.searchParams.get('submissionFilter') as 'all' | 'quiz' | 'speedrun') || 'all';
@@ -228,8 +246,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const paginatedSubmissions = allSubmissions.slice(offset, offset + SUBMISSIONS_PER_PAGE);
 
 	return {
-		user: locals.user,
-		profile: locals.user,
+		user: userData,
+		profile: userData,
 		quizzes: quizzesWithTags,
 		submissions: paginatedSubmissions,
 		submissionFilter,

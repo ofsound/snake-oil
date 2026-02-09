@@ -2,9 +2,10 @@
 	interface Props {
 		value: 'all' | 'quiz' | 'speedrun';
 		onChange: (value: 'all' | 'quiz' | 'speedrun') => void;
+		variant?: 'default' | 'minimal';
 	}
 
-	let { value, onChange }: Props = $props();
+	let { value, onChange, variant = 'default' }: Props = $props();
 
 	const options = [
 		{ value: 'all' as const, label: 'Both' },
@@ -13,16 +14,40 @@
 	] as const;
 </script>
 
-<div class="mx-auto flex w-max rounded-lg bg-indigo-100 p-1">
+<div
+	class="flex gap-4"
+	class:mx-auto={variant === 'default'}
+	class:w-max={variant === 'default'}
+	class:rounded-lg={variant === 'default'}
+	class:bg-indigo-100={variant === 'default'}
+	class:p-1={variant === 'default'}
+>
 	{#each options as option (option.value)}
 		<button
 			type="button"
-			class="rounded-md px-4 py-2 text-sm font-medium transition-all"
-			class:bg-white={value === option.value}
-			class:text-indigo-700={value === option.value}
-			class:shadow-sm={value === option.value}
-			class:text-indigo-600={value !== option.value}
-			class:hover:bg-indigo-50={value !== option.value}
+			class="transition-all"
+			class:rounded-md={variant === 'default'}
+			class:px-4={variant === 'default'}
+			class:py-2={variant === 'default'}
+			class:text-sm={variant === 'default'}
+			class:font-medium={variant === 'default' || (variant === 'minimal' && value === option.value)}
+			class:bg-white={variant === 'default' && value === option.value}
+			class:text-indigo-700={variant === 'default' && value === option.value}
+			class:shadow-sm={variant === 'default' && value === option.value}
+			class:text-indigo-600={variant === 'default' && value !== option.value}
+			class:hover:bg-indigo-50={variant === 'default' && value !== option.value}
+			class:px-2={variant === 'minimal'}
+			class:py-1={variant === 'minimal'}
+			class:text-xs={variant === 'minimal'}
+			class:border-b-2={variant === 'minimal' && value === option.value}
+			class:border-gray-700={variant === 'minimal' && value === option.value}
+			class:dark:border-gray-300={variant === 'minimal' && value === option.value}
+			class:text-gray-700={variant === 'minimal' && value === option.value}
+			class:dark:text-gray-200={variant === 'minimal' && value === option.value}
+			class:text-gray-500={variant === 'minimal' && value !== option.value}
+			class:hover:text-gray-700={variant === 'minimal' && value !== option.value}
+			class:dark:text-gray-400={variant === 'minimal' && value !== option.value}
+			class:dark:hover:text-gray-200={variant === 'minimal' && value !== option.value}
 			onclick={() => onChange(option.value)}
 		>
 			{option.label}

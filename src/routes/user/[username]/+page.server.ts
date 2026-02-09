@@ -23,6 +23,7 @@ export const load: PageServerLoad = async ({ params }) => {
 			slug: user.slug,
 			emailVerified: user.emailVerified,
 			image: user.image,
+			bio: user.bio,
 			createdAt: user.createdAt,
 			updatedAt: user.updatedAt
 		})

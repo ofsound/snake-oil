@@ -10,6 +10,7 @@
 	import ModeToggle from '$lib/components/ModeToggle.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
+	import RenderTiptapContent from '$lib/components/RenderTiptapContent.svelte';
 	import SubmissionRow from '$lib/components/SubmissionRow.svelte';
 
 	import { authClient } from '$lib/auth-client';
@@ -67,43 +68,74 @@
 <PageContainer>
 	<Card class="flex" padding="sm" variant="neutral">
 		<div class="mr-10 flex-1 rounded-lg">
-			<div class="grid gap-2">
-				<div class="flex items-baseline rounded-md">
-					<div class="w-18 text-sm text-gray-600">Name:</div>
-					<div class="text-sm font-medium">{user.name}</div>
+			<div class="flex gap-6">
+				<!-- Profile Image -->
+				<div class="shrink-0">
+					{#if profile.image}
+						<img
+							src={profile.image}
+							alt={`${profile.name}'s profile`}
+							class="h-[120px] w-[120px] rounded-lg object-cover"
+						/>
+					{:else}
+						<div
+							class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+						>
+							<span class="text-5xl">👤</span>
+						</div>
+					{/if}
 				</div>
 
-				<div class="flex items-baseline rounded-md">
-					<div class="w-18 text-sm text-gray-600">Email:</div>
-					<div class="text-sm font-medium">{user.email}</div>
-				</div>
+				<!-- User Info -->
+				<div class="grid flex-1 gap-2">
+					<div class="flex items-baseline rounded-md">
+						<div class="w-18 text-sm text-gray-600">Name:</div>
+						<div class="text-sm font-medium">{user.name}</div>
+					</div>
 
-				<div class="flex items-baseline rounded-md">
-					<div class="w-18 text-sm text-gray-600">URL:</div>
-					<a
-						href={resolve(`/user/${profile.slug}`)}
-						class="text-sm font-medium text-indigo-600 hover:text-indigo-700"
-						>/user/{profile.slug}</a
-					>
-				</div>
+					<div class="flex items-baseline rounded-md">
+						<div class="w-18 text-sm text-gray-600">Email:</div>
+						<div class="text-sm font-medium">{user.email}</div>
+					</div>
 
-				<div class="flex items-baseline rounded-md">
-					<div class="w-18 text-sm text-gray-600">Joined:</div>
-					<div class="text-sm font-medium">
-						{new Date(profile.createdAt).toLocaleDateString('en-US', {
-							year: 'numeric',
-							month: 'long',
-							day: 'numeric'
-						})}
+					<div class="flex items-baseline rounded-md">
+						<div class="w-18 text-sm text-gray-600">URL:</div>
+						<a
+							href={resolve(`/user/${profile.slug}`)}
+							class="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+							>/user/{profile.slug}</a
+						>
+					</div>
+
+					<div class="flex items-baseline rounded-md">
+						<div class="w-18 text-sm text-gray-600">Joined:</div>
+						<div class="text-sm font-medium">
+							{new Date(profile.createdAt).toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'long',
+								day: 'numeric'
+							})}
+						</div>
+					</div>
+
+					<div class="mt-4 flex items-baseline gap-3 rounded-md">
+						<Button variant="primary" size="sm" href="/profile/edit">Edit Profile</Button>
+						<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
+							Log out
+						</Button>
 					</div>
 				</div>
-
-				<div class="mt-4 flex items-baseline rounded-md">
-					<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
-						Log out
-					</Button>
-				</div>
 			</div>
+
+			<!-- Bio Section -->
+			{#if profile.bio}
+				<div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-600">
+					<div class="text-sm text-gray-600 dark:text-gray-400">Bio:</div>
+					<div class="prose prose-sm dark:prose-invert mt-2 max-w-none">
+						<RenderTiptapContent content={profile.bio} />
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<div class=" hidden flex-col gap-1.5 text-sm">
@@ -122,7 +154,7 @@
 	</div>
 
 	<div class="mt-4">
-		<ModeToggle value={quizFilter} onChange={handleQuizFilterChange} />
+		<ModeToggle variant="minimal" value={quizFilter} onChange={handleQuizFilterChange} />
 	</div>
 
 	{#if quizzes.length > 0}
@@ -152,7 +184,11 @@
 	</div>
 
 	<div class="mt-4">
-		<ModeToggle value={submissionFilter} onChange={handleSubmissionFilterChange} />
+		<ModeToggle
+			variant="minimal"
+			value={submissionFilter}
+			onChange={handleSubmissionFilterChange}
+		/>
 	</div>
 
 	{#if totalCount > 0}

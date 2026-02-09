@@ -46,6 +46,7 @@ export const user = pgTable(
 		slug: text('slug').notNull(),
 		emailVerified: boolean('email_verified'),
 		image: text('image'),
+		bio: jsonb('bio').$type<Record<string, unknown> | null>(),
 		role: text('role').notNull().default('user'),
 		isSuspended: boolean('is_suspended').default(false),
 		suspendedAt: timestamp('suspended_at'),
