@@ -126,7 +126,7 @@
 							>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-								>Owner</th
+								>Creator</th
 							>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
@@ -162,10 +162,10 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<a
-											href="/admin/users/{quiz.ownerId}"
+											href="/admin/users/{quiz.creatorId}"
 											class="text-sm text-blue-600 hover:text-blue-900"
 										>
-											{quiz.ownerName || quiz.ownerSlug}
+											{quiz.creatorName || quiz.creatorSlug}
 										</a>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -202,7 +202,7 @@
 									<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
 										<div class="flex gap-2">
 											<a
-												href="/{quiz.ownerSlug}/{quiz.slug}"
+												href="/{quiz.creatorSlug}/{quiz.slug}"
 												target="_blank"
 												class="text-blue-600 hover:text-blue-900"
 											>
@@ -287,7 +287,7 @@
 				<p class="text-sm text-yellow-800">
 					<strong>Warning:</strong> This quiz has {quizToDelete.speedRunId
 						? 'speed run enabled'
-						: 'regular mode'} and belongs to {quizToDelete.ownerName || quizToDelete.ownerSlug}.
+						: 'regular mode'} and belongs to {quizToDelete.creatorName || quizToDelete.creatorSlug}.
 				</p>
 			</div>
 			<form method="POST" action="?/delete" class="space-y-4">

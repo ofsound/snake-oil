@@ -8,22 +8,22 @@ import { quizzes, user } from '$lib/server/db/schema';
 import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ params, locals }) => {
-	const { owner, quiz_slug: quizSlug } = params;
+	const { creator, quiz_slug: quizSlug } = params;
 
-	// Find owner by slug
-	const ownerRecord = await db.query.user.findFirst({
-		where: eq(user.slug, owner)
+	// Find creator by slug
+	const creatorRecord = await db.query.user.findFirst({
+		where: eq(user.slug, creator)
 	});
 
-	if (!ownerRecord) {
+	if (!creatorRecord) {
 		error(404, 'User not found');
 	}
 
-	// Find quiz by ownerId + slug
+	// Find quiz by creatorId + slug
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+		where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 		with: {
-			owner: true,
+			creator: true,
 			speedRun: true
 		}
 	});
@@ -35,22 +35,22 @@ export const load: LayoutServerLoad = async ({ params, locals }) => {
 	// Check permissions using locals.user (not locals.auth())
 	const currentUser = locals.user;
 
-	const isOwner = currentUser?.id === quiz.ownerId;
+	const isCreator = currentUser?.id === quiz.creatorId;
 	const isAdmin = currentUser?.role === 'admin';
 
-	// Show nav only to owner (their quiz) or admin (any quiz)
-	const showOwnerNav = isOwner || isAdmin;
+	// Show nav only to creator (their quiz) or admin (any quiz)
+	const showCreatorNav = isCreator || isAdmin;
 
 	return {
 		quiz: {
 			id: quiz.id,
 			title: quiz.title,
 			slug: quiz.slug,
-			owner: quiz.owner,
+			creator: quiz.creator,
 			hasSpeedRun: !!quiz.speedRun
 		},
-		showOwnerNav,
-		isOwner,
+		showCreatorNav,
+		isCreator,
 		isAdmin
 	};
 };

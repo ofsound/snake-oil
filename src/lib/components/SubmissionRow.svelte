@@ -6,8 +6,8 @@
 		type: 'quiz' | 'speedrun';
 		quizTitle: string;
 		quizSlug: string;
-		ownerSlug: string;
-		ownerName: string;
+		creatorSlug: string;
+		creatorName: string;
 		createdAt: Date;
 		totalCorrect?: number;
 		totalQuestions?: number;
@@ -25,7 +25,7 @@
 
 	let { submission }: Props = $props();
 
-	const rowHref = $derived(resolve(`/${submission.ownerSlug}/${submission.quizSlug}`));
+	const rowHref = $derived(resolve(`/${submission.creatorSlug}/${submission.quizSlug}`));
 
 	function handleClick(event: MouseEvent): void {
 		if (event.metaKey || event.ctrlKey) {
@@ -70,7 +70,7 @@
 	<div class="flex min-w-0 flex-1 flex-col gap-1">
 		<div class="flex flex-wrap items-center gap-2">
 			<div class="truncate font-semibold tracking-wide">{submission.quizTitle}</div>
-			<span class="text-xs text-gray-500 dark:text-gray-400">by {submission.ownerName}</span>
+			<span class="text-xs text-gray-500 dark:text-gray-400">by {submission.creatorName}</span>
 		</div>
 		<div class="text-xs text-gray-500 dark:text-gray-400">
 			{formatDate(submission.createdAt)}

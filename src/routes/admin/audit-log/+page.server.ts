@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ url }) => {
 					slug: true
 				}
 			},
-			targetOwner: {
+			targetCreator: {
 				columns: {
 					name: true,
 					slug: true

@@ -61,13 +61,13 @@ export const load: PageServerLoad = async ({ url }) => {
 						quizId: quizzes.id,
 						title: quizzes.title,
 						slug: quizzes.slug,
-						ownerName: user.name,
-						ownerSlug: user.slug,
+						creatorName: user.name,
+						creatorSlug: user.slug,
 						createdAt: quizzes.createdAt
 					})
 					.from(quizTags)
 					.innerJoin(quizzes, eq(quizTags.quizId, quizzes.id))
-					.innerJoin(user, eq(quizzes.ownerId, user.id))
+					.innerJoin(user, eq(quizzes.creatorId, user.id))
 					.where(eq(quizzes.visibility, 'public'))
 					.orderBy(desc(quizzes.createdAt))
 			: [];
@@ -94,9 +94,9 @@ export const load: PageServerLoad = async ({ url }) => {
 				id: p.quizId,
 				title: p.title,
 				slug: p.slug,
-				owner: {
-					name: p.ownerName,
-					slug: p.ownerSlug
+				creator: {
+					name: p.creatorName,
+					slug: p.creatorSlug
 				},
 				createdAt: p.createdAt
 			})) || []

@@ -141,7 +141,7 @@ export async function processQuizSubmission(
 		if (quizId) {
 			// EDIT MODE: Update existing quiz
 			const existingQuiz = await db.query.quizzes.findFirst({
-				where: and(eq(quizzes.id, quizId), eq(quizzes.ownerId, userId)),
+				where: and(eq(quizzes.id, quizId), eq(quizzes.creatorId, userId)),
 				columns: { id: true, visibility: true }
 			});
 
@@ -183,7 +183,7 @@ export async function processQuizSubmission(
 			const [quiz] = await db
 				.insert(quizzes)
 				.values({
-					ownerId: userId,
+					creatorId: userId,
 					title: data.title,
 					slug: finalSlug,
 					description: data.description,

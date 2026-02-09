@@ -8,16 +8,16 @@
 	// Determine current page from URL
 	let currentPath = $derived(page.url.pathname);
 	let isQuizPage = $derived(
-		currentPath === `/${data.quiz.owner.slug}/${data.quiz.slug}` ||
-			currentPath === `/${data.quiz.owner.slug}/${data.quiz.slug}/`
+		currentPath === `/${data.quiz.creator.slug}/${data.quiz.slug}` ||
+			currentPath === `/${data.quiz.creator.slug}/${data.quiz.slug}/`
 	);
 	let isSubmissionsPage = $derived(currentPath.includes('/submissions'));
 	let isEditPage = $derived(currentPath.includes('/edit'));
 
-	const basePath = $derived(`/${data.quiz.owner.slug}/${data.quiz.slug}`);
+	const basePath = $derived(`/${data.quiz.creator.slug}/${data.quiz.slug}`);
 </script>
 
-{#if data.showOwnerNav}
+{#if data.showCreatorNav}
 	<nav class="border-b border-gray-200 bg-gray-50 py-3 dark:border-gray-700 dark:bg-gray-800/50">
 		<div class="mx-auto flex max-w-5xl items-center gap-2 px-8">
 			{#if isQuizPage}

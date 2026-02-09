@@ -122,10 +122,10 @@
 				{data.quiz.createdAt ? new Date(data.quiz.createdAt).toLocaleDateString() : ''}
 				by
 				<a
-					href={resolve(`/user/${data.quiz.owner.slug}`)}
+					href={resolve(`/user/${data.quiz.creator.slug}`)}
 					class="font-semibold text-indigo-700 hover:underline"
 				>
-					{data.quiz.owner.name || data.quiz.owner.slug}
+					{data.quiz.creator.name || data.quiz.creator.slug}
 				</a>
 			</div>
 
@@ -207,7 +207,7 @@
 
 				<div class="flex flex-col items-center gap-3">
 					<Button
-						href="/{data.quiz.owner.slug}/{data.quiz.slug}"
+						href="/{data.quiz.creator.slug}/{data.quiz.slug}"
 						variant="outline"
 						size="sm"
 						onclick={() => {
@@ -219,7 +219,7 @@
 
 					{#if data.nextRegularQuiz}
 						<Button
-							href="/{data.nextRegularQuiz.ownerSlug}/{data.nextRegularQuiz.slug}"
+							href="/{data.nextRegularQuiz.creatorSlug}/{data.nextRegularQuiz.slug}"
 							variant="primary"
 							size="md"
 						>

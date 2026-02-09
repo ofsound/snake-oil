@@ -146,9 +146,9 @@
 										{#if action.targetId}
 											<div class="max-w-xs truncate text-xs text-gray-500">{action.targetId}</div>
 										{/if}
-										{#if action.targetOwner}
+										{#if action.targetCreator}
 											<div class="mt-1 text-xs text-gray-400">
-												Owner: {action.targetOwner.name || action.targetOwner.slug}
+												Creator: {action.targetCreator.name || action.targetCreator.slug}
 											</div>
 										{/if}
 									</td>

@@ -123,7 +123,7 @@
 				{#each quizzes as quiz (quiz.id)}
 					<GlassCard padding="none" interactive={true} glowOnHover={true}>
 						<div class="p-5">
-							<QuizRow {quiz} showOwner={true} />
+							<QuizRow {quiz} showCreator={true} />
 						</div>
 					</GlassCard>
 				{/each}

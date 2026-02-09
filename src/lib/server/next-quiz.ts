@@ -7,23 +7,23 @@ export interface NextQuizResult {
 	id: string;
 	title: string;
 	slug: string;
-	ownerSlug: string;
+	creatorSlug: string;
 }
 
 export async function getNextQuiz(
 	db: Db,
 	options: {
-		ownerId: string;
+		creatorId: string;
 		currentQuizId: string;
 		userId?: string;
 		mode: 'regular' | 'speedrun';
 	}
 ): Promise<NextQuizResult | null> {
-	const { ownerId, currentQuizId, userId, mode } = options;
+	const { creatorId, currentQuizId, userId, mode } = options;
 
 	// Build the base query conditions
 	const baseConditions = [
-		eq(quizzes.ownerId, ownerId),
+		eq(quizzes.creatorId, creatorId),
 		ne(quizzes.id, currentQuizId),
 		eq(quizzes.visibility, 'public')
 	];
@@ -50,10 +50,10 @@ export async function getNextQuiz(
 				id: quizzes.id,
 				title: quizzes.title,
 				slug: quizzes.slug,
-				ownerSlug: user.slug
+				creatorSlug: user.slug
 			})
 			.from(quizzes)
-			.innerJoin(user, eq(quizzes.ownerId, user.id))
+			.innerJoin(user, eq(quizzes.creatorId, user.id))
 			.where(
 				and(
 					...baseConditions,
@@ -73,16 +73,16 @@ export async function getNextQuiz(
 		}
 	}
 
-	// Fallback: return a random quiz from the same owner with matching mode
+	// Fallback: return a random quiz from the same creator with matching mode
 	const fallbackQuiz = await db
 		.select({
 			id: quizzes.id,
 			title: quizzes.title,
 			slug: quizzes.slug,
-			ownerSlug: user.slug
+			creatorSlug: user.slug
 		})
 		.from(quizzes)
-		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.where(and(...baseConditions))
 		.orderBy(sql`RANDOM()`)
 		.limit(1);

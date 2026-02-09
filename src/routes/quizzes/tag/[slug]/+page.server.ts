@@ -57,13 +57,13 @@ export const load: PageServerLoad = async ({ params, url }) => {
 			slug: quizzes.slug,
 			description: quizzes.description,
 			createdAt: quizzes.createdAt,
-			ownerName: user.name,
-			ownerSlug: user.slug,
+			creatorName: user.name,
+			creatorSlug: user.slug,
 			speedRunId: speedRuns.id
 		})
 		.from(quizTags)
 		.innerJoin(quizzes, eq(quizTags.quizId, quizzes.id))
-		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(and(eq(quizTags.tagId, tag.id), eq(quizzes.visibility, 'public')))
 		.orderBy(desc(quizzes.createdAt))
@@ -101,9 +101,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		slug: row.slug,
 		description: row.description,
 		createdAt: row.createdAt,
-		owner: {
-			name: row.ownerName,
-			slug: row.ownerSlug
+		creator: {
+			name: row.creatorName,
+			slug: row.creatorSlug
 		},
 		speedRun: row.speedRunId ? { id: row.speedRunId } : null,
 		tags: tagsByQuiz.get(row.id)?.map((t) => ({ id: t.id, label: t.label, slug: t.slug })) || []

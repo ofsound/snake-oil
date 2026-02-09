@@ -48,7 +48,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		orderByClause = orderFn(quizzes.createdAt);
 	}
 
-	// Get quizzes with owner info
+	// Get quizzes with creator info
 	const quizzesList = await db
 		.select({
 			id: quizzes.id,
@@ -57,13 +57,13 @@ export const load: PageServerLoad = async ({ url }) => {
 			description: quizzes.description,
 			visibility: quizzes.visibility,
 			createdAt: quizzes.createdAt,
-			ownerId: quizzes.ownerId,
-			ownerName: user.name,
-			ownerSlug: user.slug,
+			creatorId: quizzes.creatorId,
+			creatorName: user.name,
+			creatorSlug: user.slug,
 			speedRunId: speedRuns.id
 		})
 		.from(quizzes)
-		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
 		.orderBy(orderByClause)
@@ -74,7 +74,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const totalResult = await db
 		.select({ value: count() })
 		.from(quizzes)
-		.innerJoin(user, eq(quizzes.ownerId, user.id))
+		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause);
 
@@ -120,7 +120,7 @@ export const actions: Actions = {
 		const quiz = await db.query.quizzes.findFirst({
 			where: eq(quizzes.id, quizId),
 			with: {
-				owner: {
+				creator: {
 					columns: {
 						id: true,
 						name: true,
@@ -164,11 +164,11 @@ export const actions: Actions = {
 			AdminActionTypes.DELETE_QUIZ,
 			TargetTypes.QUIZ,
 			quizId,
-			quiz.ownerId,
+			quiz.creatorId,
 			{
 				title: quiz.title,
-				ownerName: quiz.owner?.name,
-				ownerSlug: quiz.owner?.slug,
+				creatorName: quiz.creator?.name,
+				creatorSlug: quiz.creator?.slug,
 				visibility: quiz.visibility,
 				questionCount: soundbiteCount[0]?.value ?? 0,
 				submissionCount: submissionCount[0]?.value ?? 0

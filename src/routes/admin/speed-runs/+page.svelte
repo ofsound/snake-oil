@@ -193,7 +193,7 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<a
-											href="/{result.speedRun.quiz.owner.slug}/{result.speedRun.quiz.slug}"
+											href="/{result.speedRun.quiz.creator.slug}/{result.speedRun.quiz.slug}"
 											target="_blank"
 											class="text-sm font-medium text-blue-600 hover:text-blue-900"
 										>

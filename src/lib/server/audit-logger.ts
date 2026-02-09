@@ -7,7 +7,7 @@ import { adminActions } from '$lib/server/db/schema';
  * @param action - The action being performed (e.g., 'delete_quiz', 'suspend_user')
  * @param targetType - The type of target (e.g., 'quiz', 'user', 'tag')
  * @param targetId - The ID of the target (optional)
- * @param targetOwnerId - The ID of the target's owner (optional, for notifications)
+ * @param targetCreatorId - The ID of the target's creator (optional, for notifications)
  * @param details - Additional details about the action (optional)
  */
 export async function logAdminAction(
@@ -15,7 +15,7 @@ export async function logAdminAction(
 	action: string,
 	targetType: string,
 	targetId?: string,
-	targetOwnerId?: string,
+	targetCreatorId?: string,
 	details?: Record<string, unknown>
 ): Promise<void> {
 	await db.insert(adminActions).values({
@@ -23,7 +23,7 @@ export async function logAdminAction(
 		action,
 		targetType,
 		targetId,
-		targetOwnerId,
+		targetCreatorId,
 		details: details ?? {},
 		createdAt: new Date()
 	});

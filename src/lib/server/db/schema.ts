@@ -104,7 +104,7 @@ export const quizzes = pgTable(
 	'quizzes',
 	{
 		id: uuid('id').defaultRandom().primaryKey(),
-		ownerId: text('owner_id')
+		creatorId: text('creator_id')
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
 		title: text('title').notNull(),
@@ -114,8 +114,8 @@ export const quizzes = pgTable(
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [
-		uniqueIndex('quizzes_owner_slug_unique').on(table.ownerId, table.slug),
-		index('quizzes_owner_idx').on(table.ownerId),
+		uniqueIndex('quizzes_creator_slug_unique').on(table.creatorId, table.slug),
+		index('quizzes_creator_idx').on(table.creatorId),
 		index('quizzes_visibility_idx').on(table.visibility)
 	]
 );
@@ -208,8 +208,8 @@ export const speedRunResults = pgTable(
 
 // Relations
 export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
-	owner: one(user, {
-		fields: [quizzes.ownerId],
+	creator: one(user, {
+		fields: [quizzes.creatorId],
 		references: [user.id]
 	}),
 	soundbites: many(soundbites),
@@ -359,7 +359,7 @@ export const adminActions = pgTable(
 		action: text('action').notNull(),
 		targetType: text('target_type').notNull(),
 		targetId: text('target_id'),
-		targetOwnerId: text('target_owner_id').references(() => user.id, { onDelete: 'set null' }),
+		targetCreatorId: text('target_creator_id').references(() => user.id, { onDelete: 'set null' }),
 		details: jsonb('details'),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
@@ -400,8 +400,8 @@ export const adminActionsRelations = relations(adminActions, ({ one }) => ({
 		fields: [adminActions.adminId],
 		references: [user.id]
 	}),
-	targetOwner: one(user, {
-		fields: [adminActions.targetOwnerId],
+	targetCreator: one(user, {
+		fields: [adminActions.targetCreatorId],
 		references: [user.id]
 	})
 }));
@@ -421,7 +421,7 @@ export const contentReportsRelations = relations(contentReports, ({ one }) => ({
 // Update user relations to include new relationships
 export const userRelations = relations(user, ({ one, many }) => ({
 	adminActions: many(adminActions),
-	targetedActions: many(adminActions, { relationName: 'targetOwner' }),
+	targetedActions: many(adminActions, { relationName: 'targetCreator' }),
 	reportsMade: many(contentReports, { relationName: 'reporter' }),
 	reportsResolved: many(contentReports, { relationName: 'resolver' }),
 	suspendedByUser: one(user, {

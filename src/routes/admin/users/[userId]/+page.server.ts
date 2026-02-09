@@ -30,7 +30,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	// Get user's quizzes
 	const userQuizzes = await db.query.quizzes.findMany({
-		where: eq(quizzes.ownerId, userId),
+		where: eq(quizzes.creatorId, userId),
 		orderBy: desc(quizzes.createdAt)
 	});
 
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 					slug: true
 				},
 				with: {
-					owner: {
+					creator: {
 						columns: {
 							slug: true
 						}
@@ -68,7 +68,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 							slug: true
 						},
 						with: {
-							owner: {
+							creator: {
 								columns: {
 									slug: true
 								}

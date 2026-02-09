@@ -100,7 +100,7 @@
 					{#if data.quizzes.length > 0}
 						<div class="divide-y divide-gray-200 dark:divide-gray-700">
 							{#each data.quizzes as quiz (quiz.id)}
-								<QuizRow {quiz} showOwner={true} />
+								<QuizRow {quiz} showCreator={true} />
 							{/each}
 						</div>
 					{:else}

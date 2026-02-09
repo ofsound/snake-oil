@@ -36,7 +36,7 @@
 		nextQuiz?: {
 			slug: string;
 			title: string;
-			ownerSlug: string;
+			creatorSlug: string;
 		} | null;
 	}
 

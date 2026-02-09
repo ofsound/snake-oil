@@ -38,7 +38,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	// Fetch public quizzes owned by this user, ordered by creation date (newest first)
 	const userQuizzes = await db.query.quizzes.findMany({
-		where: and(eq(quizzes.ownerId, foundUser.id), eq(quizzes.visibility, 'public')),
+		where: and(eq(quizzes.creatorId, foundUser.id), eq(quizzes.visibility, 'public')),
 		orderBy: desc(quizzes.createdAt),
 		columns: {
 			id: true,
@@ -53,7 +53,7 @@ export const load: PageServerLoad = async ({ params }) => {
 					id: true
 				}
 			},
-			owner: {
+			creator: {
 				columns: {
 					slug: true,
 					name: true

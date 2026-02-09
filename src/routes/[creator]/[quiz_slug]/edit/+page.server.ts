@@ -28,24 +28,24 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		redirect(302, getLoginUrl(returnUrl));
 	}
 
-	const { owner, quiz_slug: quizSlug } = params;
+	const { creator, quiz_slug: quizSlug } = params;
 
-	// Find owner
-	const ownerRecord = await db.query.user.findFirst({
-		where: eq(user.slug, owner)
+	// Find creator
+	const creatorRecord = await db.query.user.findFirst({
+		where: eq(user.slug, creator)
 	});
 
-	if (!ownerRecord) {
+	if (!creatorRecord) {
 		error(404, 'User not found');
 	}
 
-	// Only allow editing if current user is the owner
-	if (ownerRecord.id !== locals.user.id) {
+	// Only allow editing if current user is the creator
+	if (creatorRecord.id !== locals.user.id) {
 		error(403, 'You can only edit your own quizzes');
 	}
 
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+		where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 		with: {
 			soundbites: {
 				with: {
@@ -90,10 +90,10 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			description: quiz.description,
 			visibility: quiz.visibility,
 			createdAt: quiz.createdAt,
-			owner: {
-				id: ownerRecord.id,
-				name: ownerRecord.name,
-				slug: ownerRecord.slug
+			creator: {
+				id: creatorRecord.id,
+				name: creatorRecord.name,
+				slug: creatorRecord.slug
 			}
 		},
 		soundbites: soundbiteItems,
@@ -120,18 +120,18 @@ export const actions: Actions = {
 			return fail(500, { message: 'Blob storage not configured.' });
 		}
 
-		const { owner, quiz_slug: quizSlug } = params;
+		const { creator, quiz_slug: quizSlug } = params;
 
-		const ownerRecord = await db.query.user.findFirst({
-			where: eq(user.slug, owner)
+		const creatorRecord = await db.query.user.findFirst({
+			where: eq(user.slug, creator)
 		});
 
-		if (!ownerRecord || ownerRecord.id !== locals.user.id) {
+		if (!creatorRecord || creatorRecord.id !== locals.user.id) {
 			return fail(403, { message: 'You do not have permission to delete this quiz.' });
 		}
 
 		const existingQuiz = await db.query.quizzes.findFirst({
-			where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+			where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 			columns: { id: true, visibility: true },
 			with: {
 				soundbites: {
@@ -192,18 +192,18 @@ export const actions: Actions = {
 			return fail(500, { message: 'Blob storage not configured.' });
 		}
 
-		const { owner, quiz_slug: quizSlug } = params;
+		const { creator, quiz_slug: quizSlug } = params;
 
-		const ownerRecord = await db.query.user.findFirst({
-			where: eq(user.slug, owner)
+		const creatorRecord = await db.query.user.findFirst({
+			where: eq(user.slug, creator)
 		});
 
-		if (!ownerRecord || ownerRecord.id !== locals.user.id) {
+		if (!creatorRecord || creatorRecord.id !== locals.user.id) {
 			return fail(403, { message: 'You do not have permission to edit this quiz.' });
 		}
 
 		const existingQuiz = await db.query.quizzes.findFirst({
-			where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+			where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 			columns: { id: true },
 			with: {
 				speedRun: {
@@ -240,7 +240,7 @@ export const actions: Actions = {
 
 		// If the slug changed, redirect to the new URL
 		if (result.slug && result.slug !== quizSlug) {
-			redirect(302, `/${owner}/${result.slug}/edit`);
+			redirect(302, `/${creator}/${result.slug}/edit`);
 		}
 
 		return { success: true };

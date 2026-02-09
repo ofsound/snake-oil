@@ -35,7 +35,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 	// Fetch all quizzes owned by the current user, ordered by creation date (newest first)
 	const userQuizzes = await db.query.quizzes.findMany({
-		where: eq(quizzes.ownerId, locals.user.id),
+		where: eq(quizzes.creatorId, locals.user.id),
 		orderBy: desc(quizzes.createdAt),
 		columns: {
 			id: true,
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 					id: true
 				}
 			},
-			owner: {
+			creator: {
 				columns: {
 					slug: true,
 					name: true
@@ -103,8 +103,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		type: 'quiz';
 		quizTitle: string;
 		quizSlug: string;
-		ownerSlug: string;
-		ownerName: string;
+		creatorSlug: string;
+		creatorName: string;
 		createdAt: Date;
 		totalCorrect: number;
 		totalQuestions: number;
@@ -117,8 +117,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				id: quizAnswers.id,
 				quizTitle: quizzes.title,
 				quizSlug: quizzes.slug,
-				ownerSlug: user.slug,
-				ownerName: user.name,
+				creatorSlug: user.slug,
+				creatorName: user.name,
 				createdAt: quizAnswers.createdAt,
 				totalCorrect: quizAnswers.totalCorrect,
 				totalQuestions: quizAnswers.totalQuestions,
@@ -126,15 +126,15 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			})
 			.from(quizAnswers)
 			.innerJoin(quizzes, eq(quizAnswers.quizId, quizzes.id))
-			.innerJoin(user, eq(quizzes.ownerId, user.id))
+			.innerJoin(user, eq(quizzes.creatorId, user.id))
 			.where(eq(quizAnswers.userId, locals.user.id))
 			.orderBy(desc(quizAnswers.createdAt));
 
 		quizSubmissions = regularSubmissions.map((s) => ({
 			...s,
 			type: 'quiz' as const,
-			ownerSlug: s.ownerSlug || '',
-			ownerName: s.ownerName || 'Unknown'
+			creatorSlug: s.creatorSlug || '',
+			creatorName: s.creatorName || 'Unknown'
 		}));
 	}
 
@@ -144,8 +144,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		type: 'speedrun';
 		quizTitle: string;
 		quizSlug: string;
-		ownerSlug: string;
-		ownerName: string;
+		creatorSlug: string;
+		creatorName: string;
 		createdAt: Date;
 		correctCount: number;
 		totalQuestions: number;
@@ -162,8 +162,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				speedRunId: speedRunResults.speedRunId,
 				quizTitle: quizzes.title,
 				quizSlug: quizzes.slug,
-				ownerSlug: user.slug,
-				ownerName: user.name,
+				creatorSlug: user.slug,
+				creatorName: user.name,
 				createdAt: speedRunResults.createdAt,
 				correctCount: speedRunResults.correctCount,
 				totalQuestions: speedRunResults.totalQuestions,
@@ -174,7 +174,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 			.from(speedRunResults)
 			.innerJoin(speedRuns, eq(speedRunResults.speedRunId, speedRuns.id))
 			.innerJoin(quizzes, eq(speedRuns.quizId, quizzes.id))
-			.innerJoin(user, eq(quizzes.ownerId, user.id))
+			.innerJoin(user, eq(quizzes.creatorId, user.id))
 			.where(eq(speedRunResults.userId, locals.user.id))
 			.orderBy(desc(speedRunResults.createdAt));
 
@@ -200,8 +200,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 				type: 'speedrun' as const,
 				quizTitle: result.quizTitle,
 				quizSlug: result.quizSlug,
-				ownerSlug: result.ownerSlug || '',
-				ownerName: result.ownerName || 'Unknown',
+				creatorSlug: result.creatorSlug || '',
+				creatorName: result.creatorName || 'Unknown',
 				createdAt: result.createdAt,
 				correctCount: result.correctCount,
 				totalQuestions: result.totalQuestions,

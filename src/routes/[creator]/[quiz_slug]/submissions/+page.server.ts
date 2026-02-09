@@ -15,24 +15,24 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 		redirect(302, getLoginUrl(returnUrl));
 	}
 
-	const { owner, quiz_slug: quizSlug } = params;
+	const { creator, quiz_slug: quizSlug } = params;
 
-	// Find owner
-	const ownerRecord = await db.query.user.findFirst({
-		where: eq(user.slug, owner)
+	// Find creator
+	const creatorRecord = await db.query.user.findFirst({
+		where: eq(user.slug, creator)
 	});
 
-	if (!ownerRecord) {
+	if (!creatorRecord) {
 		error(404, 'User not found');
 	}
 
-	// Only allow viewing submissions if current user is the owner
-	if (ownerRecord.id !== locals.user.id) {
+	// Only allow viewing submissions if current user is the creator
+	if (creatorRecord.id !== locals.user.id) {
 		error(403, 'You can only view submissions for your own quizzes');
 	}
 
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+		where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 		with: {
 			soundbites: {
 				with: {
@@ -108,10 +108,10 @@ export const load: PageServerLoad = async ({ locals, params, url }) => {
 			description: quiz.description,
 			visibility: quiz.visibility,
 			createdAt: quiz.createdAt,
-			owner: {
-				id: ownerRecord.id,
-				name: ownerRecord.name,
-				slug: ownerRecord.slug
+			creator: {
+				id: creatorRecord.id,
+				name: creatorRecord.name,
+				slug: creatorRecord.slug
 			}
 		},
 		soundbites: soundbiteItems,

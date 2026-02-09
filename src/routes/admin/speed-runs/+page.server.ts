@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ url }) => {
 					slug: true
 				},
 				with: {
-					owner: {
+					creator: {
 						columns: {
 							slug: true
 						}
@@ -97,7 +97,7 @@ export const load: PageServerLoad = async ({ url }) => {
 							slug: true
 						},
 						with: {
-							owner: {
+							creator: {
 								columns: {
 									slug: true
 								}
@@ -136,7 +136,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			quizId: sr.quiz.id,
 			title: sr.quiz.title,
 			slug: sr.quiz.slug,
-			ownerSlug: sr.quiz.owner.slug
+			creatorSlug: sr.quiz.creator.slug
 		}))
 	};
 };
@@ -230,7 +230,7 @@ export const actions: Actions = {
 						slug: true
 					},
 					with: {
-						owner: {
+						creator: {
 							columns: {
 								slug: true
 							}

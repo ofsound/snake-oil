@@ -60,7 +60,7 @@
 		{#if quizzes.length > 0}
 			<div class="flex flex-col gap-3">
 				{#each quizzes as quiz (quiz.id)}
-					<QuizRow {quiz} showOwner={true} />
+					<QuizRow {quiz} showCreator={true} />
 				{/each}
 			</div>
 			<div class="mt-10 text-center">

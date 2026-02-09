@@ -22,22 +22,22 @@ import { getNextQuiz } from '$lib/server/next-quiz';
 import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
-	const { owner, quiz_slug: quizSlug } = params;
+	const { creator, quiz_slug: quizSlug } = params;
 
-	// First, find the owner by slug
-	const ownerRecord = await db.query.user.findFirst({
-		where: eq(user.slug, owner)
+	// First, find the creator by slug
+	const creatorRecord = await db.query.user.findFirst({
+		where: eq(user.slug, creator)
 	});
 
-	if (!ownerRecord) {
+	if (!creatorRecord) {
 		error(404, 'User not found');
 	}
 
-	// Then find the quiz by ownerId + slug
+	// Then find the quiz by creatorId + slug
 	const quiz = await db.query.quizzes.findFirst({
-		where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+		where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 		with: {
-			owner: true,
+			creator: true,
 			speedRun: true,
 			soundbites: {
 				with: {
@@ -52,9 +52,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		error(404, 'Quiz not found');
 	}
 
-	// Check visibility - only public quizzes or owner's quizzes
-	const isOwner = locals.user?.id === quiz.ownerId;
-	if (quiz.visibility !== 'public' && !isOwner) {
+	// Check visibility - only public quizzes or creator's quizzes
+	const isCreator = locals.user?.id === quiz.creatorId;
+	if (quiz.visibility !== 'public' && !isCreator) {
 		error(403, 'This quiz is private');
 	}
 
@@ -238,14 +238,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	// Fetch next quizzes for "Play Next" feature
 	const nextRegularQuiz = await getNextQuiz(db, {
-		ownerId: quiz.ownerId,
+		creatorId: quiz.creatorId,
 		currentQuizId: quiz.id,
 		userId: locals.user?.id,
 		mode: 'regular'
 	});
 
 	const nextSpeedRunQuiz = await getNextQuiz(db, {
-		ownerId: quiz.ownerId,
+		creatorId: quiz.creatorId,
 		currentQuizId: quiz.id,
 		userId: locals.user?.id,
 		mode: 'speedrun'
@@ -268,10 +268,10 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 						enableStreakBonus: quiz.speedRun.enableStreakBonus
 					}
 				: null,
-			owner: {
-				id: quiz.owner.id,
-				name: quiz.owner.name,
-				slug: quiz.owner.slug
+			creator: {
+				id: quiz.creator.id,
+				name: quiz.creator.name,
+				slug: quiz.creator.slug
 			}
 		},
 		soundbites: soundbiteItems,
@@ -289,7 +289,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 export const actions: Actions = {
 	// Regular quiz submission
 	submitQuiz: async ({ request, locals, params }: RequestEvent) => {
-		const { owner, quiz_slug: quizSlug } = params;
+		const { creator, quiz_slug: quizSlug } = params;
 
 		const formData = await request.formData();
 		const displayName = String(formData.get('displayName') ?? '').trim();
@@ -301,17 +301,17 @@ export const actions: Actions = {
 			return fail(400, { message: 'No answers submitted.' });
 		}
 
-		// Find owner and quiz
-		const ownerRecord = await db.query.user.findFirst({
-			where: eq(user.slug, owner)
+		// Find creator and quiz
+		const creatorRecord = await db.query.user.findFirst({
+			where: eq(user.slug, creator)
 		});
 
-		if (!ownerRecord) {
+		if (!creatorRecord) {
 			return fail(404, { message: 'User not found' });
 		}
 
 		const quiz = await db.query.quizzes.findFirst({
-			where: and(eq(quizzes.ownerId, ownerRecord.id), eq(quizzes.slug, quizSlug)),
+			where: and(eq(quizzes.creatorId, creatorRecord.id), eq(quizzes.slug, quizSlug)),
 			with: {
 				soundbites: {
 					orderBy: asc(soundbites.position)

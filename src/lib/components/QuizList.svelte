@@ -14,7 +14,7 @@
 		description: string;
 		slug: string;
 		createdAt: Date;
-		owner: { name: string | null; slug: string };
+		creator: { name: string | null; slug: string };
 	}
 
 	interface Props {
@@ -123,7 +123,7 @@
 
 	<div class="flex flex-col gap-3">
 		{#each quizzes as quiz (quiz.id)}
-			<QuizRow {quiz} showOwner={true} />
+			<QuizRow {quiz} showCreator={true} />
 		{/each}
 	</div>
 

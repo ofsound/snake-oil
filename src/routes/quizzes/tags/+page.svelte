@@ -175,14 +175,14 @@
 								<div class="space-y-2">
 									{#each tag.previews as quiz (quiz.id)}
 										<a
-											href={resolvePath(`/${quiz.owner.slug}/${quiz.slug}`)}
+											href={resolvePath(`/${quiz.creator.slug}/${quiz.slug}`)}
 											class="block rounded-md bg-gray-50 p-2 text-sm transition-colors hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800"
 										>
 											<div class="truncate font-medium text-gray-900 dark:text-gray-100">
 												{quiz.title}
 											</div>
 											<div class="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-												by {quiz.owner.name}
+												by {quiz.creator.name}
 											</div>
 										</a>
 									{/each}

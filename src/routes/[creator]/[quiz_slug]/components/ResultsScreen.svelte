@@ -18,7 +18,7 @@
 		nextQuiz?: {
 			slug: string;
 			title: string;
-			ownerSlug: string;
+			creatorSlug: string;
 		} | null;
 	}
 
@@ -162,7 +162,7 @@
 			</button>
 			{#if nextQuiz}
 				<a
-					href="/{nextQuiz.ownerSlug}/{nextQuiz.slug}"
+					href="/{nextQuiz.creatorSlug}/{nextQuiz.slug}"
 					class="flex-1 rounded-xl bg-white px-8 py-4 text-center text-xl font-bold text-slate-900 transition-all hover:scale-105 hover:bg-white/90"
 				>
 					Play Next: {nextQuiz.title}

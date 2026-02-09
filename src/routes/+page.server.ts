@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 			createdAt: true
 		},
 		with: {
-			owner: {
+			creator: {
 				columns: {
 					name: true,
 					slug: true
@@ -69,7 +69,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		const result = await db
 			.select({ count: count() })
 			.from(quizzes)
-			.where(eq(quizzes.ownerId, user.id));
+			.where(eq(quizzes.creatorId, user.id));
 		userQuizCount = result[0]?.count ?? 0;
 	}
 

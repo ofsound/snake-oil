@@ -31,11 +31,11 @@ export function canViewEmail(currentUser: UserLike | undefined): boolean {
 
 /**
  * Check if user can edit a quiz
- * Owner, moderators, and admins can edit
+ * Creator, moderators, and admins can edit
  */
-export function canEditQuiz(user: UserLike | undefined, quizOwnerId: string): boolean {
+export function canEditQuiz(user: UserLike | undefined, quizCreatorId: string): boolean {
 	if (!user) return false;
-	if (user.id === quizOwnerId) return true;
+	if (user.id === quizCreatorId) return true;
 	if (isModeratorOrBetter(user)) return true;
 	return false;
 }

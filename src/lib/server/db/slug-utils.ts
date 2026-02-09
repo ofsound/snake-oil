@@ -12,10 +12,10 @@ import { quizzes } from './schema';
  * incremented suffixes until a unique one is found. This is a query-only operation
  * that does not perform any database writes.
  *
- * Slugs are now unique per owner, not globally unique.
+ * Slugs are now unique per creator, not globally unique.
  *
  * @param baseSlug - The base slug to use (will be used as-is if available)
- * @param ownerId - The owner ID to check uniqueness against
+ * @param creatorId - The creator ID to check uniqueness against
  * @param excludeQuizId - Optional quiz ID to exclude from uniqueness check (useful when updating)
  * @param maxRetries - Maximum number of retry attempts (default: 100)
  * @returns A promise that resolves to a unique slug string
@@ -23,7 +23,7 @@ import { quizzes } from './schema';
  */
 export async function findUniqueSlug(
 	baseSlug: string,
-	ownerId: string,
+	creatorId: string,
 	excludeQuizId?: string,
 	maxRetries = 100
 ): Promise<string> {
@@ -32,8 +32,8 @@ export async function findUniqueSlug(
 	let counter = 2;
 
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
-		// Build the where clause: check if (ownerId, slug) exists, excluding the current quiz if provided
-		let conditions = and(eq(quizzes.ownerId, ownerId), eq(quizzes.slug, candidate));
+		// Build the where clause: check if (creatorId, slug) exists, excluding the current quiz if provided
+		let conditions = and(eq(quizzes.creatorId, creatorId), eq(quizzes.slug, candidate));
 
 		if (excludeQuizId) {
 			conditions = and(conditions, ne(quizzes.id, excludeQuizId));
@@ -41,7 +41,7 @@ export async function findUniqueSlug(
 
 		const existing = await db.select({ id: quizzes.id }).from(quizzes).where(conditions).limit(1);
 
-		// If no existing quiz found with this (ownerId, slug) combination, it's unique
+		// If no existing quiz found with this (creatorId, slug) combination, it's unique
 		if (existing.length === 0) {
 			return candidate;
 		}

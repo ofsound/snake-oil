@@ -14,7 +14,7 @@
 		title: string;
 		description: string;
 		createdAt: Date;
-		owner?: {
+		creator?: {
 			name: string | null;
 			slug: string;
 		};
@@ -26,21 +26,21 @@
 
 	interface Props {
 		quiz: Quiz;
-		showOwner?: boolean;
+		showCreator?: boolean;
 		showEditAndSubmissionsLinks?: boolean;
 	}
 
-	let { quiz, showOwner = false, showEditAndSubmissionsLinks = false }: Props = $props();
+	let { quiz, showCreator = false, showEditAndSubmissionsLinks = false }: Props = $props();
 
-	// New URL format: /[owner]/[quiz_slug]
-	// Owner slug is required for the new URL structure
-	const ownerSlug = $derived(quiz.owner?.slug ?? '');
+	// New URL format: /[creator]/[quiz_slug]
+	// Creator slug is required for the new URL structure
+	const creatorSlug = $derived(quiz.creator?.slug ?? '');
 
-	const rowHref = $derived(resolve(`/${ownerSlug}/${quiz.slug}`));
+	const rowHref = $derived(resolve(`/${creatorSlug}/${quiz.slug}`));
 
 	function handleClick(event: MouseEvent): void {
 		const target = event.target as HTMLElement;
-		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-creator-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -48,7 +48,7 @@
 		}
 	}
 
-	function handleOwnerClick(event: MouseEvent): void {
+	function handleCreatorClick(event: MouseEvent): void {
 		event.stopPropagation();
 	}
 
@@ -56,7 +56,7 @@
 		if (event.key !== 'Enter' && event.key !== ' ') return;
 		event.preventDefault();
 		const target = event.target as HTMLElement;
-		if (target.closest('[data-owner-link]')) return;
+		if (target.closest('[data-creator-link]')) return;
 		if (event.metaKey || event.ctrlKey) {
 			window.open(rowHref, '_blank');
 		} else {
@@ -106,7 +106,7 @@
 		<div class="flex items-center gap-2">
 			{#if showEditAndSubmissionsLinks}
 				<Button
-					href={resolve(`/${ownerSlug}/${quiz.slug}/edit`)}
+					href={resolve(`/${creatorSlug}/${quiz.slug}/edit`)}
 					variant="primary"
 					size="xs"
 					onclick={(e) => e.stopPropagation()}
@@ -114,7 +114,7 @@
 					Edit
 				</Button>
 				<Button
-					href={resolve(`/${ownerSlug}/${quiz.slug}/submissions`)}
+					href={resolve(`/${creatorSlug}/${quiz.slug}/submissions`)}
 					variant="primary"
 					size="xs"
 					onclick={(e) => e.stopPropagation()}
@@ -126,14 +126,14 @@
 				{new Date(quiz.createdAt).toLocaleDateString()}
 			</div>
 		</div>
-		{#if showOwner && quiz.owner && quiz.owner.name}
+		{#if showCreator && quiz.creator && quiz.creator.name}
 			<a
-				data-owner-link
-				href={resolve(`/user/${quiz.owner.slug}`)}
-				onclick={handleOwnerClick}
+				data-creator-link
+				href={resolve(`/user/${quiz.creator.slug}`)}
+				onclick={handleCreatorClick}
 				class="text-sm font-medium hover:text-indigo-800"
 			>
-				{quiz.owner.name}
+				{quiz.creator.name}
 			</a>
 		{/if}
 	</div>

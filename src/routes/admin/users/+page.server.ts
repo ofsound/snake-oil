@@ -74,12 +74,12 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	const quizCounts = await db
 		.select({
-			ownerId: quizzes.ownerId,
+			creatorId: quizzes.creatorId,
 			count: count()
 		})
 		.from(quizzes)
-		.where(sql`${quizzes.ownerId} IN ${userIds}`)
-		.groupBy(quizzes.ownerId);
+		.where(sql`${quizzes.creatorId} IN ${userIds}`)
+		.groupBy(quizzes.creatorId);
 
 	const submissionCounts = await db
 		.select({
@@ -100,7 +100,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.groupBy(speedRunResults.userId);
 
 	// Create lookup maps
-	const quizCountMap = new Map(quizCounts.map((c) => [c.ownerId, c.count]));
+	const quizCountMap = new Map(quizCounts.map((c) => [c.creatorId, c.count]));
 	const submissionCountMap = new Map(submissionCounts.map((c) => [c.userId, c.count]));
 	const speedRunCountMap = new Map(speedRunCounts.map((c) => [c.userId, c.count]));
 
