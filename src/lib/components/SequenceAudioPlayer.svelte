@@ -52,7 +52,7 @@
 	});
 
 	// Calculate elapsed time in the entire sequence
-	const elapsedTime = $derived(() => {
+	const elapsedTime = $derived.by(() => {
 		let elapsed = 0;
 		for (let i = 0; i < currentTrackIndex; i++) {
 			elapsed += engine.getTrackDuration(i);
@@ -206,7 +206,7 @@
 
 		<!-- Time Display -->
 		<div class="text-center text-xs text-gray-600">
-			{formatTime(elapsedTime())} / {formatTime(totalDuration)}
+			{formatTime(elapsedTime)} / {formatTime(totalDuration)}
 		</div>
 	{/if}
 

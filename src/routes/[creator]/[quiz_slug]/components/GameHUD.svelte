@@ -37,7 +37,7 @@
 		questionTimeLimitMs > 0 ? (questionRemainingMs / questionTimeLimitMs) * 100 : 100
 	);
 
-	const timerColor = $derived(() => {
+	const timerColor = $derived.by(() => {
 		if (questionTimerPercent > 50) return '#22c55e'; // Green
 		if (questionTimerPercent > 25) return '#f97316'; // Orange
 		return '#ef4444'; // Red
@@ -90,7 +90,7 @@
 						<path
 							d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
 							fill="none"
-							stroke={timerColor()}
+							stroke={timerColor}
 							stroke-width="3"
 							stroke-dasharray="{questionTimerPercent}, 100"
 							class="transition-all duration-100"
