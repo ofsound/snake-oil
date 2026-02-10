@@ -137,7 +137,7 @@ export type AnswersPayload = Record<string, AnswerDetail>;
 
 import { z } from 'zod';
 
-import { MAX_SIMPLE_GUESS_ANSWERS, MIN_SIMPLE_GUESS_ANSWERS } from '$lib/constants/variants';
+import { MAX_SIMPLE_GUESS_ANSWERS, MIN_SIMPLE_GUESS_ANSWERS } from './constants/variants';
 
 // Zod schemas for runtime validation (shared between client and server)
 

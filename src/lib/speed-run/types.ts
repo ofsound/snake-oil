@@ -1,7 +1,7 @@
 // Speed Run Game Types
 // Types for the speed run quiz game mode
 
-import type { AnswerDetail } from '$lib/variant-types';
+import type { AnswerDetail } from '../variant-types';
 
 // Game phases
 export type GamePhase =
