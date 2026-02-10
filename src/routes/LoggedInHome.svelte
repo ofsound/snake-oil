@@ -14,32 +14,12 @@
 	let { data }: Props = $props();
 
 	let quizzes = $derived(data.quizzes ?? []);
-	let user = $derived(data.user);
 </script>
 
 <PageContainer>
 	<section class="mx-auto w-full max-w-4xl dark:bg-gray-900">
 		<div class="flex flex-col items-center text-center">
-			<div
-				class="rounded-2xl border border-gray-200 bg-gray-50 px-6 py-3 dark:border-gray-700 dark:bg-gray-800"
-			>
-				{#if (user?.quizCount ?? 0) > 0}
-					<p class="text-sm text-gray-600 dark:text-gray-400">
-						<span>✨</span>
-						<span>Welcome back, <span class="font-bold">{user?.name}</span>!</span>
-						You've created
-						<span class="font-bold text-emerald-600 dark:text-emerald-400">{user?.quizCount}</span>
-						quiz{(user?.quizCount ?? 0) === 1 ? '' : 'zes'} so far.
-					</p>
-				{:else}
-					<p class="text-sm text-gray-600 dark:text-gray-400">Ready to create your first quiz?</p>
-					<div class="flex justify-center gap-3">
-						<Button href="/quizzes" variant="outline" size="sm">Browse Examples</Button>
-						<Button href={resolve('/create')} variant="primary" size="sm">Create Now</Button>
-					</div>
-				{/if}
-			</div>
-			<div class="bg-purple mt-10 w-full">
+			<div class="bg-purple mt-6 w-full">
 				<Button
 					href={resolve('/create')}
 					variant="glow"
