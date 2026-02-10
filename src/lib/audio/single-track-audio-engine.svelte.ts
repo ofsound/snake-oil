@@ -75,7 +75,6 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		if (this.trackUrl !== url) {
 			this.currentTime = 0;
 			this.pausedAt = 0;
-			console.log('[SingleTrackAudioEngine] Loading new track, resetting isFirstPlay to true');
 			this.isFirstPlay = true;
 		}
 
@@ -215,30 +214,19 @@ export class SingleTrackAudioEngine extends BaseAudioEngine {
 		}
 
 		const state = this.getCurrentState();
-		console.log(
-			'[SingleTrackAudioEngine] togglePlayPause state:',
-			state,
-			'isFirstPlay:',
-			this.isFirstPlay
-		);
 
 		// Route to appropriate state transition
 		if (state.playback === PlaybackState.PLAYING && state.contextState === 'running') {
-			console.log('[SingleTrackAudioEngine] -> transitionToPaused');
 			this.transitionToPaused();
 		} else if (state.playback === PlaybackState.PAUSED) {
-			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromPaused');
 			this.transitionToPlayingFromPaused();
 		} else if (state.isFirstPlay) {
 			// Must check isFirstPlay before contextState - initial play needs full start sequence
-			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromStart (isFirstPlay)');
 			this.isFirstPlay = false;
 			this.transitionToPlayingFromStart();
 		} else if (state.contextState === 'suspended') {
-			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromSuspended');
 			this.transitionToPlayingFromSuspended();
 		} else {
-			console.log('[SingleTrackAudioEngine] -> transitionToPlayingFromStart (fallback)');
 			this.transitionToPlayingFromStart();
 		}
 	}

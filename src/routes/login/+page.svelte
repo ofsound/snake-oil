@@ -42,7 +42,6 @@
 
 			// Success - redirect to the return URL or home page
 			if (data) {
-				console.log('Sign in successful:', data.user);
 				// Redirect to the validated return URL and refresh session data
 				goto(resolvePath(redirectUrl), { invalidateAll: true });
 			}

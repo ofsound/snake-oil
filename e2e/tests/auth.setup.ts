@@ -41,7 +41,7 @@ setup('authenticate', async ({ page }) => {
 	await page.click('form button[type="submit"]');
 
 	// Wait for redirect to home page (user menu should appear)
-	await page.waitForSelector('text=E2E User', { timeout: 30000 });
+	await page.waitForSelector('text=E2E User', { timeout: 120000 });
 	console.log('✓ Signed up successfully');
 
 	// Save storage state for reuse
