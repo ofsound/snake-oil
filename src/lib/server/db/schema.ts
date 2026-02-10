@@ -217,7 +217,10 @@ export const quizzesRelations = relations(quizzes, ({ one, many }) => ({
 	}),
 	soundbites: many(soundbites),
 	quizAnswers: many(quizAnswers),
-	speedRun: one(speedRuns),
+	speedRun: one(speedRuns, {
+		fields: [quizzes.id],
+		references: [speedRuns.quizId]
+	}),
 	tags: many(quizTags)
 }));
 
