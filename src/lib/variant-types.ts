@@ -137,6 +137,8 @@ export type AnswersPayload = Record<string, AnswerDetail>;
 
 import { z } from 'zod';
 
+import { MAX_SIMPLE_GUESS_ANSWERS, MIN_SIMPLE_GUESS_ANSWERS } from '$lib/constants/variants';
+
 // Zod schemas for runtime validation (shared between client and server)
 
 const MultipleChoiceOptionSchema = z.object({
@@ -173,7 +175,10 @@ const RankItemSchema = z.object({
 
 const SimpleGuessConfigSchema = z.object({
 	type: z.literal('simple_guess'),
-	correctAnswers: z.array(z.string().min(1)).min(1)
+	correctAnswers: z
+		.array(z.string().min(1))
+		.min(MIN_SIMPLE_GUESS_ANSWERS)
+		.max(MAX_SIMPLE_GUESS_ANSWERS)
 });
 
 const MultipleChoiceConfigSchema = z.object({
@@ -229,6 +234,10 @@ export const VariantConfigSchema = z.discriminatedUnion('type', [
 // Type guards using Zod for runtime validation
 export function isRankConfig(value: unknown): value is RankConfig {
 	return RankConfigSchema.safeParse(value).success;
+}
+
+export function isSequenceConfig(value: unknown): value is SequenceConfig {
+	return SequenceConfigSchema.safeParse(value).success;
 }
 
 export function isImageChoiceConfig(value: unknown): value is ImageChoiceConfig {

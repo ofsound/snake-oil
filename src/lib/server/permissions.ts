@@ -22,25 +22,6 @@ export function isModeratorOrBetter(user: UserLike | undefined): boolean {
 }
 
 /**
- * Check if user can view another user's email
- * Only admins can view emails
- */
-export function canViewEmail(currentUser: UserLike | undefined): boolean {
-	return currentUser?.role === 'admin';
-}
-
-/**
- * Check if user can edit a quiz
- * Creator, moderators, and admins can edit
- */
-export function canEditQuiz(user: UserLike | undefined, quizCreatorId: string): boolean {
-	if (!user) return false;
-	if (user.id === quizCreatorId) return true;
-	if (isModeratorOrBetter(user)) return true;
-	return false;
-}
-
-/**
  * Check if user can delete any quiz
  * Only moderators and admins can delete any quiz
  */
@@ -73,34 +54,10 @@ export function canManageRoles(user: UserLike | undefined): boolean {
 }
 
 /**
- * Check if user can access admin panel
- * Both moderators and admins can access
- */
-export function canAccessAdmin(user: UserLike | undefined): boolean {
-	return isModeratorOrBetter(user);
-}
-
-/**
- * Require admin role, throw 403 if not admin
- */
-export function requireAdmin(locals: App.Locals): void {
-	if (!isAdmin(locals.user)) {
-		error(403, 'Admin access required');
-	}
-}
-
-/**
  * Require moderator or admin role, throw 403 if not authorized
  */
 export function requireModerator(locals: App.Locals): void {
 	if (!isModeratorOrBetter(locals.user)) {
 		error(403, 'Moderator access required');
 	}
-}
-
-/**
- * Check if user account is suspended
- */
-export function isSuspended(user: UserLike | undefined): boolean {
-	return user?.isSuspended ?? false;
 }

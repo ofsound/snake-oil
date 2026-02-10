@@ -21,15 +21,18 @@
 
 	import {
 		type AnswersPayload,
-		type MultipleChoiceConfig,
-		type MultipleResponseConfig,
 		type ImageChoiceConfig,
-		type SequenceConfig,
-		type RankConfig,
+		type MultipleChoiceConfig,
 		type MultipleMatchConfig,
+		type MultipleResponseConfig,
+		type RankConfig,
+		type SequenceConfig,
 		isImageChoiceConfig,
+		isMultipleChoiceConfig,
+		isMultipleMatchConfig,
 		isMultipleResponseConfig,
-		isMultipleChoiceConfig
+		isRankConfig,
+		isSequenceConfig
 	} from '$lib/variant-types';
 
 	import type { ActionData, PageData } from './$types';
@@ -164,10 +167,10 @@
 									? JSON.parse(correctAnswer)
 									: null}
 							{@const rankConfig =
-								soundbite.variantType === 'rank' && parsedConfig
-									? (parsedConfig as RankConfig)
-									: soundbite.variantType === 'rank'
-										? (soundbite.variantConfig as RankConfig)
+								soundbite.variantType === 'rank' && parsedConfig && isRankConfig(parsedConfig)
+									? parsedConfig
+									: soundbite.variantType === 'rank' && isRankConfig(soundbite.variantConfig)
+										? soundbite.variantConfig
 										: null}
 							{@const imageChoiceConfig =
 								soundbite.variantType === 'image_choice' &&
@@ -188,16 +191,16 @@
 									? parsedConfig
 									: null}
 							{@const sequenceConfig =
-								soundbite.variantType === 'sequence' && parsedConfig
-									? (parsedConfig as SequenceConfig)
-									: soundbite.variantType === 'sequence'
-										? (soundbite.variantConfig as SequenceConfig)
+								soundbite.variantType === 'sequence' && parsedConfig && isSequenceConfig(parsedConfig)
+									? parsedConfig
+									: soundbite.variantType === 'sequence' && isSequenceConfig(soundbite.variantConfig)
+										? soundbite.variantConfig
 										: null}
 							{@const multipleMatchConfig =
-								soundbite.variantType === 'multiple_match' && parsedConfig
-									? (parsedConfig as MultipleMatchConfig)
-									: soundbite.variantType === 'multiple_match'
-										? (soundbite.variantConfig as MultipleMatchConfig)
+								soundbite.variantType === 'multiple_match' && parsedConfig && isMultipleMatchConfig(parsedConfig)
+									? parsedConfig
+									: soundbite.variantType === 'multiple_match' && isMultipleMatchConfig(soundbite.variantConfig)
+										? soundbite.variantConfig
 										: null}
 							<div class="rounded-sm bg-neutral-50 p-4">
 								<div class="mb-3">

@@ -12,18 +12,20 @@ import type {
 } from './db/schema';
 
 import {
-	MAX_MULTIPLE_CHOICE_OPTIONS,
-	MAX_MULTIPLE_RESPONSE_OPTIONS,
-	MAX_SEQUENCE_TRACKS,
-	MAX_RANK_ITEMS,
-	MAX_MULTIPLE_MATCH_ITEMS,
 	MAX_IMAGE_CHOICE_OPTIONS,
+	MAX_MULTIPLE_CHOICE_OPTIONS,
+	MAX_MULTIPLE_MATCH_ITEMS,
+	MAX_MULTIPLE_RESPONSE_OPTIONS,
+	MAX_RANK_ITEMS,
+	MAX_SEQUENCE_TRACKS,
+	MAX_SIMPLE_GUESS_ANSWERS,
+	MIN_IMAGE_CHOICE_OPTIONS,
 	MIN_MULTIPLE_CHOICE_OPTIONS,
-	MIN_MULTIPLE_RESPONSE_OPTIONS,
-	MIN_SEQUENCE_TRACKS,
-	MIN_RANK_ITEMS,
 	MIN_MULTIPLE_MATCH_ITEMS,
-	MIN_IMAGE_CHOICE_OPTIONS
+	MIN_MULTIPLE_RESPONSE_OPTIONS,
+	MIN_RANK_ITEMS,
+	MIN_SEQUENCE_TRACKS,
+	MIN_SIMPLE_GUESS_ANSWERS
 } from '$lib/constants/variants';
 
 import { calculateKendallTauScore, calculateMultipleMatchScore } from '$lib/variant-display';
@@ -35,7 +37,8 @@ function validateSimpleGuess(config: SimpleGuessConfig): boolean {
 	return (
 		config.type === 'simple_guess' &&
 		Array.isArray(config.correctAnswers) &&
-		config.correctAnswers.length > 0 &&
+		config.correctAnswers.length >= MIN_SIMPLE_GUESS_ANSWERS &&
+		config.correctAnswers.length <= MAX_SIMPLE_GUESS_ANSWERS &&
 		config.correctAnswers.every((answer) => typeof answer === 'string' && answer.trim().length > 0)
 	);
 }

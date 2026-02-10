@@ -3,7 +3,7 @@ import { and, eq, ne, notExists, sql } from 'drizzle-orm';
 import type { Db } from '$lib/server/db';
 import { quizzes, quizAnswers, user, speedRuns } from '$lib/server/db/schema';
 
-export interface NextQuizResult {
+interface NextQuizResult {
 	id: string;
 	title: string;
 	slug: string;

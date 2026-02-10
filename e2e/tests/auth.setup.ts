@@ -1,5 +1,5 @@
 import { test as setup } from '@playwright/test';
-import { writeFileSync, existsSync, readFileSync } from 'fs';
+import { writeFileSync, existsSync, readFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const authFile = 'playwright/.auth/user.json';
@@ -43,6 +43,9 @@ setup('authenticate', async ({ page }) => {
 	// Wait for redirect to home page (user menu should appear)
 	await page.waitForSelector('text=E2E User', { timeout: 120000 });
 	console.log('✓ Signed up successfully');
+
+	// Ensure auth directory exists before saving storage state
+	mkdirSync(join(process.cwd(), 'playwright', '.auth'), { recursive: true });
 
 	// Save storage state for reuse
 	await page.context().storageState({ path: authFile });

@@ -18,7 +18,7 @@ interface TagChangeSet {
 /**
  * Calculate tag changes between old and new sets
  */
-export function calculateTagChanges(oldIds: string[], newIds: string[]): TagChangeSet {
+function calculateTagChanges(oldIds: string[], newIds: string[]): TagChangeSet {
 	const oldSet = new Set(oldIds);
 	const newSet = new Set(newIds);
 
