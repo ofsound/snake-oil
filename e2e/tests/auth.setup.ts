@@ -12,7 +12,7 @@ function trackUser(email: string) {
 		try {
 			const data = readFileSync(trackingFile, 'utf-8');
 			users.push(...JSON.parse(data));
-		} catch (e) {
+		} catch {
 			// File might be empty or corrupted, start fresh
 		}
 	}

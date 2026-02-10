@@ -189,7 +189,7 @@ async function configureMultipleResponse(section, page) {
 
 	// Mark options B and D as correct (indices 1 and 3).
 	// Use a scoped selector to avoid selecting non-option checkboxes (like "shuffle").
-	const optionRows = await section
+	const _optionRows = await section
 		.locator(
 			'[class*="option"], .option-row, [role="group"] > div, [class*="flex"]:has(> input[type="checkbox"])'
 		)

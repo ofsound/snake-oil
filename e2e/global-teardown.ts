@@ -63,7 +63,7 @@ async function globalTeardown() {
 	}
 }
 
-async function cleanupBlobs(pool: any, email: string) {
+async function cleanupBlobs(pool: Pool, email: string) {
 	try {
 		console.log(`  🗑️  Cleaning up blobs for user: ${email}`);
 
@@ -154,8 +154,8 @@ function getTrackedUsers(): string[] {
 			const data = readFileSync(TRACKING_FILE, 'utf-8');
 			return JSON.parse(data);
 		}
-	} catch (error) {
-		console.error('  ⚠️  Error reading tracking file:', error);
+	} catch (_error) {
+		console.error('  ⚠️  Error reading tracking file:', _error);
 	}
 	return [];
 }
@@ -166,12 +166,12 @@ function cleanupTrackingFile() {
 			unlinkSync(TRACKING_FILE);
 			console.log('  ✅ Deleted tracking file');
 		}
-	} catch (error) {
+	} catch {
 		console.log('  ℹ️  No tracking file to clean up');
 	}
 }
 
-async function cleanupUser(pool: any, email: string) {
+async function cleanupUser(pool: Pool, email: string) {
 	try {
 		console.log(`  🗑️  Deleting user: ${email}`);
 
@@ -200,7 +200,7 @@ function cleanupAuthFile() {
 		if (cleaned > 0) {
 			console.log(`  ✅ Deleted ${cleaned} auth file(s)`);
 		}
-	} catch (error) {
+	} catch {
 		console.log('  ℹ️  No auth files to clean up');
 	}
 }
