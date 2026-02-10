@@ -14,6 +14,8 @@
 
 	let { tracks, onBuzzer, disabled = false }: Props = $props();
 
+	const LOAD_TIMEOUT_MS = 15000;
+
 	const engine = new MultiTrackAudioEngine();
 	let isInitialized = $state(false);
 	let hasBuzzed = $state(false);
@@ -62,17 +64,35 @@
 	onMount(() => {
 		engine.initialize();
 		engine.isLoopEnabled = true; // Enable infinite loop for sequence
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+		const finishLoading = (error: string | null) => {
+			isBuffersLoaded = true;
+			if (error) loadError = error;
+		};
+
+		timeoutId = setTimeout(() => {
+			if (!isBuffersLoaded) {
+				finishLoading(
+					'Audio is taking too long to load. You can still choose which track you think it is below.'
+				);
+			}
+		}, LOAD_TIMEOUT_MS);
+
 		engine
 			.loadBuffers(tracks)
 			.then(() => {
+				if (timeoutId) clearTimeout(timeoutId);
+				timeoutId = null;
 				isBuffersLoaded = true;
-				// Check if any tracks actually loaded
 				const loadedCount = tracks.filter((_, i) => engine.getTrackDuration(i) > 0).length;
 				if (loadedCount === 0) {
 					loadError = 'Failed to load audio tracks. Please check your connection and try again.';
 				}
 			})
 			.catch((err) => {
+				if (timeoutId) clearTimeout(timeoutId);
+				timeoutId = null;
 				isBuffersLoaded = true;
 				loadError = 'Failed to load audio tracks';
 				console.error('[SequenceAudioPlayer] Error loading tracks:', err);
@@ -80,6 +100,7 @@
 		isInitialized = true;
 
 		return () => {
+			if (timeoutId) clearTimeout(timeoutId);
 			engine.destroy();
 		};
 	});
@@ -97,6 +118,12 @@
 		if (isPlaying) {
 			engine.togglePlayPause();
 		}
+	}
+
+	function handleChooseTrackWithoutAudio(trackIndex: number) {
+		if (hasBuzzed || disabled) return;
+		hasBuzzed = true;
+		onBuzzer(trackIndex);
 	}
 
 	function getSegmentFillPercent(trackIndex: number): number {
@@ -132,8 +159,25 @@
 			<span class="text-sm text-neutral-600">Loading audio...</span>
 		</div>
 	{:else if loadError}
-		<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-			{loadError}
+		<div class="flex flex-col gap-3">
+			<div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+				{loadError}
+			</div>
+			<div class="flex flex-col gap-2">
+				<span class="text-sm font-medium text-gray-700">Choose which track you think it is:</span>
+				<div class="flex flex-wrap gap-2">
+					{#each tracks as _track, index (_track.id)}
+						<button
+							type="button"
+							onclick={() => handleChooseTrackWithoutAudio(index)}
+							disabled={hasBuzzed || disabled}
+							class="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							Track {index + 1}
+						</button>
+					{/each}
+				</div>
+			</div>
 		</div>
 	{:else}
 		<!-- Segmented Progress Bar -->
