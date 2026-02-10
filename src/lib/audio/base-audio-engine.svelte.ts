@@ -705,17 +705,17 @@ export abstract class BaseAudioEngine {
 	 * Clean up audio resources. Called during reinitialization or destruction.
 	 */
 	protected cleanup(): void {
-		if (this.source) {
+		// Only stop if source was started - calling stop on unstarted source throws InvalidStateError
+		if (this.source && this.sourceHasStarted) {
 			try {
 				this.source.stop();
 			} catch (err) {
 				this.reportError('', 'Failed to stop source during cleanup', err, false);
-			} finally {
-				// Always clear reference to prevent double-stop attempts
-				this.source = null;
 			}
 		}
 
+		// Always clear references to prevent memory leaks
+		this.source = null;
 		this.sourceHasStarted = false;
 		this.audioContext = null;
 		this.analyser = null;

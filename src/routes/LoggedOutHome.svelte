@@ -55,7 +55,7 @@
 			>
 				Create Beautiful
 				<span
-					class="bg-linear-to-rrom-emerald-300 block via-cyan-300 to-blue-300 bg-clip-text text-transparent"
+					class="block bg-linear-to-r from-emerald-300 via-cyan-300 to-blue-300 bg-clip-text text-transparent"
 				>
 					Quizzes in Minutes
 				</span>
@@ -150,10 +150,11 @@
 				<h3 class="mb-3 text-2xl font-bold text-gray-900 dark:text-white">
 					Ready to create your own?
 				</h3>
-				<p class="mb-6 text-gray-600 dark:text-gray-400">
+				<p class="mb-6 bg-amber-100 text-gray-600 dark:text-gray-400">
 					Join thousands of creators and start building beautiful quizzes today. It's completely
 					free.
 				</p>
+
 				<div class="flex flex-col items-center justify-center gap-3 sm:flex-row">
 					<Button href="/signup" variant="gradient" size="lg">🚀 Get Started Free</Button>
 					<Button href="/quizzes" variant="outline" size="lg">Browse More</Button>

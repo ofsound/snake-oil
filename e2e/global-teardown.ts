@@ -83,6 +83,9 @@ async function cleanupBlobs(pool: Pool, email: string) {
 		}
 		const userId = userResult.rows[0].id;
 
+		// Collect all blob pathnames to delete
+		const pathnames: string[] = [];
+
 		// Find all tracks (MP3 files) associated with this user's quizzes
 		const tracksResult = await pool.query(
 			`SELECT t.pathname 
@@ -93,12 +96,9 @@ async function cleanupBlobs(pool: Pool, email: string) {
 			[userId]
 		);
 
-		// Delete each track blob
-		let deletedCount = 0;
 		for (const row of tracksResult.rows) {
 			if (row.pathname) {
-				await deleteBlob(row.pathname);
-				deletedCount++;
+				pathnames.push(row.pathname);
 			}
 		}
 
@@ -111,16 +111,37 @@ async function cleanupBlobs(pool: Pool, email: string) {
 			[userId]
 		);
 
-		// Extract and delete image blobs
+		// Extract image blob pathnames
 		for (const row of imageResult.rows) {
 			const config = row.variant_config;
 			if (config && config.options) {
 				for (const option of config.options) {
 					if (option.pathname) {
-						await deleteBlob(option.pathname);
-						deletedCount++;
+						pathnames.push(option.pathname);
 					}
 				}
+			}
+		}
+
+		if (pathnames.length === 0) {
+			return;
+		}
+
+		// Delete blobs in batches with delays to avoid rate limiting
+		const BATCH_SIZE = 5;
+		const DELAY_MS = 500;
+		let deletedCount = 0;
+
+		for (let i = 0; i < pathnames.length; i += BATCH_SIZE) {
+			const batch = pathnames.slice(i, i + BATCH_SIZE);
+
+			// Delete batch concurrently
+			await Promise.all(batch.map((pathname) => deleteBlob(pathname)));
+			deletedCount += batch.length;
+
+			// Add delay between batches (except for the last batch)
+			if (i + BATCH_SIZE < pathnames.length) {
+				await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
 			}
 		}
 
@@ -231,12 +252,55 @@ async function wipeTestBlobStore() {
 			return;
 		}
 
-		// Delete all blobs in batch
-		await del(
-			blobs.map((b) => b.url),
-			{ token }
-		);
-		console.log(`  ✅ Wiped ${blobs.length} blob(s) from test store`);
+		// Delete blobs in batches with delays to avoid rate limiting
+		const BATCH_SIZE = 5;
+		const DELAY_MS = 1000;
+		const MAX_RETRIES = 3;
+		let deletedCount = 0;
+		let failedCount = 0;
+
+		for (let i = 0; i < blobs.length; i += BATCH_SIZE) {
+			const batch = blobs.slice(i, i + BATCH_SIZE);
+			const batchUrls = batch.map((b) => b.url);
+
+			// Retry logic for rate limiting
+			let retries = 0;
+			let success = false;
+
+			while (retries < MAX_RETRIES && !success) {
+				try {
+					if (retries > 0) {
+						// Exponential backoff: 1s, 2s, 4s
+						const backoffMs = DELAY_MS * Math.pow(2, retries - 1);
+						console.log(
+							`  ⏳ Rate limited, retrying in ${backoffMs}ms (attempt ${retries + 1}/${MAX_RETRIES})...`
+						);
+						await new Promise((resolve) => setTimeout(resolve, backoffMs));
+					}
+
+					await del(batchUrls, { token });
+					deletedCount += batch.length;
+					success = true;
+				} catch (error) {
+					retries++;
+					if (retries >= MAX_RETRIES) {
+						console.error(`  ⚠️  Failed to delete batch after ${MAX_RETRIES} retries:`, error);
+						failedCount += batch.length;
+					}
+				}
+			}
+
+			// Add delay between batches (except for the last batch)
+			if (i + BATCH_SIZE < blobs.length) {
+				await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+			}
+		}
+
+		if (failedCount > 0) {
+			console.log(`  ⚠️  Wiped ${deletedCount} blob(s), ${failedCount} failed from test store`);
+		} else {
+			console.log(`  ✅ Wiped ${deletedCount} blob(s) from test store`);
+		}
 	} catch (error) {
 		console.error('  ❌ Failed to wipe test blob store:', error);
 	}
