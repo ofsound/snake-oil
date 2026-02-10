@@ -1,4 +1,5 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
+import { del, list } from '@vercel/blob';
 import { readdirSync, unlinkSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from 'dotenv';
@@ -59,6 +60,9 @@ async function globalTeardown() {
 		// Clean up auth file and tracking file
 		cleanupAuthFile();
 		cleanupTrackingFile();
+
+		// Wipe entire test blob store (only affects test environment)
+		await wipeTestBlobStore();
 
 		console.log('✅ Global teardown complete\n');
 	} catch (error) {
@@ -206,6 +210,35 @@ function cleanupAuthFile() {
 		}
 	} catch {
 		console.log('  ℹ️  No auth files to clean up');
+	}
+}
+
+async function wipeTestBlobStore() {
+	try {
+		const token = process.env.BLOB_READ_WRITE_TOKEN;
+		if (!token) {
+			console.log('  ⚠️  BLOB_READ_WRITE_TOKEN not set, skipping blob store wipe');
+			return;
+		}
+
+		console.log('  🗑️  Wiping entire test blob store...');
+
+		// List all blobs in test store
+		const { blobs } = await list({ token });
+
+		if (blobs.length === 0) {
+			console.log('  ℹ️  Test blob store is already empty');
+			return;
+		}
+
+		// Delete all blobs in batch
+		await del(
+			blobs.map((b) => b.url),
+			{ token }
+		);
+		console.log(`  ✅ Wiped ${blobs.length} blob(s) from test store`);
+	} catch (error) {
+		console.error('  ❌ Failed to wipe test blob store:', error);
 	}
 }
 
