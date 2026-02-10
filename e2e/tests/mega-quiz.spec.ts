@@ -348,7 +348,8 @@ async function answerSequence(page: import('@playwright/test').Page, questionInd
 	const form = page.locator('form').first();
 	const soundbiteIdInputs = await form.locator('input[name="soundbiteId"]').all();
 	const soundbiteIdInput = soundbiteIdInputs[questionIndex];
-	if (!soundbiteIdInput) throw new Error(`Could not find soundbiteId input at index ${questionIndex}`);
+	if (!soundbiteIdInput)
+		throw new Error(`Could not find soundbiteId input at index ${questionIndex}`);
 	const soundbiteId = await soundbiteIdInput.getAttribute('value');
 	if (!soundbiteId) throw new Error(`soundbiteId input at index ${questionIndex} has no value`);
 	await page.evaluate(
@@ -378,44 +379,92 @@ async function answerRank(page: import('@playwright/test').Page, questionIndex: 
 	console.log(`  Answering Q${questionIndex + 1}: Rank`);
 	const card = await getQuestionCard(page, questionIndex);
 	if (!card) throw new Error('Could not find rank question card');
+
+	// Get the soundbiteId from the hidden input name
 	const hiddenInput = card.locator('input[type="hidden"][name^="answer-"]').first();
 	const inputName = await hiddenInput.getAttribute('name');
 	if (!inputName) throw new Error('Rank question has no answer hidden input');
-	await page.evaluate(
-		({ name }: { name: string }) => {
-			const el = document.querySelector(`input[name="${name}"]`) as HTMLInputElement;
-			if (el) {
-				el.value = '[0,1,2,3]';
-				el.dispatchEvent(new Event('input', { bubbles: true }));
-				el.dispatchEvent(new Event('change', { bubbles: true }));
-				el.dispatchEvent(new Event('blur', { bubbles: true }));
-			}
-		},
-		{ name: inputName }
-	);
-	console.log(`    Set rank order [0,1,2,3]`);
+	const soundbiteId = inputName.replace('answer-', '');
+
+	// Read the current shuffled order from the hidden input
+	const currentOrderStr = (await hiddenInput.getAttribute('value')) || '[]';
+	const currentOrder: number[] = JSON.parse(currentOrderStr);
+	console.log(`    Initial order: ${JSON.stringify(currentOrder)}`);
+
+	// Bubble sort using keyboard navigation to achieve identity order [0,1,2,3]
+	// currentOrder[i] is the item index at position i
+	// We want currentOrder[i] === i for all i
+	const n = currentOrder.length;
+	for (let i = 0; i < n; i++) {
+		// Find the item that should be at position i (itemIdx === i)
+		let itemPos = currentOrder.indexOf(i);
+
+		// Bubble it up to position i using ArrowUp
+		while (itemPos > i) {
+			const row = card.locator(`[data-rank-player-row="${soundbiteId}-${itemPos}"]`);
+			const handle = row.locator('[data-drag-handle]').first();
+			await handle.focus();
+			await handle.press('ArrowUp');
+			await page.waitForTimeout(100);
+
+			// Swap in our tracking array
+			[currentOrder[itemPos], currentOrder[itemPos - 1]] = [
+				currentOrder[itemPos - 1],
+				currentOrder[itemPos]
+			];
+			itemPos--;
+		}
+	}
+
+	// Verify final order
+	const finalOrderStr = (await hiddenInput.getAttribute('value')) || '[]';
+	console.log(`    Final order: ${finalOrderStr}`);
 }
 
 async function answerMultipleMatch(page: import('@playwright/test').Page, questionIndex: number) {
 	console.log(`  Answering Q${questionIndex + 1}: Multiple Match`);
 	const card = await getQuestionCard(page, questionIndex);
 	if (!card) throw new Error('Could not find multiple match question card');
+
+	// Get the soundbiteId from the hidden input name
 	const hiddenInput = card.locator('input[type="hidden"][name^="answer-"]').first();
 	const inputName = await hiddenInput.getAttribute('name');
 	if (!inputName) throw new Error('Multiple match question has no answer hidden input');
-	await page.evaluate(
-		({ name }: { name: string }) => {
-			const el = document.querySelector(`input[name="${name}"]`) as HTMLInputElement;
-			if (el) {
-				el.value = '[0,1,2,3]';
-				el.dispatchEvent(new Event('input', { bubbles: true }));
-				el.dispatchEvent(new Event('change', { bubbles: true }));
-				el.dispatchEvent(new Event('blur', { bubbles: true }));
-			}
-		},
-		{ name: inputName }
-	);
-	console.log(`    Set multiple match order [0,1,2,3]`);
+	const soundbiteId = inputName.replace('answer-', '');
+
+	// Read the current shuffled order from the hidden input
+	const currentOrderStr = (await hiddenInput.getAttribute('value')) || '[]';
+	const currentOrder: number[] = JSON.parse(currentOrderStr);
+	console.log(`    Initial order: ${JSON.stringify(currentOrder)}`);
+
+	// Bubble sort using keyboard navigation to achieve identity order [0,1,2,3]
+	// currentOrder[i] is the item index at position i
+	// We want currentOrder[i] === i for all i
+	const n = currentOrder.length;
+	for (let i = 0; i < n; i++) {
+		// Find the item that should be at position i (itemIdx === i)
+		let itemPos = currentOrder.indexOf(i);
+
+		// Bubble it up to position i using ArrowUp
+		while (itemPos > i) {
+			const row = card.locator(`[data-multiple-match-label-row="${soundbiteId}-${itemPos}"]`);
+			const handle = row.locator('[data-drag-handle]').first();
+			await handle.focus();
+			await handle.press('ArrowUp');
+			await page.waitForTimeout(100);
+
+			// Swap in our tracking array
+			[currentOrder[itemPos], currentOrder[itemPos - 1]] = [
+				currentOrder[itemPos - 1],
+				currentOrder[itemPos]
+			];
+			itemPos--;
+		}
+	}
+
+	// Verify final order
+	const finalOrderStr = (await hiddenInput.getAttribute('value')) || '[]';
+	console.log(`    Final order: ${finalOrderStr}`);
 }
 async function answerImageChoice(page: import('@playwright/test').Page, questionIndex: number) {
 	console.log(`  Answering Q${questionIndex + 1}: Image Choice`);
