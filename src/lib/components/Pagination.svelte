@@ -77,13 +77,13 @@
 			case 'admin':
 				return {
 					container: 'mt-6',
-					itemCount: 'text-sm text-gray-600 dark:text-gray-400',
+					itemCount: 'text-sm text-text-secondary',
 					buttons: 'gap-2'
 				};
 			default:
 				return {
 					container: 'mt-6',
-					itemCount: 'text-sm text-gray-600 dark:text-gray-400',
+					itemCount: 'text-sm text-text-secondary',
 					buttons: 'gap-2'
 				};
 		}
@@ -109,7 +109,7 @@
 				<!-- SSR Mode: Use anchor tags -->
 				<a
 					href={getPageUrl(currentPage - 1)}
-					class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					class="rounded-lg border border-border-muted bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
 					class:pointer-events-none={currentPage === 1}
 					class:opacity-50={currentPage === 1}
 					aria-disabled={currentPage === 1}
@@ -127,7 +127,7 @@
 								class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors {pageNum ===
 								currentPage
 									? 'border-indigo-500 bg-indigo-600 text-white'
-									: 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+									: 'border-border-muted bg-surface text-text-secondary hover:bg-interactive-bg'}"
 							>
 								{pageNum}
 							</a>
@@ -137,7 +137,7 @@
 
 				<a
 					href={getPageUrl(currentPage + 1)}
-					class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+					class="rounded-lg border border-border-muted bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
 					class:pointer-events-none={currentPage === totalPages}
 					class:opacity-50={currentPage === totalPages}
 					aria-disabled={currentPage === totalPages}

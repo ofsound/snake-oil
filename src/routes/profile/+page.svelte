@@ -85,7 +85,7 @@
 						/>
 					{:else}
 						<div
-							class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+							class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-surface-muted"
 						>
 							<span class="text-5xl">👤</span>
 						</div>
@@ -135,9 +135,9 @@
 
 			<!-- Bio Section -->
 			{#if profile.bio}
-				<div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-600">
-					<div class="text-sm text-gray-600 dark:text-gray-400">Bio:</div>
-					<div class="prose prose-sm dark:prose-invert mt-2 max-w-none">
+				<div class="mt-6 border-t border-border pt-4">
+					<div class="text-sm text-text-secondary">Bio:</div>
+					<div class="prose prose-sm mt-2 max-w-none">
 						<RenderTiptapContent content={profile.bio} />
 					</div>
 				</div>

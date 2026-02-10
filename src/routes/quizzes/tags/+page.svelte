@@ -53,7 +53,7 @@
 	function getSortButtonClasses(isActive: boolean): string {
 		return isActive
 			? 'bg-indigo-600 text-white hover:bg-indigo-700'
-			: 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-700';
+			: 'bg-surface text-text-secondary hover:bg-interactive-bg border border-border';
 	}
 </script>
 
@@ -65,7 +65,7 @@
 <PageContainer>
 	<div class="container mx-auto max-w-6xl px-4 py-8">
 		<Heading level={1} class="mb-2">All Tags</Heading>
-		<p class="mb-8 text-gray-600 dark:text-gray-400">
+		<p class="mb-8 text-text-secondary">
 			Browse {data.totalItems} tags to discover quizzes by topic
 		</p>
 
@@ -83,7 +83,7 @@
 					type="search"
 					placeholder="Search tags..."
 					bind:value={searchInput}
-					class="flex-1 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+					class="flex-1 rounded-md border border-border-muted bg-surface px-4 py-2 text-sm text-text-primary focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
 				/>
 				<button
 					type="submit"
@@ -95,7 +95,7 @@
 
 			<!-- Sort Options -->
 			<div class="flex items-center gap-2">
-				<span class="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+				<span class="text-sm text-text-secondary">Sort by:</span>
 				<div class="flex gap-1">
 					<button
 						type="button"
@@ -120,7 +120,7 @@
 				<!-- Order Toggle -->
 				<button
 					type="button"
-					class="rounded-md border border-gray-200 bg-white p-1.5 text-gray-600 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+					class="rounded-md border border-border bg-surface p-1.5 text-text-muted hover:bg-interactive-bg"
 					onclick={() => handleOrderChange(data.order === 'asc' ? 'desc' : 'asc')}
 					title={data.order === 'asc' ? 'Ascending' : 'Descending'}
 				>
@@ -155,13 +155,11 @@
 						<!-- Tag Header -->
 						<a href={resolvePath(`/quizzes/tag/${tag.slug}`)} class="group mb-4 block">
 							<div class="flex items-center justify-between">
-								<h3
-									class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 dark:text-gray-100 dark:group-hover:text-indigo-400"
-								>
+								<h3 class="text-lg font-semibold text-text-primary group-hover:text-indigo-600">
 									#{tag.label}
 								</h3>
 								<span
-									class="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+									class="rounded-full bg-surface-muted px-2 py-1 text-xs font-medium text-text-secondary"
 								>
 									{tag.useCount}
 									{tag.useCount === 1 ? 'quiz' : 'quizzes'}
@@ -172,17 +170,17 @@
 						<!-- Preview Quizzes -->
 						{#if tag.previews.length > 0}
 							<div class="flex-1 space-y-2">
-								<p class="text-xs text-gray-500 dark:text-gray-400">Recent quizzes:</p>
+								<p class="text-xs text-text-muted">Recent quizzes:</p>
 								<div class="space-y-2">
 									{#each tag.previews as quiz (quiz.id)}
 										<a
 											href={resolvePath(`/${quiz.creator.slug}/${quiz.slug}`)}
-											class="block rounded-md bg-gray-50 p-2 text-sm transition-colors hover:bg-gray-100 dark:bg-gray-800/50 dark:hover:bg-gray-800"
+											class="block rounded-md bg-surface-muted p-2 text-sm transition-colors hover:bg-interactive-bg"
 										>
-											<div class="truncate font-medium text-gray-900 dark:text-gray-100">
+											<div class="truncate font-medium text-text-primary">
 												{quiz.title}
 											</div>
-											<div class="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+											<div class="mt-0.5 truncate text-xs text-text-muted">
 												by {quiz.creator.name}
 											</div>
 										</a>
@@ -190,15 +188,13 @@
 								</div>
 							</div>
 						{:else}
-							<p class="flex-1 text-sm text-gray-500 italic dark:text-gray-400">
-								No public quizzes yet
-							</p>
+							<p class="flex-1 text-sm text-text-muted italic">No public quizzes yet</p>
 						{/if}
 
 						<!-- View All Link -->
 						<a
 							href={resolvePath(`/quizzes/tag/${tag.slug}`)}
-							class="mt-4 block text-center text-sm font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+							class="mt-4 block text-center text-sm font-medium text-accent-indigo-text hover:opacity-80"
 						>
 							View all {tag.useCount}
 							{tag.useCount === 1 ? 'quiz' : 'quizzes'} →
@@ -208,11 +204,11 @@
 			</div>
 		{:else}
 			<div
-				class="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-white px-4 py-16 text-center dark:border-gray-700 dark:bg-gray-800"
+				class="flex flex-col items-center justify-center rounded-lg border border-border bg-surface px-4 py-16 text-center"
 			>
 				<div class="mb-4 text-6xl">🏷️</div>
-				<h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">No tags found</h3>
-				<p class="max-w-md text-gray-600 dark:text-gray-400">
+				<h3 class="mb-2 text-xl font-semibold text-text-primary">No tags found</h3>
+				<p class="max-w-md text-text-secondary">
 					{data.searchQuery
 						? `No tags matching "${data.searchQuery}" found. Try a different search.`
 						: 'No tags available yet. Create a quiz and add some tags!'}

@@ -61,8 +61,8 @@
 
 	const rowClasses = $derived(
 		isSpeedRun
-			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-3 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30 dark:hover:bg-amber-900/50'
-			: 'flex cursor-pointer items-center justify-between rounded-md border border-neutral-200 bg-neutral-50 px-3 py-3 transition-colors hover:bg-neutral-200 dark:border-neutral-700/50 dark:bg-neutral-800 dark:hover:bg-neutral-700'
+			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-3 transition-colors hover:bg-amber-100'
+			: 'flex cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-subtle px-3 py-3 transition-colors hover:bg-interactive-bg'
 	);
 </script>
 
@@ -70,9 +70,9 @@
 	<div class="flex min-w-0 flex-1 flex-col gap-1">
 		<div class="flex flex-wrap items-center gap-2">
 			<div class="truncate font-semibold tracking-wide">{submission.quizTitle}</div>
-			<span class="text-xs text-gray-500 dark:text-gray-400">by {submission.creatorName}</span>
+			<span class="text-xs text-text-muted">by {submission.creatorName}</span>
 		</div>
-		<div class="text-xs text-gray-500 dark:text-gray-400">
+		<div class="text-xs text-text-muted">
 			{formatDate(submission.createdAt)}
 		</div>
 	</div>
@@ -85,11 +85,11 @@
 					<span class="font-medium">{sr.correctCount}</span>
 					<span class="text-gray-500">/{sr.totalQuestions}</span>
 				</div>
-				<div class="text-gray-600 dark:text-gray-400">{formatTime(sr.totalTimeMs ?? 0)}</div>
+				<div class="text-text-secondary">{formatTime(sr.totalTimeMs ?? 0)}</div>
 				{#if sr.streakMax && sr.streakMax > 0}
 					<div class="text-orange-500">🔥 {sr.streakMax}</div>
 				{/if}
-				<div class="font-medium text-amber-600 dark:text-amber-400">
+				<div class="font-medium text-amber-600">
 					{sr.speedRunScore?.toLocaleString()} pts
 				</div>
 				{#if sr.globalRank}
@@ -100,12 +100,12 @@
 					{:else if sr.globalRank === 3}
 						<span class="text-2xl leading-none">🥉</span>
 					{:else}
-						<span class="text-sm font-bold text-gray-600 dark:text-gray-400">#{sr.globalRank}</span>
+						<span class="text-sm font-bold text-text-muted">#{sr.globalRank}</span>
 					{/if}
 				{/if}
 			</div>
 		{:else}
-			<div class="text-sm text-gray-700 dark:text-gray-300">
+			<div class="text-sm text-text-secondary">
 				<span class="font-medium">{submission.totalCorrect}</span>
 				<span class="text-gray-500">/{submission.totalQuestions}</span>
 				<span class="ml-1 text-xs text-gray-500">({submission.score}%)</span>

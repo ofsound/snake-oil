@@ -10,14 +10,15 @@
 	let { variant = 'flat', padding = 'md', class: className = '', children }: Props = $props();
 
 	const variantClasses: Record<string, string> = {
-		elevated: 'bg-white shadow-sm',
-		flat: 'bg-white dark:bg-gray-800 dark:border-gray-700',
-		neutral: 'bg-neutral-50 border-neutral-200/70 dark:border-neutral-700/50 dark:bg-neutral-800',
+		elevated: 'bg-surface-elevated shadow-sm border-border',
+		flat: 'bg-surface border-border',
+		neutral: 'bg-surface-subtle border-border-subtle',
 		ghost: '',
-		interactive: 'bg-white shadow-sm hover:border-gray-300 hover:shadow-md transition-all'
+		interactive:
+			'bg-surface shadow-sm border-border hover:border-muted hover:shadow-md transition-all'
 	};
 
-	const baseClasses = 'rounded-sm border border-gray-200';
+	const baseClasses = 'rounded-sm border border-border';
 
 	const paddingClasses: Record<string, string> = {
 		none: '',

@@ -24,7 +24,7 @@
 					/>
 				{:else}
 					<div
-						class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+						class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-surface-muted"
 					>
 						<span class="text-5xl">👤</span>
 					</div>
@@ -37,7 +37,7 @@
 					{user.name || 'User Profile'}
 				</Heading>
 				<div class="text-sm">
-					<span class=" text-gray-600">Joined:</span>
+					<span class=" text-text-secondary">Joined:</span>
 					<span class=" font-medium">
 						{new Date(user.createdAt).toLocaleDateString('en-US', {
 							year: 'numeric',
@@ -51,8 +51,8 @@
 
 		<!-- Bio Section -->
 		{#if user.bio}
-			<div class="mt-6 border-t border-gray-200 pt-4 dark:border-gray-600">
-				<div class="prose prose-sm dark:prose-invert max-w-none">
+			<div class="mt-6 border-t border-border pt-4">
+				<div class="prose prose-sm max-w-none">
 					<RenderTiptapContent content={user.bio} />
 				</div>
 			</div>

@@ -204,7 +204,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		quizzes: quizzesList,
 		currentPage,
 		totalPages,
-		totalItems: totalCount,
+		totalCount,
 		itemsPerPage: ITEMS_PER_PAGE,
 		sort,
 		order,

@@ -67,8 +67,8 @@
 	// Compute row styling based on speed run status
 	const rowClasses = $derived(
 		quiz.speedRun
-			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 transition-colors hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-800 dark:hover:bg-amber-700'
-			: 'flex cursor-pointer items-center justify-between rounded-md border border-neutral-200 bg-neutral-50 px-3 py-2 transition-colors hover:bg-neutral-200 dark:border-neutral-700/50 dark:bg-neutral-800 dark:hover:bg-neutral-700'
+			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 transition-colors hover:bg-amber-100'
+			: 'flex cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-subtle px-3 py-2 transition-colors hover:bg-interactive-bg'
 	);
 </script>
 
@@ -84,13 +84,13 @@
 				</span>
 			{/if}
 		</div>
-		<div class="text-sm text-gray-600 dark:text-gray-200">{quiz.description}</div>
+		<div class="text-sm text-text-secondary">{quiz.description}</div>
 		<div class="mt-2 flex min-h-5 flex-wrap gap-1.5">
 			{#if quiz.tags && quiz.tags.length > 0}
 				{#each quiz.tags.slice(0, 3) as tag (tag.slug)}
 					<a
 						href="/quizzes/tag/{tag.slug}"
-						class="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300"
+						class="inline-flex items-center rounded-full bg-accent-indigo-bg px-2 py-0.5 text-xs font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 						onclick={(e) => e.stopPropagation()}
 					>
 						#{tag.label}

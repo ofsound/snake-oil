@@ -229,8 +229,8 @@
 
 	function getButtonClass(isActive: boolean) {
 		return isActive
-			? 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 bg-indigo-50 text-indigo-900 dark:bg-indigo-900/50 dark:text-indigo-300'
-			: 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 text-gray-700 dark:text-gray-300';
+			? 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 bg-accent-indigo-bg text-indigo-900'
+			: 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 text-text-secondary';
 	}
 </script>
 
@@ -240,7 +240,7 @@
 		role="button"
 		tabindex={disabled ? -1 : 0}
 		aria-label="Focus tag input"
-		class="group flex min-h-12 flex-wrap items-center gap-2 rounded-xl border-2 border-gray-200 bg-white px-3 py-2 transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 hover:border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:focus-within:border-indigo-400 dark:focus-within:ring-indigo-400/10 dark:hover:border-gray-600"
+		class="group flex min-h-12 flex-wrap items-center gap-2 rounded-xl border-2 border-border bg-surface px-3 py-2 transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 hover:border-border-muted"
 		class:opacity-50={disabled}
 		class:cursor-not-allowed={disabled}
 		onclick={handleContainerClick}
@@ -255,15 +255,15 @@
 			<span
 				class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium transition-all duration-200 {recentlyAdded ===
 				tag.id
-					? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-					: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'}"
+					? 'bg-accent-emerald-bg text-accent-emerald-text'
+					: 'bg-accent-indigo-bg text-accent-indigo-text'}"
 				in:fly={{ y: 10, duration: 200, delay: i * 30, easing: elasticOut }}
 				out:scale={{ duration: 150, start: 1, opacity: 0 }}
 			>
 				{tag.label}
 				<button
 					type="button"
-					class="ml-1 rounded-full p-0.5 transition-colors hover:bg-indigo-200 dark:hover:bg-indigo-800"
+					class="ml-1 rounded-full p-0.5 transition-colors hover:bg-indigo-200"
 					onclick={(e) => {
 						e.stopPropagation();
 						removeTag(tag.id);
@@ -291,7 +291,7 @@
 				oninput={handleInput}
 				onkeydown={handleKeydown}
 				{disabled}
-				class="min-w-[120px] flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-gray-400 disabled:cursor-not-allowed dark:text-gray-100 dark:placeholder:text-gray-500"
+				class="min-w-[120px] flex-1 bg-transparent py-1 text-sm text-text-primary outline-none placeholder:text-text-muted disabled:cursor-not-allowed"
 				autocomplete="off"
 				autocapitalize="off"
 			/>
@@ -299,7 +299,7 @@
 	</div>
 
 	{#if createError}
-		<div class="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+		<div class="mt-2 flex items-center gap-1.5 text-sm text-red-600">
 			<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path
 					stroke-linecap="round"
@@ -325,7 +325,7 @@
 
 	{#if isOpen}
 		<div
-			class="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
+			class="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-xl border border-border bg-surface shadow-xl"
 			in:fly={{ y: -10, duration: 200, easing: backOut }}
 			out:fly={{ y: -10, duration: 150 }}
 		>
@@ -355,10 +355,7 @@
 								<span class="font-medium">
 									{#each getHighlightSegments(suggestion.label, inputValue) as segment, segIdx (suggestion.id + segIdx)}
 										{#if segment.highlight}
-											<mark
-												class="bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-200"
-												>{segment.text}</mark
-											>
+											<mark class="bg-indigo-200 text-indigo-900">{segment.text}</mark>
 										{:else}
 											{segment.text}
 										{/if}
@@ -376,11 +373,10 @@
 			{:else if inputValue.trim() && !isLoading}
 				<div class="px-4 py-3 text-sm text-gray-500">
 					<span
-						>Press <kbd class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-gray-700"
-							>Enter</kbd
-						> to create "</span
+						>Press <kbd class="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs">Enter</kbd> to
+						create "</span
 					>
-					<span class="font-medium text-indigo-600 dark:text-indigo-400">{inputValue.trim()}</span>
+					<span class="font-medium text-accent-indigo-text">{inputValue.trim()}</span>
 					<span>"</span>
 				</div>
 			{/if}

@@ -53,12 +53,12 @@
 
 	function getTagClasses(tag: Tag, isActive: boolean): string {
 		if (isActive) {
-			return 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600';
+			return 'bg-indigo-600 text-white hover:bg-indigo-700';
 		}
 		if (activeTags.length >= maxTags) {
-			return 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800 dark:text-gray-600';
+			return 'bg-surface-muted text-text-muted cursor-not-allowed';
 		}
-		return 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700';
+		return 'bg-surface-muted text-text-secondary hover:bg-interactive-bg';
 	}
 
 	// Calculate relative sizes for tag cloud effect (min 100%, max 150%)
@@ -79,11 +79,11 @@
 	<div class="sticky top-4 space-y-4">
 		<!-- Header -->
 		<div class="flex items-center justify-between">
-			<h3 class="font-semibold text-gray-900 dark:text-gray-100">Filter by Tags</h3>
+			<h3 class="font-semibold text-text-primary">Filter by Tags</h3>
 			{#if activeTags.length > 0}
 				<button
 					type="button"
-					class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+					class="text-xs text-accent-indigo-text hover:opacity-80"
 					onclick={clearAll}
 				>
 					Clear all
@@ -99,7 +99,7 @@
 					{#if tag}
 						<button
 							type="button"
-							class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+							class="inline-flex items-center gap-1 rounded-full bg-accent-indigo-bg px-2.5 py-1 text-xs font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 							onclick={() => toggleTag(tagSlug)}
 						>
 							#{tag.label}
@@ -117,7 +117,7 @@
 			</div>
 
 			{#if activeTags.length >= maxTags}
-				<p class="text-xs text-amber-600 dark:text-amber-400">
+				<p class="text-xs text-amber-600">
 					Maximum {maxTags} tags selected
 				</p>
 			{/if}
@@ -148,7 +148,7 @@
 		{#if totalTagsCount > tags.length}
 			<a
 				href={resolvePath('/quizzes/tags')}
-				class="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+				class="inline-flex items-center text-sm text-accent-indigo-text hover:opacity-80"
 			>
 				View all {totalTagsCount} tags
 				<svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -120,7 +120,7 @@
 						{#each data.tags as tag (tag.id)}
 							<a
 								href="/quizzes/tag/{tag.slug}"
-								class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+								class="inline-flex items-center rounded-full bg-accent-indigo-bg px-3 py-1 text-sm font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 							>
 								#{tag.label}
 							</a>

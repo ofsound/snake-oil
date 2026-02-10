@@ -39,7 +39,7 @@
 				editorProps: {
 					attributes: {
 						class:
-							'prose dark:prose-invert prose-sm max-w-none min-h-[150px] p-3 focus:outline-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5'
+							'prose prose-sm max-w-none min-h-[150px] p-3 focus:outline-none [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5'
 					}
 				},
 				onUpdate: ({ editor }) => {
@@ -74,22 +74,18 @@
 	}
 </script>
 
-<div
-	class="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800"
->
+<div class="overflow-hidden rounded-lg border border-border-muted bg-surface">
 	{#if editor}
 		<TiptapToolbar {editor} />
 	{/if}
 	<div bind:this={element} class="relative">
 		{#if !editor || isEmpty}
-			<div class="pointer-events-none absolute top-3 left-3 text-gray-400 dark:text-gray-500">
+			<div class="pointer-events-none absolute top-3 left-3 text-text-muted">
 				{placeholder}
 			</div>
 		{/if}
 	</div>
-	<div
-		class="border-t border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400"
-	>
+	<div class="border-t border-border bg-surface-muted px-3 py-1 text-xs text-text-muted">
 		{currentLength} / {maxLength} characters
 	</div>
 </div>

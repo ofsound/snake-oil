@@ -73,7 +73,7 @@
 <PageContainer>
 	<div class="container mx-auto max-w-6xl px-4 py-8">
 		<Heading level={1} class="mb-2">Tag Manager</Heading>
-		<p class="mb-8 text-gray-600 dark:text-gray-400">
+		<p class="mb-8 text-text-secondary">
 			Manage quiz tags, view statistics, and organize your taxonomy
 		</p>
 
@@ -126,24 +126,24 @@
 					href={getFilterUrl('all')}
 					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'all' ||
 					!data.filter
-						? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
-						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						? 'bg-accent-indigo-bg text-accent-indigo-text'
+						: 'bg-surface-muted text-text-secondary hover:bg-interactive-bg'}"
 				>
 					All
 				</a>
 				<a
 					href={getFilterUrl('popular')}
 					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'popular'
-						? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
-						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						? 'bg-accent-emerald-bg text-accent-emerald-text'
+						: 'bg-surface-muted text-text-secondary hover:bg-interactive-bg'}"
 				>
 					Popular
 				</a>
 				<a
 					href={getFilterUrl('unused')}
 					class="rounded-full px-4 py-2 text-sm transition-colors {data.filter === 'unused'
-						? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300'
-						: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+						? 'bg-accent-amber-bg text-accent-amber-text'
+						: 'bg-surface-muted text-text-secondary hover:bg-interactive-bg'}"
 				>
 					Unused
 				</a>
@@ -167,7 +167,7 @@
 		<!-- Tag List -->
 		<Card variant="flat" padding="none" class="overflow-hidden">
 			<table class="w-full">
-				<thead class="bg-gray-50 dark:bg-gray-800">
+				<thead class="bg-surface-muted">
 					<tr>
 						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">
 							<input
@@ -209,9 +209,9 @@
 						<th class="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
 					</tr>
 				</thead>
-				<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+				<tbody class="divide-y divide-border">
 					{#each data.tags as tag (tag.id)}
-						<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+						<tr class="hover:bg-interactive-bg">
 							<td class="px-4 py-3">
 								<input
 									type="checkbox"
@@ -225,10 +225,10 @@
 							<td class="px-4 py-3">
 								<span
 									class="inline-flex rounded-full px-2 py-1 text-xs font-medium {tag.useCount >= 10
-										? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300'
+										? 'bg-accent-emerald-bg text-accent-emerald-text'
 										: tag.useCount === 0
-											? 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-											: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'}"
+											? 'bg-surface-muted text-text-muted'
+											: 'bg-accent-blue-bg text-accent-blue-text'}"
 								>
 									{tag.useCount}
 								</span>
@@ -275,7 +275,7 @@
 					{#each data.popularTags as tag (tag.id)}
 						<a
 							href="/quizzes/tag/{tag.slug}"
-							class="inline-flex items-center rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:hover:bg-indigo-800"
+							class="inline-flex items-center rounded-full bg-accent-indigo-bg px-3 py-1 text-sm font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 						>
 							{tag.label}
 							<span class="ml-1 text-xs opacity-75">({tag.useCount})</span>
@@ -502,7 +502,7 @@
 							id="target-tag"
 							name="targetId"
 							required
-							class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-700"
+							class="w-full rounded-lg border border-border-muted bg-surface px-3 py-2"
 						>
 							<option value="">Select a tag...</option>
 							{#each data.tags.filter((t) => !selectedTagsForMerge.includes(t.id)) as tag (tag.id)}

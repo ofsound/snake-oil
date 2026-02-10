@@ -41,13 +41,10 @@
 			class:text-xs={variant === 'minimal'}
 			class:border-b-2={variant === 'minimal' && value === option.value}
 			class:border-gray-700={variant === 'minimal' && value === option.value}
-			class:dark:border-gray-300={variant === 'minimal' && value === option.value}
-			class:text-gray-700={variant === 'minimal' && value === option.value}
-			class:dark:text-gray-200={variant === 'minimal' && value === option.value}
-			class:text-gray-500={variant === 'minimal' && value !== option.value}
-			class:hover:text-gray-700={variant === 'minimal' && value !== option.value}
-			class:dark:text-gray-400={variant === 'minimal' && value !== option.value}
-			class:dark:hover:text-gray-200={variant === 'minimal' && value !== option.value}
+			class:border-text-primary={variant === 'minimal' && value === option.value}
+			class:text-text-secondary={variant === 'minimal' && value === option.value}
+			class:text-text-muted={variant === 'minimal' && value !== option.value}
+			class:hover:text-text-secondary={variant === 'minimal' && value !== option.value}
 			onclick={() => onChange(option.value)}
 		>
 			{option.label}

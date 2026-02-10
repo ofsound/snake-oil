@@ -8,14 +8,12 @@
 	let { editor }: Props = $props();
 </script>
 
-<div
-	class="flex flex-wrap gap-1 border-b border-gray-200 bg-gray-50 p-2 dark:border-gray-600 dark:bg-gray-800"
->
+<div class="flex flex-wrap gap-1 border-b border-border-muted bg-surface-muted p-2">
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('bold')
 			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			: 'bg-surface text-text-secondary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleBold().run()}
 	>
 		Bold
@@ -31,7 +29,7 @@
 		Italic
 	</button>
 
-	<div class="mx-1 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 w-px bg-border-muted"></div>
 
 	<button
 		type="button"
@@ -57,7 +55,7 @@
 		H2
 	</button>
 
-	<div class="mx-1 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 w-px bg-border-muted"></div>
 
 	<button
 		type="button"
@@ -79,7 +77,7 @@
 		1. List
 	</button>
 
-	<div class="mx-1 w-px bg-gray-300 dark:bg-gray-600"></div>
+	<div class="mx-1 w-px bg-border-muted"></div>
 
 	<button
 		type="button"

@@ -29,18 +29,18 @@
 </svelte:head>
 
 <PageContainer>
-	<div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+	<div class="min-h-screen bg-surface-muted">
 		<div class="mx-auto max-w-4xl p-4 md:p-8">
 			{#if error}
-				<div class="rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
-					<p class="text-red-700 dark:text-red-300">{error}</p>
+				<div class="rounded-lg bg-red-50 p-4">
+					<p class="text-red-700">{error}</p>
 				</div>
 			{:else if tracks && tracks.length > 0}
 				<MultiTrackPlayer {tracks} {error} />
 			{:else}
 				<div class="flex flex-col items-center justify-center py-16 text-center">
 					<svg
-						class="mb-4 h-16 w-16 text-gray-400 dark:text-gray-600"
+						class="mb-4 h-16 w-16 text-text-muted"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -53,15 +53,11 @@
 							d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
 						/>
 					</svg>
-					<h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-						No tracks available
-					</h2>
-					<p class="mb-6 text-gray-600 dark:text-gray-400">
-						There are no tracks to play right now.
-					</p>
+					<h2 class="mb-2 text-xl font-semibold text-text-primary">No tracks available</h2>
+					<p class="mb-6 text-text-secondary">There are no tracks to play right now.</p>
 					<a
 						href={resolve('/')}
-						class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:bg-blue-600 dark:hover:bg-blue-700"
+						class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
 					>
 						<svg
 							class="mr-2 h-4 w-4"

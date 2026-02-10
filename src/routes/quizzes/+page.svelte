@@ -85,7 +85,7 @@
 	<div class="mb-4 lg:hidden">
 		<details class="group">
 			<summary
-				class="flex cursor-pointer items-center justify-between rounded-md border border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+				class="flex cursor-pointer items-center justify-between rounded-md border border-border bg-surface px-4 py-3"
 			>
 				<span class="font-medium">Filter by Tags</span>
 				<span class="transition-transform group-open:rotate-180">
@@ -99,9 +99,7 @@
 					</svg>
 				</span>
 			</summary>
-			<div
-				class="mt-2 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
-			>
+			<div class="mt-2 border-t border-border bg-surface px-4 py-3">
 				<TagFilterSidebar
 					tags={data.popularTags}
 					{activeTags}
@@ -126,16 +124,14 @@
 			<!-- Active Filters Banner -->
 			{#if data.activeTags.length > 0}
 				<div
-					class="mb-6 rounded-md border border-indigo-200 bg-indigo-50 px-4 py-3 dark:border-indigo-800 dark:bg-indigo-900/20"
+					class="mb-6 rounded-md border border-accent-indigo-border bg-accent-indigo-bg px-4 py-3"
 				>
 					<div class="flex flex-wrap items-center gap-2">
-						<span class="text-sm font-medium text-indigo-900 dark:text-indigo-300">
-							Filtered by:
-						</span>
+						<span class="text-sm font-medium text-accent-indigo-text"> Filtered by: </span>
 						{#each data.activeTags as tag (tag.slug)}
 							<button
 								type="button"
-								class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-200 dark:bg-indigo-800 dark:text-indigo-300 dark:hover:bg-indigo-700"
+								class="inline-flex items-center gap-1 rounded-full bg-accent-indigo-bg px-2.5 py-1 text-xs font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 								onclick={() => removeTag(tag.slug)}
 							>
 								#{tag.label}
@@ -151,7 +147,7 @@
 						{/each}
 						<button
 							type="button"
-							class="ml-2 text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+							class="ml-2 text-xs text-accent-indigo-text hover:opacity-80"
 							onclick={clearAllTags}
 						>
 							Clear all

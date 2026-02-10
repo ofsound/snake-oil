@@ -11,7 +11,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<label class="text-sm font-medium text-gray-700 dark:text-gray-200" for={id}>
+	<label class="text-sm font-medium text-text-secondary" for={id}>
 		{label}
 	</label>
 	{@render children()}

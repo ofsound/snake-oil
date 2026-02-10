@@ -164,17 +164,13 @@
 	</div>
 
 	{#if form?.error}
-		<div
-			class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
-		>
+		<div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
 			{form.error}
 		</div>
 	{/if}
 
 	{#if imageError}
-		<div
-			class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-900/20 dark:text-red-200"
-		>
+		<div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
 			{imageError}
 		</div>
 	{/if}
@@ -183,9 +179,7 @@
 		<form method="POST" action="?/updateProfile" onsubmit={handleSubmit} class="space-y-6">
 			<!-- Profile Image Section -->
 			<div>
-				<span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-					Profile Image
-				</span>
+				<span class="mb-2 block text-sm font-medium text-text-secondary"> Profile Image </span>
 				<div class="flex items-start gap-4">
 					{#if imagePreview}
 						<div class="relative">
@@ -205,7 +199,7 @@
 						</div>
 					{:else}
 						<div
-							class="flex h-[150px] w-[150px] items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+							class="flex h-[150px] w-[150px] items-center justify-center rounded-lg bg-surface-muted"
 						>
 							<span class="text-4xl text-gray-400">👤</span>
 						</div>
@@ -229,7 +223,7 @@
 						>
 							{processingImage ? 'Processing...' : 'Upload Image'}
 						</Button>
-						<p class="text-xs text-gray-500 dark:text-gray-400">
+						<p class="text-xs text-text-muted">
 							JPG, PNG, WebP, or HEIC. Max 10MB.<br />
 							Will be cropped to 300×300px square.
 						</p>
@@ -239,7 +233,7 @@
 
 			<!-- Bio Section -->
 			<div>
-				<span class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Bio </span>
+				<span class="mb-2 block text-sm font-medium text-text-secondary"> Bio </span>
 				<TiptapEditor
 					bind:this={editorRef}
 					content={bio}
@@ -250,7 +244,7 @@
 					maxLength={2000}
 				/>
 				{#if bioTextLength > 1800}
-					<p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
+					<p class="mt-1 text-xs text-amber-600">
 						{2000 - bioTextLength} characters remaining
 					</p>
 				{/if}

@@ -27,13 +27,13 @@
 
 {#snippet mainHeader(isEdit: boolean)}
 	<header
-		class="border-b border-gray-200 bg-slate-200/80 py-4 transition-colors duration-200 dark:border-gray-700 dark:bg-slate-800/80"
+		class="border-b border-border bg-slate-200/80 py-4 transition-colors duration-200"
 		class:flex-shrink-0={isEdit}
 	>
 		<div class="mx-auto flex max-w-5xl justify-between gap-2 px-8">
 			<a
 				href={resolve('/')}
-				class="text-xl font-bold transition-colors duration-200 text-shadow-sm text-shadow-zinc-400/20 dark:text-shadow-zinc-600/20"
+				class="text-xl font-bold transition-colors duration-200 text-shadow-sm text-shadow-zinc-400/20"
 				>snakeoil.app</a
 			>
 

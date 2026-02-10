@@ -2,16 +2,14 @@
 	import { setMode, userPrefersMode } from 'mode-watcher';
 </script>
 
-<div
-	class="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 p-1 dark:border-gray-700 dark:bg-gray-800"
->
+<div class="inline-flex items-center rounded-full border border-border bg-surface-muted p-1">
 	<button
 		type="button"
 		onclick={() => setMode('system')}
 		class="relative rounded-full px-3 py-1.5 text-sm transition-all duration-200 {userPrefersMode.current ===
 		'system'
-			? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white'
-			: 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}"
+			? 'bg-surface text-text-primary shadow-sm'
+			: 'text-text-muted hover:text-text-secondary'}"
 		aria-label="System preference"
 		title="System preference"
 	>

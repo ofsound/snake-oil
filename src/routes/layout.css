@@ -4,8 +4,51 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
+@theme inline {
 	--font-sans: 'IBM Plex Sans', 'sans-serif';
+
+	/* Semantic surface colors */
+	--color-surface: light-dark(theme(colors.white), theme(colors.gray.800));
+	--color-surface-elevated: light-dark(theme(colors.white), theme(colors.gray.700));
+	--color-surface-muted: light-dark(theme(colors.gray.50), theme(colors.gray.800));
+	--color-surface-subtle: light-dark(theme(colors.neutral.50), theme(colors.zinc.700));
+	--color-surface-primary: light-dark(theme(colors.indigo.50), theme(colors.indigo.950));
+
+	/* Semantic border colors */
+	--color-border: light-dark(theme(colors.gray.200), theme(colors.gray.700));
+	--color-border-subtle: light-dark(theme(colors.neutral.200), theme(colors.neutral.700));
+	--color-border-muted: light-dark(theme(colors.gray.300), theme(colors.gray.600));
+
+	/* Semantic text colors */
+	--color-text-primary: light-dark(theme(colors.gray.900), theme(colors.gray.100));
+	--color-text-secondary: light-dark(theme(colors.gray.600), theme(colors.gray.400));
+	--color-text-muted: light-dark(theme(colors.gray.500), theme(colors.gray.400));
+	--color-text-inverse: light-dark(theme(colors.white), theme(colors.gray.900));
+
+	/* Accent colors - Indigo */
+	--color-accent-indigo-bg: light-dark(theme(colors.indigo.50), theme(colors.indigo.900));
+	--color-accent-indigo-text: light-dark(theme(colors.indigo.700), theme(colors.indigo.300));
+	--color-accent-indigo-border: light-dark(theme(colors.indigo.200), theme(colors.indigo.800));
+
+	/* Accent colors - Emerald */
+	--color-accent-emerald-bg: light-dark(theme(colors.emerald.50), theme(colors.emerald.900));
+	--color-accent-emerald-text: light-dark(theme(colors.emerald.700), theme(colors.emerald.300));
+
+	/* Accent colors - Amber */
+	--color-accent-amber-bg: light-dark(theme(colors.amber.50), theme(colors.amber.900));
+	--color-accent-amber-text: light-dark(theme(colors.amber.700), theme(colors.amber.200));
+
+	/* Accent colors - Red */
+	--color-accent-red-bg: light-dark(theme(colors.red.50), theme(colors.red.900));
+	--color-accent-red-text: light-dark(theme(colors.red.700), theme(colors.red.300));
+
+	/* Accent colors - Blue */
+	--color-accent-blue-bg: light-dark(theme(colors.blue.50), theme(colors.blue.900));
+	--color-accent-blue-text: light-dark(theme(colors.blue.700), theme(colors.blue.300));
+
+	/* Interactive states */
+	--color-interactive-bg: light-dark(theme(colors.gray.50), theme(colors.gray.700));
+	--color-interactive-bg-hover: light-dark(theme(colors.gray.100), theme(colors.gray.600));
 
 	/* Glassmorphism colors */
 	--color-glass-bg: rgba(255, 255, 255, 0.08);
