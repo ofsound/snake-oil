@@ -191,15 +191,21 @@
 									? parsedConfig
 									: null}
 							{@const sequenceConfig =
-								soundbite.variantType === 'sequence' && parsedConfig && isSequenceConfig(parsedConfig)
+								soundbite.variantType === 'sequence' &&
+								parsedConfig &&
+								isSequenceConfig(parsedConfig)
 									? parsedConfig
-									: soundbite.variantType === 'sequence' && isSequenceConfig(soundbite.variantConfig)
+									: soundbite.variantType === 'sequence' &&
+										  isSequenceConfig(soundbite.variantConfig)
 										? soundbite.variantConfig
 										: null}
 							{@const multipleMatchConfig =
-								soundbite.variantType === 'multiple_match' && parsedConfig && isMultipleMatchConfig(parsedConfig)
+								soundbite.variantType === 'multiple_match' &&
+								parsedConfig &&
+								isMultipleMatchConfig(parsedConfig)
 									? parsedConfig
-									: soundbite.variantType === 'multiple_match' && isMultipleMatchConfig(soundbite.variantConfig)
+									: soundbite.variantType === 'multiple_match' &&
+										  isMultipleMatchConfig(soundbite.variantConfig)
 										? soundbite.variantConfig
 										: null}
 							<div class="rounded-sm bg-neutral-50 p-4">
