@@ -1,10 +1,14 @@
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import { readdirSync, unlinkSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from 'dotenv';
+import ws from 'ws';
 
 // Load environment variables
 config({ path: '.env' });
+
+// Configure WebSocket for Node.js environment
+neonConfig.webSocketConstructor = ws;
 
 /**
  * Global teardown for Playwright E2E tests
