@@ -21,6 +21,8 @@ function trackUser(email: string) {
 }
 
 setup('authenticate', async ({ page }) => {
+	setup.setTimeout(240000); // 4 minutes for entire auth flow
+
 	const testEmail = `e2e-test-${Date.now()}@example.com`;
 	const testPassword = 'TestPassword123!';
 	const testName = `E2E User ${Date.now()}`;

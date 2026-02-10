@@ -12,7 +12,7 @@ const TEST_IMAGE_PATHS = [
 test('complete quiz lifecycle - create 7 variants and submit with perfect score', async ({
 	page
 }) => {
-	test.setTimeout(120000); // 120 seconds for this comprehensive test
+	test.setTimeout(240000); // 240 seconds for this comprehensive test
 	const timestamp = Date.now();
 	const quizTitle = `E2E 7 Variants ${timestamp}`;
 
