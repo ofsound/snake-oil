@@ -77,12 +77,10 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	return {
 		tags: tagsList,
-		pagination: {
-			page,
-			totalPages,
-			totalItems: totalTags,
-			itemsPerPage: ITEMS_PER_PAGE
-		},
+		currentPage: page,
+		totalPages,
+		totalItems: totalTags,
+		itemsPerPage: ITEMS_PER_PAGE,
 		stats,
 		popularTags,
 		sortBy,

@@ -164,6 +164,8 @@
 				quizzes={data.quizzes}
 				currentPage={data.currentPage}
 				totalPages={data.totalPages}
+				totalItems={data.totalItems ?? 0}
+				itemsPerPage={data.itemsPerPage ?? 15}
 				sort={data.sort}
 				order={data.order}
 				description={description()}

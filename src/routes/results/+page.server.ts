@@ -7,7 +7,7 @@ import { quizzes, user, speedRuns, tags, quizTags } from '$lib/server/db/schema'
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 50;
+const ITEMS_PER_PAGE = 50;
 const MAX_TAGS_FILTER = 5;
 
 type SortOption = 'relevance' | 'date' | 'title' | 'username';
@@ -153,11 +153,11 @@ export const load: PageServerLoad = async ({ url }) => {
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause);
 
-	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
 	// Clamp page to valid range
 	const currentPage = Math.min(page, totalPages);
-	const offset = (currentPage - 1) * PAGE_SIZE;
+	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	// Build order clause based on sort option
 	const orderFn = order === 'asc' ? asc : desc;
@@ -192,7 +192,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
 		.orderBy(orderByClause, desc(quizzes.createdAt))
-		.limit(PAGE_SIZE)
+		.limit(ITEMS_PER_PAGE)
 		.offset(offset);
 
 	// Fetch tags for all quizzes
@@ -239,7 +239,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		query: searchQuery,
 		currentPage,
 		totalPages,
-		totalCount,
+		totalItems: totalCount,
+		itemsPerPage: ITEMS_PER_PAGE,
 		sort,
 		order,
 		mode,

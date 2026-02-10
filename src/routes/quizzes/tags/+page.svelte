@@ -6,6 +6,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 
 	import { resolvePath } from '$lib/utils';
 
@@ -58,14 +59,14 @@
 
 <svelte:head>
 	<title>Browse All Tags | snakeoil.app</title>
-	<meta name="description" content="Browse all {data.totalCount} tags to discover quizzes" />
+	<meta name="description" content="Browse all {data.totalItems} tags to discover quizzes" />
 </svelte:head>
 
 <PageContainer>
 	<div class="container mx-auto max-w-6xl px-4 py-8">
 		<Heading level={1} class="mb-2">All Tags</Heading>
 		<p class="mb-8 text-gray-600 dark:text-gray-400">
-			Browse {data.totalCount} tags to discover quizzes by topic
+			Browse {data.totalItems} tags to discover quizzes by topic
 		</p>
 
 		<!-- Search and Sort Controls -->
@@ -219,40 +220,15 @@
 			</div>
 		{/if}
 
-		<!-- Pagination -->
-		{#if data.totalPages > 1}
-			<div class="mt-8 flex items-center justify-between">
-				<div class="text-sm text-gray-600 dark:text-gray-400">
-					Page {data.currentPage} of {data.totalPages}
-					({data.totalCount} total tags)
-				</div>
-				<div class="flex gap-2">
-					{#if data.currentPage > 1}
-						<a
-							href={(() => {
-								const params = new SvelteURLSearchParams(page.url.searchParams);
-								params.set('page', String(data.currentPage - 1));
-								return resolvePath(`/quizzes/tags?${params.toString()}`);
-							})()}
-							class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-						>
-							← Previous
-						</a>
-					{/if}
-					{#if data.currentPage < data.totalPages}
-						<a
-							href={(() => {
-								const params = new SvelteURLSearchParams(page.url.searchParams);
-								params.set('page', String(data.currentPage + 1));
-								return resolvePath(`/quizzes/tags?${params.toString()}`);
-							})()}
-							class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-						>
-							Next →
-						</a>
-					{/if}
-				</div>
-			</div>
-		{/if}
+		<Pagination
+			currentPage={data.currentPage}
+			totalPages={data.totalPages}
+			totalItems={data.totalItems}
+			itemsPerPage={data.itemsPerPage}
+			mode="simple"
+			navigation="ssr"
+			basePath="/quizzes/tags"
+			itemName="tags"
+		/>
 	</div>
 </PageContainer>

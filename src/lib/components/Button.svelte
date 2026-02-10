@@ -20,6 +20,7 @@
 		loading?: boolean;
 		active?: boolean;
 		fullWidth?: boolean;
+		form?: string;
 		href?: string;
 		target?: string;
 		rel?: string;
@@ -36,6 +37,7 @@
 		loading = false,
 		active = false,
 		fullWidth = false,
+		form,
 		href,
 		target,
 		rel,
@@ -109,7 +111,7 @@
 		{@render children()}
 	</a>
 {:else}
-	<button {type} class={classes} disabled={disabled || loading} {onclick}>
+	<button {type} {form} class={classes} disabled={disabled || loading} {onclick}>
 		{#if loading}
 			<span class="absolute inset-0 flex items-center justify-center">
 				<svg

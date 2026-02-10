@@ -5,7 +5,7 @@ import { quizzes, user, speedRuns, tags, quizTags } from '$lib/server/db/schema'
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 15;
+const ITEMS_PER_PAGE = 15;
 const MAX_TAGS_FILTER = 5;
 
 type SortOption = 'date' | 'title' | 'username';
@@ -135,11 +135,11 @@ export const load: PageServerLoad = async ({ url }) => {
 		.where(whereClause);
 
 	const totalCount = countResult[0]?.value ?? 0;
-	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
 	// Clamp page to valid range
 	const currentPage = Math.min(page, totalPages);
-	const offset = (currentPage - 1) * PAGE_SIZE;
+	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	// Fetch quizzes
 	const result = await db
@@ -158,7 +158,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
 		.orderBy(orderByClause)
-		.limit(PAGE_SIZE)
+		.limit(ITEMS_PER_PAGE)
 		.offset(offset);
 
 	// Fetch tags for all quizzes in this page
@@ -204,7 +204,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		quizzes: quizzesList,
 		currentPage,
 		totalPages,
-		totalCount,
+		totalItems: totalCount,
+		itemsPerPage: ITEMS_PER_PAGE,
 		sort,
 		order,
 		mode,

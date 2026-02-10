@@ -13,7 +13,7 @@ import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit
 
 import type { PageServerLoad, Actions } from './$types';
 
-const PAGE_SIZE = 25;
+const ITEMS_PER_PAGE = 25;
 
 type SortField = 'created' | 'score' | 'time';
 type SortOrder = 'asc' | 'desc';
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
 	const suspiciousOnly = url.searchParams.get('suspicious') === 'true';
 
-	const offset = (page - 1) * PAGE_SIZE;
+	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Get all quizzes with speed runs for filter
 	const allSpeedRuns = await db.query.speedRuns.findMany({
@@ -78,7 +78,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const results = await db.query.speedRunResults.findMany({
 		where: whereClause,
 		orderBy: orderByClause,
-		limit: PAGE_SIZE,
+		limit: ITEMS_PER_PAGE,
 		offset,
 		with: {
 			user: {
@@ -112,19 +112,17 @@ export const load: PageServerLoad = async ({ url }) => {
 	// Get total count
 	const totalResult = await db.select({ value: count() }).from(speedRunResults).where(whereClause);
 	const totalResults = totalResult[0]?.value ?? 0;
-	const totalPages = Math.ceil(totalResults / PAGE_SIZE);
+	const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE);
 
 	return {
 		results: results.map((r) => ({
 			...r,
 			isSuspicious: r.totalTimeMs < r.totalQuestions * 1000 // Less than 1 second per question
 		})),
-		pagination: {
-			page,
-			totalPages,
-			totalResults,
-			pageSize: PAGE_SIZE
-		},
+		currentPage: page,
+		totalPages,
+		totalItems: totalResults,
+		itemsPerPage: ITEMS_PER_PAGE,
 		filters: {
 			quiz: quizFilter,
 			sort: sortField,

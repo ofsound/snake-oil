@@ -4,6 +4,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	import Button from '$lib/components/Button.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 
 	import { resolvePath } from '$lib/utils';
@@ -21,6 +22,8 @@
 		quizzes: Quiz[];
 		currentPage: number;
 		totalPages: number;
+		totalItems: number;
+		itemsPerPage: number;
 		sort: string;
 		order: 'asc' | 'desc';
 		description: string;
@@ -35,6 +38,8 @@
 		quizzes,
 		currentPage,
 		totalPages,
+		totalItems,
+		itemsPerPage,
 		sort,
 		order,
 		description,
@@ -62,27 +67,6 @@
 
 		params.set('page', '1');
 		goto(resolvePath(`${basePath}?${params.toString()}`));
-	}
-
-	function handlePageChange(newPage: number): void {
-		const params = new SvelteURLSearchParams(page.url.searchParams);
-		params.set('page', String(newPage));
-		goto(resolvePath(`${basePath}?${params.toString()}`));
-	}
-
-	function getPageNumbers(current: number, total: number): (number | '...')[] {
-		const pages: (number | '...')[] = [];
-		const delta = 2;
-
-		for (let i = 1; i <= total; i++) {
-			if (i === 1 || i === total || (i >= current - delta && i <= current + delta)) {
-				pages.push(i);
-			} else if (pages[pages.length - 1] !== '...') {
-				pages.push('...');
-			}
-		}
-
-		return pages;
 	}
 </script>
 
@@ -127,48 +111,15 @@
 		{/each}
 	</div>
 
-	{#if totalPages > 1}
-		<nav class="mt-6 flex items-center justify-between" aria-label="Pagination">
-			<div class="text-sm text-gray-600">
-				Page {currentPage} of {totalPages}
-			</div>
-
-			<div class="flex items-center gap-2">
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => handlePageChange(currentPage - 1)}
-					disabled={currentPage === 1}
-				>
-					Previous
-				</Button>
-
-				{#each getPageNumbers(currentPage, totalPages) as pageNum, idx (idx)}
-					{#if pageNum === '...'}
-						<span class="px-2 text-gray-500">...</span>
-					{:else}
-						<Button
-							variant="outline"
-							size="sm"
-							onclick={() => handlePageChange(pageNum)}
-							active={pageNum === currentPage}
-						>
-							{pageNum}
-						</Button>
-					{/if}
-				{/each}
-
-				<Button
-					variant="outline"
-					size="sm"
-					onclick={() => handlePageChange(currentPage + 1)}
-					disabled={currentPage === totalPages}
-				>
-					Next
-				</Button>
-			</div>
-		</nav>
-	{/if}
+	<Pagination
+		{currentPage}
+		{totalPages}
+		{totalItems}
+		{itemsPerPage}
+		mode="full"
+		navigation="client"
+		itemName="quizzes"
+	/>
 {:else}
 	<div class="rounded-md bg-gray-50 p-8 text-center">
 		<p class="text-gray-600">{emptyState.message}</p>

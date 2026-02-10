@@ -6,7 +6,7 @@ import { quizzes, user, speedRuns, tags, quizTags, tagCooccurrence } from '$lib/
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 15;
+const ITEMS_PER_PAGE = 15;
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const { slug } = params;
@@ -45,9 +45,9 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		.where(and(eq(quizTags.tagId, tag.id), eq(quizzes.visibility, 'public')));
 
 	const totalCount = countResult[0]?.value ?? 0;
-	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 	const currentPage = Math.min(page, totalPages);
-	const offset = (currentPage - 1) * PAGE_SIZE;
+	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	// Get quizzes with this tag
 	const quizzesData = await db
@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(and(eq(quizTags.tagId, tag.id), eq(quizzes.visibility, 'public')))
 		.orderBy(desc(quizzes.createdAt))
-		.limit(PAGE_SIZE)
+		.limit(ITEMS_PER_PAGE)
 		.offset(offset);
 
 	// Fetch all tags for these quizzes
@@ -120,6 +120,7 @@ export const load: PageServerLoad = async ({ params, url }) => {
 		quizzes: quizzesList,
 		currentPage,
 		totalPages,
-		totalCount
+		totalItems: totalCount,
+		itemsPerPage: ITEMS_PER_PAGE
 	};
 };

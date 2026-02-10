@@ -9,7 +9,7 @@ import { handleQuizTagRemoval } from '$lib/server/tag-utils';
 
 import type { PageServerLoad, Actions } from './$types';
 
-const PAGE_SIZE = 25;
+const ITEMS_PER_PAGE = 25;
 
 type SortField = 'created' | 'title';
 type SortOrder = 'asc' | 'desc';
@@ -21,7 +21,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const sortField: SortField = (url.searchParams.get('sort') as SortField) ?? 'created';
 	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
 
-	const offset = (page - 1) * PAGE_SIZE;
+	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
 	let whereClause = undefined;
@@ -67,7 +67,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
 		.orderBy(orderByClause)
-		.limit(PAGE_SIZE)
+		.limit(ITEMS_PER_PAGE)
 		.offset(offset);
 
 	// Get total count
@@ -79,16 +79,14 @@ export const load: PageServerLoad = async ({ url }) => {
 		.where(whereClause);
 
 	const totalQuizzes = totalResult[0]?.value ?? 0;
-	const totalPages = Math.ceil(totalQuizzes / PAGE_SIZE);
+	const totalPages = Math.ceil(totalQuizzes / ITEMS_PER_PAGE);
 
 	return {
 		quizzes: quizzesList,
-		pagination: {
-			page,
-			totalPages,
-			totalQuizzes,
-			pageSize: PAGE_SIZE
-		},
+		currentPage: page,
+		totalPages,
+		totalItems: totalQuizzes,
+		itemsPerPage: ITEMS_PER_PAGE,
 		filters: {
 			search,
 			visibility: visibilityFilter,

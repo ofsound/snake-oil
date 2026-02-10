@@ -4,7 +4,7 @@ import { desc, asc, count, eq, like, or, sql } from 'drizzle-orm';
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 25;
+const ITEMS_PER_PAGE = 25;
 
 type SortField = 'created' | 'name' | 'role';
 type SortOrder = 'asc' | 'desc';
@@ -17,7 +17,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const sortField: SortField = (url.searchParams.get('sort') as SortField) ?? 'created';
 	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
 
-	const offset = (page - 1) * PAGE_SIZE;
+	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
 	let whereClause = undefined;
@@ -60,14 +60,14 @@ export const load: PageServerLoad = async ({ url }) => {
 	const users = await db.query.user.findMany({
 		where: whereClause,
 		orderBy: orderByClause,
-		limit: PAGE_SIZE,
+		limit: ITEMS_PER_PAGE,
 		offset
 	});
 
 	// Get total count
 	const totalResult = await db.select({ value: count() }).from(user).where(whereClause);
 	const totalUsers = totalResult[0]?.value ?? 0;
-	const totalPages = Math.ceil(totalUsers / PAGE_SIZE);
+	const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
 
 	// Get user stats (quiz count, submission count, speed run count)
 	const userIds = users.map((u) => u.id);
@@ -113,12 +113,10 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	return {
 		users: usersWithStats,
-		pagination: {
-			page,
-			totalPages,
-			totalUsers,
-			pageSize: PAGE_SIZE
-		},
+		currentPage: page,
+		totalPages,
+		totalItems: totalUsers,
+		itemsPerPage: ITEMS_PER_PAGE,
 		filters: {
 			search,
 			role: roleFilter,

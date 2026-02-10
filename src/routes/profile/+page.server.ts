@@ -16,7 +16,7 @@ import { getLoginUrl } from '$lib/constants/routes';
 
 import type { PageServerLoad } from './$types';
 
-const SUBMISSIONS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 20;
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	// Ensure user is authenticated - Better Auth handles this in hooks.server.ts
@@ -45,11 +45,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 		redirect(302, getLoginUrl(url.pathname + url.search));
 	}
 
-	// Parse filter and pagination params
+	// Parse tab, filter, and pagination params
+	const activeTab = (url.searchParams.get('tab') as 'quizzes' | 'submissions') || 'quizzes';
 	const submissionFilter =
 		(url.searchParams.get('submissionFilter') as 'all' | 'quiz' | 'speedrun') || 'all';
 	const quizFilter = (url.searchParams.get('quizFilter') as 'all' | 'quiz' | 'speedrun') || 'all';
-	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
+	const quizPage = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
+	const submissionPage = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
 
 	// Fetch all quizzes owned by the current user, ordered by creation date (newest first)
 	const userQuizzes = await db.query.quizzes.findMany({
@@ -238,22 +240,35 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	allSubmissions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
 	// Get total count for pagination
-	const totalCount = allSubmissions.length;
-	const totalPages = Math.ceil(totalCount / SUBMISSIONS_PER_PAGE);
+	const submissionTotalCount = allSubmissions.length;
+	const submissionTotalPages = Math.ceil(submissionTotalCount / ITEMS_PER_PAGE);
 
-	// Apply pagination
-	const offset = (page - 1) * SUBMISSIONS_PER_PAGE;
-	const paginatedSubmissions = allSubmissions.slice(offset, offset + SUBMISSIONS_PER_PAGE);
+	// Apply pagination to submissions
+	const submissionOffset = (submissionPage - 1) * ITEMS_PER_PAGE;
+	const paginatedSubmissions = allSubmissions.slice(
+		submissionOffset,
+		submissionOffset + ITEMS_PER_PAGE
+	);
+
+	// Apply pagination to quizzes
+	const quizTotalCount = quizzesWithTags.length;
+	const quizTotalPages = Math.ceil(quizTotalCount / ITEMS_PER_PAGE);
+	const quizOffset = (quizPage - 1) * ITEMS_PER_PAGE;
+	const paginatedQuizzes = quizzesWithTags.slice(quizOffset, quizOffset + ITEMS_PER_PAGE);
 
 	return {
 		user: userData,
 		profile: userData,
-		quizzes: quizzesWithTags,
+		quizzes: paginatedQuizzes,
 		submissions: paginatedSubmissions,
 		submissionFilter,
 		quizFilter,
-		currentPage: page,
-		totalPages,
-		totalCount
+		activeTab,
+		quizCurrentPage: quizPage,
+		quizTotalPages,
+		quizTotalCount,
+		submissionCurrentPage: submissionPage,
+		submissionTotalPages,
+		submissionTotalCount
 	};
 };

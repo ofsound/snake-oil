@@ -4,14 +4,14 @@ import { desc, count, eq, sql } from 'drizzle-orm';
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 25;
+const ITEMS_PER_PAGE = 25;
 
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
 	const actionFilter = url.searchParams.get('action') ?? 'all';
 	const targetTypeFilter = url.searchParams.get('targetType') ?? 'all';
 
-	const offset = (page - 1) * PAGE_SIZE;
+	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
 	let whereClause = undefined;
@@ -29,7 +29,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const actions = await db.query.adminActions.findMany({
 		where: whereClause,
 		orderBy: desc(adminActions.createdAt),
-		limit: PAGE_SIZE,
+		limit: ITEMS_PER_PAGE,
 		offset,
 		with: {
 			admin: {
@@ -50,7 +50,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	// Get total count
 	const totalResult = await db.select({ value: count() }).from(adminActions).where(whereClause);
 	const totalActions = totalResult[0]?.value ?? 0;
-	const totalPages = Math.ceil(totalActions / PAGE_SIZE);
+	const totalPages = Math.ceil(totalActions / ITEMS_PER_PAGE);
 
 	// Get distinct actions and target types for filters
 	const distinctActions = await db
@@ -65,12 +65,10 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	return {
 		actions,
-		pagination: {
-			page,
-			totalPages,
-			totalActions,
-			pageSize: PAGE_SIZE
-		},
+		currentPage: page,
+		totalPages,
+		totalItems: totalActions,
+		itemsPerPage: ITEMS_PER_PAGE,
 		filters: {
 			action: actionFilter,
 			targetType: targetTypeFilter

@@ -5,7 +5,7 @@ import { tags, quizzes, quizTags, user } from '$lib/server/db/schema';
 
 import type { PageServerLoad } from './$types';
 
-const PAGE_SIZE = 24;
+const ITEMS_PER_PAGE = 24;
 
 type SortOption = 'popularity' | 'name';
 type OrderOption = 'asc' | 'desc';
@@ -39,15 +39,15 @@ export const load: PageServerLoad = async ({ url }) => {
 	const countResult = await db.select({ value: count() }).from(tags).where(whereClause);
 
 	const totalCount = countResult[0]?.value ?? 0;
-	const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+	const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 	const currentPage = Math.min(page, totalPages);
-	const offset = (currentPage - 1) * PAGE_SIZE;
+	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
 	// Fetch tags with pagination
 	const tagsData = await db.query.tags.findMany({
 		where: whereClause,
 		orderBy: orderByClause,
-		limit: PAGE_SIZE,
+		limit: ITEMS_PER_PAGE,
 		offset
 	});
 
@@ -106,7 +106,8 @@ export const load: PageServerLoad = async ({ url }) => {
 		tags: tagsWithPreviews,
 		currentPage,
 		totalPages,
-		totalCount,
+		totalItems: totalCount,
+		itemsPerPage: ITEMS_PER_PAGE,
 		sort,
 		order,
 		searchQuery: searchParam || null

@@ -5,6 +5,7 @@
 
 	import Button from '$lib/components/Button.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 
 	let { data } = $props();
 
@@ -223,53 +224,17 @@
 				</table>
 			</div>
 
-			<!-- Pagination -->
-			{#if data.pagination && data.pagination.totalPages > 1}
-				<div
-					class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-				>
-					<div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-						<div>
-							<p class="text-sm text-gray-700">
-								Showing <span class="font-medium"
-									>{(data.pagination.page - 1) * data.pagination.pageSize + 1}</span
-								>
-								to
-								<span class="font-medium"
-									>{Math.min(
-										data.pagination.page * data.pagination.pageSize,
-										data.pagination.totalQuizzes
-									)}</span
-								>
-								of <span class="font-medium">{data.pagination.totalQuizzes}</span> quizzes
-							</p>
-						</div>
-						<div>
-							<nav
-								class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
-								aria-label="Pagination"
-							>
-								{#if data.pagination.page > 1}
-									<a
-										href="/admin/quizzes?page={data.pagination.page - 1}"
-										class="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
-									>
-										Previous
-									</a>
-								{/if}
-								{#if data.pagination.page < data.pagination.totalPages}
-									<a
-										href="/admin/quizzes?page={data.pagination.page + 1}"
-										class="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50"
-									>
-										Next
-									</a>
-								{/if}
-							</nav>
-						</div>
-					</div>
-				</div>
-			{/if}
+			<Pagination
+				currentPage={data.currentPage}
+				totalPages={data.totalPages}
+				totalItems={data.totalItems}
+				itemsPerPage={data.itemsPerPage}
+				mode="simple"
+				navigation="ssr"
+				variant="admin"
+				basePath="/admin/quizzes"
+				itemName="quizzes"
+			/>
 		</div>
 	</div></PageContainer
 >

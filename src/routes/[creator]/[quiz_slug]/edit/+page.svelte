@@ -16,6 +16,7 @@
 	import TagInput from '$lib/components/TagInput.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 
+	import { editFormFooterState } from '$lib/edit-form-footer.svelte';
 	import { buildQuizFormData } from '$lib/form-builder';
 	import { resolvePath } from '$lib/utils';
 	import { createEmptyOption } from '$lib/variant-client-utils';
@@ -195,6 +196,13 @@
 		}
 	});
 
+	$effect(() => {
+		editFormFooterState.value = { formId: 'quiz-edit-form', submitting };
+		return () => {
+			editFormFooterState.value = null;
+		};
+	});
+
 	function handleNewSoundbitesChange(newSoundbitesList: SoundbiteState[]) {
 		newSoundbites = newSoundbitesList;
 	}
@@ -237,6 +245,7 @@
 	</header>
 
 	<form
+		id="quiz-edit-form"
 		method="POST"
 		action="?/update"
 		enctype="multipart/form-data"
@@ -482,11 +491,5 @@
 				{errorMessage}
 			</div>
 		{/if}
-
-		<div class="mt-6 flex justify-end border-t border-neutral-200 pt-6">
-			<Button variant="primary" size="md" type="submit" disabled={submitting} loading={submitting}>
-				Save changes
-			</Button>
-		</div>
 	</form>
 </PageContainer>

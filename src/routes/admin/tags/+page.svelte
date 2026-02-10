@@ -9,6 +9,7 @@
 	import FormInput from '$lib/components/FormInput.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 
 	let { data, form } = $props();
 
@@ -99,7 +100,7 @@
 			<Card variant="flat" padding="md">
 				<div class="text-center">
 					<div class="text-3xl font-bold text-purple-600">
-						{data.pagination.totalPages}
+						{data.totalPages}
 					</div>
 					<div class="text-sm text-gray-600">Pages</div>
 				</div>
@@ -255,47 +256,16 @@
 			</table>
 		</Card>
 
-		<!-- Pagination -->
-		{#if data.pagination.totalPages > 1}
-			<div class="mt-6 flex items-center justify-between">
-				<div class="text-sm text-gray-600">
-					Showing {(data.pagination.page - 1) * data.pagination.itemsPerPage + 1} to {Math.min(
-						data.pagination.page * data.pagination.itemsPerPage,
-						data.pagination.totalItems
-					)} of {data.pagination.totalItems} tags
-				</div>
-				<div class="flex gap-2">
-					{#if data.pagination.page > 1}
-						{@const prevParams = new SvelteURLSearchParams()}
-						{#if data.search}{prevParams.set('search', data.search)}{/if}
-						{#if data.filter}{prevParams.set('filter', data.filter)}{/if}
-						{#if data.sortBy}{prevParams.set('sort', data.sortBy)}{/if}
-						{#if data.order}{prevParams.set('order', data.order)}{/if}
-						{prevParams.set('page', String(data.pagination.page - 1))}
-						<a
-							href="?{prevParams.toString()}"
-							class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-						>
-							Previous
-						</a>
-					{/if}
-					{#if data.pagination.page < data.pagination.totalPages}
-						{@const nextParams = new SvelteURLSearchParams()}
-						{#if data.search}{nextParams.set('search', data.search)}{/if}
-						{#if data.filter}{nextParams.set('filter', data.filter)}{/if}
-						{#if data.sortBy}{nextParams.set('sort', data.sortBy)}{/if}
-						{#if data.order}{nextParams.set('order', data.order)}{/if}
-						{nextParams.set('page', String(data.pagination.page + 1))}
-						<a
-							href="?{nextParams.toString()}"
-							class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
-						>
-							Next
-						</a>
-					{/if}
-				</div>
-			</div>
-		{/if}
+		<Pagination
+			currentPage={data.currentPage}
+			totalPages={data.totalPages}
+			totalItems={data.totalItems}
+			itemsPerPage={data.itemsPerPage}
+			mode="simple"
+			navigation="ssr"
+			variant="admin"
+			itemName="tags"
+		/>
 
 		<!-- Popular Tags Sidebar -->
 		{#if data.popularTags.length > 0}

@@ -3,6 +3,7 @@
 	import Card from '$lib/components/Card.svelte';
 	import Heading from '$lib/components/Heading.svelte';
 	import PageContainer from '$lib/components/PageContainer.svelte';
+	import Pagination from '$lib/components/Pagination.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
 
 	import { resolvePath } from '$lib/utils';
@@ -120,33 +121,15 @@
 					{/if}
 				</Card>
 
-				<!-- Pagination -->
-				{#if data.totalPages > 1}
-					<div class="mt-6 flex items-center justify-between">
-						<div class="text-sm text-gray-600 dark:text-gray-400">
-							Page {data.currentPage} of {data.totalPages}
-							({data.totalCount} total {data.totalCount === 1 ? 'quiz' : 'quizzes'})
-						</div>
-						<div class="flex gap-2">
-							{#if data.currentPage > 1}
-								<a
-									href={resolvePath(`?page=${data.currentPage - 1}`)}
-									class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-								>
-									← Previous
-								</a>
-							{/if}
-							{#if data.currentPage < data.totalPages}
-								<a
-									href={resolvePath(`?page=${data.currentPage + 1}`)}
-									class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-								>
-									Next →
-								</a>
-							{/if}
-						</div>
-					</div>
-				{/if}
+				<Pagination
+					currentPage={data.currentPage}
+					totalPages={data.totalPages}
+					totalItems={data.totalItems}
+					itemsPerPage={data.itemsPerPage}
+					mode="simple"
+					navigation="ssr"
+					itemName="quizzes"
+				/>
 			</div>
 		</div>
 	</div></PageContainer

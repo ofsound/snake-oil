@@ -159,7 +159,7 @@
 
 	<div class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-gray-700" for={`prompt-${soundbite.id}`}>
-			Prompt <span class="text-gray-400 italic">(optional)</span>
+			Prompt <span class="font-normal text-gray-400 italic">(optional)</span>
 		</label>
 		<textarea
 			id={`prompt-${soundbite.id}`}
