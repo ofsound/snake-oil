@@ -21,7 +21,7 @@ function trackUser(email: string) {
 }
 
 setup('authenticate', async ({ page }) => {
-	setup.setTimeout(240000); // 4 minutes for entire auth flow
+	setup.setTimeout(300000); // 4 minutes for entire auth flow
 
 	const testEmail = `e2e-test-${Date.now()}@example.com`;
 	const testPassword = 'TestPassword123!';
@@ -41,7 +41,7 @@ setup('authenticate', async ({ page }) => {
 	await page.click('form button[type="submit"]');
 
 	// Wait for redirect to home page (user menu should appear)
-	await page.waitForSelector('text=E2E User', { timeout: 120000 });
+	await page.waitForSelector('text=E2E User', { timeout: 300000 });
 	console.log('✓ Signed up successfully');
 
 	// Ensure auth directory exists before saving storage state

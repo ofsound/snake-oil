@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { validateVariantConfig } from './variant-utils';
-import type { RankConfig } from './db/schema';
+import {
+	validateVariantConfig,
+	checkSimpleGuessCorrect,
+	checkMultipleChoiceCorrect,
+	checkImageChoiceCorrect
+} from './variant-utils';
+import type { RankConfig, MultipleChoiceConfig, ImageChoiceConfig } from './db/schema';
 
 /**
  * RANK VARIANT VALIDATION
@@ -123,5 +128,88 @@ describe('validateVariantConfig - rank variant', () => {
 			};
 			expect(validateVariantConfig(config)).toBe(false);
 		});
+	});
+});
+
+/**
+ * ANSWER CHECK FUNCTIONS
+ *
+ * These determine whether a user's answer is correct. Used by the check-answer API
+ * and submission processing. Case sensitivity, whitespace, and option ID matching
+ * must behave correctly to avoid wrong scores.
+ */
+describe('checkSimpleGuessCorrect', () => {
+	it('returns true when guess matches a correct answer', () => {
+		expect(checkSimpleGuessCorrect('foo', ['foo'])).toBe(true);
+		expect(checkSimpleGuessCorrect('bar', ['foo', 'bar'])).toBe(true);
+	});
+
+	it('is case-insensitive', () => {
+		expect(checkSimpleGuessCorrect('FOO', ['foo'])).toBe(true);
+		expect(checkSimpleGuessCorrect('Foo', ['foo'])).toBe(true);
+		expect(checkSimpleGuessCorrect('foo', ['FOO'])).toBe(true);
+	});
+
+	it('trims whitespace', () => {
+		expect(checkSimpleGuessCorrect('  foo  ', ['foo'])).toBe(true);
+		expect(checkSimpleGuessCorrect('foo', ['  foo  '])).toBe(true);
+	});
+
+	it('returns false when guess does not match', () => {
+		expect(checkSimpleGuessCorrect('baz', ['foo', 'bar'])).toBe(false);
+	});
+
+	it('returns false for empty guess with non-empty answers', () => {
+		expect(checkSimpleGuessCorrect('', ['foo'])).toBe(false);
+	});
+
+	it('handles multiple correct answers', () => {
+		expect(checkSimpleGuessCorrect('synonym', ['answer', 'synonym', 'alias'])).toBe(true);
+	});
+});
+
+describe('checkMultipleChoiceCorrect', () => {
+	const config: MultipleChoiceConfig = {
+		type: 'multiple_choice',
+		options: [
+			{ id: 'opt-a', text: 'Wrong', isCorrect: false },
+			{ id: 'opt-b', text: 'Correct', isCorrect: true },
+			{ id: 'opt-c', text: 'Wrong', isCorrect: false }
+		]
+	};
+
+	it('returns true when selected option ID matches correct option', () => {
+		expect(checkMultipleChoiceCorrect('opt-b', config)).toBe(true);
+	});
+
+	it('returns false when selected option ID is wrong', () => {
+		expect(checkMultipleChoiceCorrect('opt-a', config)).toBe(false);
+		expect(checkMultipleChoiceCorrect('opt-c', config)).toBe(false);
+	});
+
+	it('returns false for non-existent option ID', () => {
+		expect(checkMultipleChoiceCorrect('opt-d', config)).toBe(false);
+	});
+});
+
+describe('checkImageChoiceCorrect', () => {
+	const config: ImageChoiceConfig = {
+		type: 'image_choice',
+		options: [
+			{ id: 'img-a', imageUrl: '/a.png', pathname: '/a.png', label: 'Wrong', isCorrect: false },
+			{ id: 'img-b', imageUrl: '/b.png', pathname: '/b.png', label: 'Correct', isCorrect: true }
+		]
+	};
+
+	it('returns true when selected option ID matches correct option', () => {
+		expect(checkImageChoiceCorrect('img-b', config)).toBe(true);
+	});
+
+	it('returns false when selected option ID is wrong', () => {
+		expect(checkImageChoiceCorrect('img-a', config)).toBe(false);
+	});
+
+	it('returns false for non-existent option ID', () => {
+		expect(checkImageChoiceCorrect('img-c', config)).toBe(false);
 	});
 });
