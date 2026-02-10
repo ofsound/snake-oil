@@ -120,13 +120,13 @@
 				{#if mode === 'full'}
 					{#each getPageNumbers(currentPage, totalPages) as pageNum, idx (idx)}
 						{#if pageNum === '...'}
-							<span class="px-2 text-gray-500">...</span>
+							<span class="px-2 text-text-muted">...</span>
 						{:else}
 							<a
 								href={getPageUrl(pageNum)}
 								class="rounded-lg border px-4 py-2 text-sm font-medium transition-colors {pageNum ===
 								currentPage
-									? 'border-indigo-500 bg-indigo-600 text-white'
+									? 'border-accent-indigo-border bg-accent-indigo-bg text-accent-indigo-text'
 									: 'border-border-muted bg-surface text-text-secondary hover:bg-interactive-bg'}"
 							>
 								{pageNum}
@@ -158,7 +158,7 @@
 				{#if mode === 'full'}
 					{#each getPageNumbers(currentPage, totalPages) as pageNum, idx (idx)}
 						{#if pageNum === '...'}
-							<span class="px-2 text-gray-500">...</span>
+							<span class="px-2 text-text-muted">...</span>
 						{:else}
 							<Button
 								variant="outline"

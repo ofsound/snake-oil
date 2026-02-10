@@ -54,12 +54,12 @@
 <PageContainer>
 	<div class="space-y-6">
 		<div>
-			<h1 class="text-2xl font-bold text-gray-900">Speed Run Results</h1>
-			<p class="mt-1 text-sm text-gray-500">Manage speed run results and leaderboards</p>
+			<h1 class="text-2xl font-bold text-admin-text-primary">Speed Run Results</h1>
+			<p class="mt-1 text-sm text-admin-text-muted">Manage speed run results and leaderboards</p>
 		</div>
 
 		<!-- Filters -->
-		<div class="rounded-lg bg-white p-4 shadow">
+		<div class="rounded-lg bg-admin-surface-elevated p-4 shadow">
 			<form
 				class="flex flex-wrap items-end gap-4"
 				onsubmit={(e) => {
@@ -68,11 +68,13 @@
 				}}
 			>
 				<div>
-					<label for="filter-quiz" class="mb-1 block text-sm font-medium text-gray-700">Quiz</label>
+					<label for="filter-quiz" class="mb-1 block text-sm font-medium text-admin-text-primary"
+						>Quiz</label
+					>
 					<select
 						id="filter-quiz"
 						name="quiz"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="all" selected={data.filters.quiz === 'all'}>All Quizzes</option>
 						{#each data.quizzes as quiz (quiz.id)}
@@ -84,11 +86,13 @@
 				</div>
 
 				<div>
-					<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+					<label for="filter-sort" class="mb-1 block text-sm font-medium text-admin-text-primary"
+						>Sort</label
+					>
 					<select
 						id="filter-sort"
 						name="sort"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="created" selected={data.filters.sort === 'created'}>Date</option>
 						<option value="score" selected={data.filters.sort === 'score'}>Score</option>
@@ -97,13 +101,13 @@
 				</div>
 
 				<div>
-					<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700"
+					<label for="filter-order" class="mb-1 block text-sm font-medium text-admin-text-primary"
 						>Order</label
 					>
 					<select
 						id="filter-order"
 						name="order"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="desc" selected={data.filters.order === 'desc'}>Best First</option>
 						<option value="asc" selected={data.filters.order === 'asc'}>Worst First</option>
@@ -116,9 +120,11 @@
 							type="checkbox"
 							name="suspicious"
 							checked={data.filters.suspicious}
-							class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+							class="rounded border-admin-border text-admin-accent-violet-text focus:ring-admin-accent-violet-border"
 						/>
-						<span class="ml-2 text-sm text-gray-700">Suspicious only (&lt;1s/question)</span>
+						<span class="ml-2 text-sm text-admin-text-primary"
+							>Suspicious only (&lt;1s/question)</span
+						>
 					</label>
 				</div>
 
@@ -127,13 +133,13 @@
 		</div>
 
 		<!-- Clear Leaderboards Section -->
-		<div class="rounded-lg bg-white p-4 shadow">
-			<h2 class="mb-3 text-lg font-medium text-gray-900">Clear Leaderboards</h2>
+		<div class="rounded-lg bg-admin-surface-elevated p-4 shadow">
+			<h2 class="mb-3 text-lg font-medium text-admin-text-primary">Clear Leaderboards</h2>
 			<div class="flex flex-wrap gap-2">
 				{#each data.quizzes as quiz (quiz.id)}
 					<button
 						onclick={() => openClearModal(quiz)}
-						class="rounded bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200"
+						class="rounded bg-admin-accent-red-bg px-3 py-1 text-sm text-admin-accent-red-text hover:bg-admin-surface-muted"
 					>
 						Clear {quiz.title}
 					</button>
@@ -144,50 +150,54 @@
 		<!-- Results Table -->
 		<div class="overflow-hidden rounded-lg bg-white shadow">
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-admin-border">
+					<thead class="bg-admin-surface-muted">
 						<tr>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Date</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Quiz</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Player</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Score</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Time</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Status</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Actions</th
 							>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200 bg-white">
+					<tbody class="divide-y divide-admin-border bg-admin-surface-elevated">
 						{#if data.results.length === 0}
 							<tr>
-								<td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500">
+								<td colspan="7" class="px-6 py-8 text-center text-sm text-admin-text-muted">
 									No speed run results found
 								</td>
 							</tr>
 						{:else}
 							{#each data.results as result (result.id)}
-								<tr class="hover:bg-gray-50 {result.isSuspicious ? 'bg-red-50' : ''}">
-									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+								<tr
+									class="hover:bg-admin-surface-muted {result.isSuspicious
+										? 'bg-admin-accent-red-bg'
+										: ''}"
+								>
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
 										<time title={new Date(result.createdAt).toLocaleString()}>
 											{formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
 										</time>
@@ -196,7 +206,7 @@
 										<a
 											href="/{result.speedRun.quiz.creator.slug}/{result.speedRun.quiz.slug}"
 											target="_blank"
-											class="text-sm font-medium text-blue-600 hover:text-blue-900"
+											class="text-sm font-medium text-admin-accent-violet-text hover:text-admin-text-primary"
 										>
 											{result.speedRun.quiz.title}
 										</a>
@@ -205,35 +215,35 @@
 										{#if result.user}
 											<a
 												href="/admin/users/{result.user.id}"
-												class="text-sm text-blue-600 hover:text-blue-900"
+												class="text-sm text-admin-accent-violet-text hover:text-admin-text-primary"
 											>
 												{result.user.name || result.user.slug}
 											</a>
 										{:else}
-											<span class="text-sm text-gray-500">{result.displayName}</span>
+											<span class="text-sm text-admin-text-muted">{result.displayName}</span>
 										{/if}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-gray-900">
+										<div class="text-sm font-medium text-admin-text-primary">
 											{result.correctCount}/{result.totalQuestions}
 										</div>
-										<div class="text-xs text-gray-500">
+										<div class="text-xs text-admin-text-muted">
 											Score: {result.score.toLocaleString()}
 										</div>
 									</td>
-									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
 										{formatTime(result.totalTimeMs)}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										{#if result.isSuspicious}
 											<span
-												class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+												class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
 											>
 												Suspicious
 											</span>
 										{:else}
 											<span
-												class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+												class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
 											>
 												Valid
 											</span>
@@ -242,7 +252,7 @@
 									<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
 										<button
 											onclick={() => openDeleteModal(result)}
-											class="text-red-600 hover:text-red-900"
+											class="text-admin-accent-red-text hover:text-admin-text-primary"
 										>
 											Delete
 										</button>
@@ -271,21 +281,29 @@
 
 <!-- Delete Result Modal -->
 {#if showDeleteModal && resultToDelete}
-	<div class="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-gray-500">
-		<div class="mx-4 w-full max-w-md rounded-lg bg-white p-6">
-			<h3 class="mb-2 text-lg font-medium text-gray-900">Delete Speed Run Result</h3>
-			<p class="mb-4 text-sm text-gray-600">
+	<div
+		class="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-admin-surface-subtle"
+	>
+		<div class="mx-4 w-full max-w-md rounded-lg bg-admin-surface-elevated p-6">
+			<h3 class="mb-2 text-lg font-medium text-admin-text-primary">Delete Speed Run Result</h3>
+			<p class="mb-4 text-sm text-admin-text-secondary">
 				Are you sure you want to delete this result for <strong>{resultToDelete.displayName}</strong
 				>
 				on <strong>{resultToDelete.speedRun.quiz.title}</strong>?
 			</p>
-			<div class="mb-4 rounded bg-gray-50 p-3">
+			<div class="mb-4 rounded bg-admin-surface-muted p-3">
 				<p class="text-sm">
 					<strong>Score:</strong>
 					{resultToDelete.correctCount}/{resultToDelete.totalQuestions}
 				</p>
-				<p class="text-sm"><strong>Time:</strong> {formatTime(resultToDelete.totalTimeMs)}</p>
-				<p class="text-sm"><strong>Points:</strong> {resultToDelete.score.toLocaleString()}</p>
+				<p class="text-sm text-admin-text-secondary">
+					<strong class="text-admin-text-primary">Time:</strong>
+					{formatTime(resultToDelete.totalTimeMs)}
+				</p>
+				<p class="text-sm text-admin-text-secondary">
+					<strong class="text-admin-text-primary">Points:</strong>
+					{resultToDelete.score.toLocaleString()}
+				</p>
 			</div>
 			<form method="POST" action="?/delete" class="flex justify-end gap-3">
 				<input type="hidden" name="resultId" value={resultToDelete.id} />
@@ -300,16 +318,18 @@
 
 <!-- Clear Leaderboard Modal -->
 {#if showClearModal && quizToClear}
-	<div class="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-gray-500">
-		<div class="mx-4 w-full max-w-lg rounded-lg bg-white p-6">
-			<h3 class="mb-2 text-lg font-medium text-gray-900">Clear Leaderboard</h3>
-			<p class="mb-4 text-sm text-gray-600">
+	<div
+		class="bg-opacity-75 fixed inset-0 z-50 flex items-center justify-center bg-admin-surface-subtle"
+	>
+		<div class="mx-4 w-full max-w-lg rounded-lg bg-admin-surface-elevated p-6">
+			<h3 class="mb-2 text-lg font-medium text-admin-text-primary">Clear Leaderboard</h3>
+			<p class="mb-4 text-sm text-admin-text-secondary">
 				Are you sure you want to clear the entire leaderboard for <strong
 					>{quizToClear.title}</strong
 				>? This will delete ALL speed run results for this quiz and cannot be undone.
 			</p>
-			<div class="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
-				<p class="text-sm text-red-800">
+			<div class="mb-4 rounded-md border border-admin-border bg-admin-accent-red-bg p-3">
+				<p class="text-sm text-admin-accent-red-text">
 					<strong>Warning:</strong> This action permanently deletes all results. Users will lose their
 					scores.
 				</p>
@@ -317,8 +337,11 @@
 			<form method="POST" action="?/clearLeaderboard" class="space-y-4">
 				<input type="hidden" name="speedRunId" value={quizToClear.id} />
 				<div>
-					<label for="clear-confirm-title" class="mb-1 block text-sm font-medium text-gray-700">
-						Type the quiz title to confirm: <code class="rounded bg-gray-100 px-1"
+					<label
+						for="clear-confirm-title"
+						class="mb-1 block text-sm font-medium text-admin-text-primary"
+					>
+						Type the quiz title to confirm: <code class="rounded bg-admin-surface-subtle px-1"
 							>{quizToClear.title}</code
 						>
 					</label>
@@ -328,7 +351,7 @@
 						name="confirmTitle"
 						bind:value={clearConfirmTitle}
 						required
-						class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="w-full rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 						placeholder="Type exact title here..."
 					/>
 				</div>

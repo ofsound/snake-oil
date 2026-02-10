@@ -12,7 +12,7 @@
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('bold')
-			? 'bg-indigo-600 text-white'
+			? 'bg-accent-indigo-bg text-text-inverse'
 			: 'bg-surface text-text-secondary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleBold().run()}
 	>
@@ -22,8 +22,8 @@
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('italic')
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleItalic().run()}
 	>
 		Italic
@@ -36,8 +36,8 @@
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('heading', {
 			level: 1
 		})
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
 	>
 		H1
@@ -48,8 +48,8 @@
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('heading', {
 			level: 2
 		})
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
 	>
 		H2
@@ -60,8 +60,8 @@
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('bulletList')
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleBulletList().run()}
 	>
 		• List
@@ -70,8 +70,8 @@
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('orderedList')
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => editor.chain().focus().toggleOrderedList().run()}
 	>
 		1. List
@@ -82,8 +82,8 @@
 	<button
 		type="button"
 		class="rounded px-2 py-1 text-sm font-medium transition-colors {editor.isActive('link')
-			? 'bg-indigo-600 text-white'
-			: 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'}"
+			? 'bg-accent-indigo-bg text-text-inverse'
+			: 'bg-surface-elevated text-text-primary hover:bg-interactive-bg'}"
 		onclick={() => {
 			const previousUrl = editor.getAttributes('link').href;
 			const url = window.prompt('Enter URL:', previousUrl);

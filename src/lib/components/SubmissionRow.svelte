@@ -61,7 +61,7 @@
 
 	const rowClasses = $derived(
 		isSpeedRun
-			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-3 transition-colors hover:bg-amber-100'
+			? 'flex cursor-pointer items-center justify-between rounded-md border border-accent-amber-border bg-accent-amber-bg px-3 py-3 transition-colors hover:brightness-95'
 			: 'flex cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-subtle px-3 py-3 transition-colors hover:bg-interactive-bg'
 	);
 </script>
@@ -83,13 +83,13 @@
 			<div class="flex items-center gap-4 text-sm">
 				<div class="flex items-center gap-1">
 					<span class="font-medium">{sr.correctCount}</span>
-					<span class="text-gray-500">/{sr.totalQuestions}</span>
+					<span class="text-text-muted">/{sr.totalQuestions}</span>
 				</div>
 				<div class="text-text-secondary">{formatTime(sr.totalTimeMs ?? 0)}</div>
 				{#if sr.streakMax && sr.streakMax > 0}
-					<div class="text-orange-500">🔥 {sr.streakMax}</div>
+					<div class="text-accent-amber-text">🔥 {sr.streakMax}</div>
 				{/if}
-				<div class="font-medium text-amber-600">
+				<div class="font-medium text-accent-amber-text">
 					{sr.speedRunScore?.toLocaleString()} pts
 				</div>
 				{#if sr.globalRank}
@@ -107,8 +107,8 @@
 		{:else}
 			<div class="text-sm text-text-secondary">
 				<span class="font-medium">{submission.totalCorrect}</span>
-				<span class="text-gray-500">/{submission.totalQuestions}</span>
-				<span class="ml-1 text-xs text-gray-500">({submission.score}%)</span>
+				<span class="text-text-muted">/{submission.totalQuestions}</span>
+				<span class="ml-1 text-xs text-text-muted">({submission.score}%)</span>
 			</div>
 		{/if}
 	</div>

@@ -82,19 +82,19 @@
 			<Card variant="flat" padding="md">
 				<div class="text-center">
 					<div class="text-3xl font-bold text-indigo-600">{data.stats.total}</div>
-					<div class="text-sm text-gray-600">Total Tags</div>
+					<div class="text-sm text-admin-text-secondary">Total Tags</div>
 				</div>
 			</Card>
 			<Card variant="flat" padding="md">
 				<div class="text-center">
 					<div class="text-3xl font-bold text-emerald-600">{data.stats.popular}</div>
-					<div class="text-sm text-gray-600">Popular (10+)</div>
+					<div class="text-sm text-admin-text-secondary">Popular (10+)</div>
 				</div>
 			</Card>
 			<Card variant="flat" padding="md">
 				<div class="text-center">
 					<div class="text-3xl font-bold text-amber-600">{data.stats.unused}</div>
-					<div class="text-sm text-gray-600">Unused</div>
+					<div class="text-sm text-admin-text-secondary">Unused</div>
 				</div>
 			</Card>
 			<Card variant="flat" padding="md">
@@ -102,7 +102,7 @@
 					<div class="text-3xl font-bold text-purple-600">
 						{data.totalPages}
 					</div>
-					<div class="text-sm text-gray-600">Pages</div>
+					<div class="text-sm text-admin-text-secondary">Pages</div>
 				</div>
 			</Card>
 		</div>
@@ -172,7 +172,7 @@
 						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">
 							<input
 								type="checkbox"
-								class="rounded border-gray-300"
+								class="rounded border-admin-border"
 								onchange={(e) => {
 									if (e.currentTarget.checked) {
 										selectedTagsForMerge = data.tags.map((t) => t.id);
@@ -185,7 +185,7 @@
 						<th class="px-4 py-3 text-left">
 							<a
 								href={getSortUrl('label')}
-								class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+								class="flex items-center gap-1 text-sm font-medium text-admin-text-secondary hover:text-admin-text-primary"
 							>
 								Label
 								{#if data.sortBy === 'label'}
@@ -193,11 +193,11 @@
 								{/if}
 							</a>
 						</th>
-						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Slug</th>
+						<th class="px-4 py-3 text-left text-sm font-medium text-admin-text-secondary">Slug</th>
 						<th class="px-4 py-3 text-left">
 							<a
 								href={getSortUrl('useCount')}
-								class="flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
+								class="flex items-center gap-1 text-sm font-medium text-admin-text-secondary hover:text-admin-text-primary"
 							>
 								Use Count
 								{#if data.sortBy === 'useCount' || !data.sortBy}
@@ -205,8 +205,12 @@
 								{/if}
 							</a>
 						</th>
-						<th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Created</th>
-						<th class="px-4 py-3 text-right text-sm font-medium text-gray-600">Actions</th>
+						<th class="px-4 py-3 text-left text-sm font-medium text-admin-text-secondary"
+							>Created</th
+						>
+						<th class="px-4 py-3 text-right text-sm font-medium text-admin-text-secondary"
+							>Actions</th
+						>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-border">
@@ -215,13 +219,13 @@
 							<td class="px-4 py-3">
 								<input
 									type="checkbox"
-									class="rounded border-gray-300"
+									class="rounded border-admin-border"
 									checked={selectedTagsForMerge.includes(tag.id)}
 									onchange={() => toggleTagForMerge(tag.id)}
 								/>
 							</td>
 							<td class="px-4 py-3 font-medium">{tag.label}</td>
-							<td class="px-4 py-3 text-sm text-gray-600">{tag.slug}</td>
+							<td class="px-4 py-3 text-sm text-admin-text-secondary">{tag.slug}</td>
 							<td class="px-4 py-3">
 								<span
 									class="inline-flex rounded-full px-2 py-1 text-xs font-medium {tag.useCount >= 10
@@ -233,7 +237,7 @@
 									{tag.useCount}
 								</span>
 							</td>
-							<td class="px-4 py-3 text-sm text-gray-600">
+							<td class="px-4 py-3 text-sm text-admin-text-secondary">
 								{new Date(tag.createdAt).toLocaleDateString()}
 							</td>
 							<td class="px-4 py-3 text-right">
@@ -247,7 +251,7 @@
 						</tr>
 					{:else}
 						<tr>
-							<td colspan="6" class="px-4 py-8 text-center text-gray-500">
+							<td colspan="6" class="px-4 py-8 text-center text-admin-text-muted">
 								No tags found. Create your first tag to get started.
 							</td>
 						</tr>
@@ -307,7 +311,9 @@
 			<Card variant="flat" padding="lg" class="w-full max-w-md">
 				<Heading level={2} class="mb-4">Create New Tag</Heading>
 				{#if form?.error}
-					<div class="mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+					<div
+						class="mb-4 rounded-lg bg-admin-accent-red-bg p-3 text-sm text-admin-accent-red-text"
+					>
 						{form.error}
 					</div>
 				{/if}
@@ -360,7 +366,9 @@
 			<Card variant="flat" padding="lg" class="w-full max-w-md">
 				<Heading level={2} class="mb-4">Edit Tag</Heading>
 				{#if form?.error}
-					<div class="mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+					<div
+						class="mb-4 rounded-lg bg-admin-accent-red-bg p-3 text-sm text-admin-accent-red-text"
+					>
 						{form.error}
 					</div>
 				{/if}
@@ -413,12 +421,14 @@
 	>
 		<div transition:fly={{ y: 20, duration: 200 }}>
 			<Card variant="flat" padding="lg" class="w-full max-w-md">
-				<Heading level={2} class="mb-4 text-red-600">Delete Tag</Heading>
+				<Heading level={2} class="mb-4 text-admin-accent-red-text">Delete Tag</Heading>
 				<p class="mb-4 text-gray-600">
 					Are you sure you want to delete the tag "<strong>{selectedTag.label}</strong>"?
 				</p>
 				{#if selectedTag.useCount > 0}
-					<div class="mb-4 rounded-lg bg-amber-100 p-3 text-sm text-amber-800">
+					<div
+						class="mb-4 rounded-lg bg-admin-accent-amber-bg p-3 text-sm text-admin-accent-amber-text"
+					>
 						Warning: This tag is used by {selectedTag.useCount} quiz{selectedTag.useCount === 1
 							? ''
 							: 'es'}. Deleting it will remove the tag from all quizzes.
@@ -471,11 +481,13 @@
 		<div transition:fly={{ y: 20, duration: 200 }}>
 			<Card variant="flat" padding="lg" class="w-full max-w-lg">
 				<Heading level={2} class="mb-4">Merge Tags</Heading>
-				<p class="mb-4 text-gray-600">
+				<p class="mb-4 text-admin-text-secondary">
 					Select a target tag to merge {selectedTagsForMerge.length} selected tags into:
 				</p>
 				{#if form?.error}
-					<div class="mb-4 rounded-lg bg-red-100 p-3 text-sm text-red-700">
+					<div
+						class="mb-4 rounded-lg bg-admin-accent-red-bg p-3 text-sm text-admin-accent-red-text"
+					>
 						{form.error}
 					</div>
 				{/if}

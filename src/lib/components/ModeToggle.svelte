@@ -19,7 +19,7 @@
 	class:mx-auto={variant === 'default'}
 	class:w-max={variant === 'default'}
 	class:rounded-lg={variant === 'default'}
-	class:bg-indigo-100={variant === 'default'}
+	class:bg-accent-indigo-bg={variant === 'default'}
 	class:p-1={variant === 'default'}
 >
 	{#each options as option (option.value)}
@@ -31,16 +31,14 @@
 			class:py-2={variant === 'default'}
 			class:text-sm={variant === 'default'}
 			class:font-medium={variant === 'default' || (variant === 'minimal' && value === option.value)}
-			class:bg-white={variant === 'default' && value === option.value}
-			class:text-indigo-700={variant === 'default' && value === option.value}
+			class:bg-surface-elevated={variant === 'default' && value === option.value}
+			class:text-accent-indigo-text={variant === 'default'}
 			class:shadow-sm={variant === 'default' && value === option.value}
-			class:text-indigo-600={variant === 'default' && value !== option.value}
-			class:hover:bg-indigo-50={variant === 'default' && value !== option.value}
+			class:hover:bg-interactive-bg={variant === 'default' && value !== option.value}
 			class:px-2={variant === 'minimal'}
 			class:py-1={variant === 'minimal'}
 			class:text-xs={variant === 'minimal'}
 			class:border-b-2={variant === 'minimal' && value === option.value}
-			class:border-gray-700={variant === 'minimal' && value === option.value}
 			class:border-text-primary={variant === 'minimal' && value === option.value}
 			class:text-text-secondary={variant === 'minimal' && value === option.value}
 			class:text-text-muted={variant === 'minimal' && value !== option.value}

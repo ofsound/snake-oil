@@ -125,7 +125,7 @@
 					if (isNewlyAdded) lastAddedId = null;
 				}}
 			>
-				<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{globalIndex + 1}.</div>
+				<div class="mt-2 w-8 text-sm font-medium text-text-muted">{globalIndex + 1}.</div>
 				<Card variant="neutral" padding="md" class="relative flex-1">
 					<button
 						type="button"

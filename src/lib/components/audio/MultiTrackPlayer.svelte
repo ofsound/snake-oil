@@ -156,14 +156,14 @@
 
 <svelte:window onkeydown={handleKeyDown} />
 
-<div class="w-full overflow-hidden rounded-lg bg-white shadow-lg dark:bg-gray-900">
+<div class="w-full overflow-hidden rounded-lg bg-surface-elevated shadow-lg dark:bg-surface">
 	<!-- Error Banner -->
 	{#if displayError}
-		<div class="flex items-center justify-between bg-red-500 px-4 py-3 text-white">
+		<div class="flex items-center justify-between bg-accent-red-text px-4 py-3 text-text-inverse">
 			<span class="text-sm">{displayError}</span>
 			<button
 				onclick={() => engine.retryLoad()}
-				class="rounded bg-white px-3 py-1 text-sm font-medium text-red-500 transition-colors hover:bg-red-50"
+				class="rounded bg-surface-elevated px-3 py-1 text-sm font-medium text-accent-red-text transition-colors hover:bg-accent-red-bg"
 			>
 				Retry
 			</button>
@@ -174,15 +174,15 @@
 	{#if engine.isLoading}
 		<div class="flex items-center justify-center gap-2 p-6">
 			<div
-				class="h-5 w-5 animate-spin rounded-full border-2 border-gray-300 border-t-green-800 dark:border-gray-600"
+				class="h-5 w-5 animate-spin rounded-full border-2 border-border-muted border-t-accent-emerald-text dark:border-border-muted"
 			></div>
-			<span class="text-sm text-gray-600 dark:text-gray-400">Loading audio...</span>
+			<span class="text-sm text-text-secondary dark:text-text-muted">Loading audio...</span>
 		</div>
 	{:else}
 		<div class="flex flex-col gap-4 p-4">
 			<!-- Title -->
 			<div class="text-center">
-				<h3 class="truncate text-lg font-semibold text-gray-900 dark:text-white">
+				<h3 class="truncate text-lg font-semibold text-text-primary dark:text-text-inverse">
 					{engine.getCurrentTrack()?.name || 'No track selected'}
 				</h3>
 			</div>
@@ -192,7 +192,7 @@
 				<div class="flex items-center gap-2">
 					<button
 						onclick={() => (playlistVisible = !playlistVisible)}
-						class="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+						class="flex items-center gap-2 rounded-lg bg-surface-subtle px-3 py-2 text-text-primary transition-colors hover:bg-interactive-bg dark:bg-surface-muted dark:text-text-secondary dark:hover:bg-surface-subtle"
 					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -208,8 +208,8 @@
 					<button
 						onclick={() => engine.toggleShuffle()}
 						class="flex items-center gap-2 rounded-lg px-3 py-2 transition-colors {engine.isShuffleEnabled
-							? 'bg-green-800 text-white'
-							: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'}"
+							? 'bg-accent-emerald-text text-text-inverse'
+							: 'bg-surface-subtle text-text-primary hover:bg-interactive-bg dark:bg-surface-muted dark:text-text-secondary dark:hover:bg-surface-subtle'}"
 						aria-label="Toggle shuffle"
 					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +230,7 @@
 					step="0.01"
 					value={engine.volume}
 					oninput={(e) => engine.setVolume(parseFloat(e.currentTarget.value))}
-					class="w-24 accent-green-800"
+					class="w-24 accent-accent-emerald-text"
 				/>
 			</div>
 
@@ -248,7 +248,7 @@
 			<!-- Progress Bar -->
 			<div
 				bind:this={progressRef}
-				class="group relative h-3 cursor-pointer touch-none rounded-full bg-gray-200 dark:bg-gray-700"
+				class="group relative h-3 cursor-pointer touch-none rounded-full bg-interactive-bg dark:bg-surface-subtle"
 				onpointerdown={handleProgressPointerDown}
 				onpointermove={handleProgressPointerMove}
 				onpointerup={handleProgressPointerUp}
@@ -261,14 +261,14 @@
 				tabindex="0"
 			>
 				<div
-					class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-green-800"
+					class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-accent-emerald-text"
 					style="width: {progressPercentage}%"
 				></div>
 
 				<!-- Tooltip -->
 				{#if tooltip.visible}
 					<div
-						class="pointer-events-none absolute -top-8 -translate-x-1/2 transform rounded bg-gray-900 px-2 py-1 text-xs text-white"
+						class="pointer-events-none absolute -top-8 -translate-x-1/2 transform rounded bg-surface px-2 py-1 text-xs text-text-inverse"
 						style="left: {tooltip.x}px"
 					>
 						{formatTime(tooltip.time)}
@@ -277,7 +277,7 @@
 			</div>
 
 			<!-- Time Display -->
-			<div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+			<div class="flex justify-between text-sm text-text-secondary dark:text-text-muted">
 				<span>{formatTime(engine.currentTime)}</span>
 				<span>{formatTime(engine.duration)}</span>
 			</div>

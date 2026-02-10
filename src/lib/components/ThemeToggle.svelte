@@ -33,8 +33,8 @@
 		onclick={() => setMode('light')}
 		class="relative rounded-full px-3 py-1.5 text-sm transition-all duration-200 {userPrefersMode.current ===
 		'light'
-			? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white'
-			: 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}"
+			? 'bg-surface-elevated text-text-primary shadow-sm'
+			: 'text-text-muted hover:text-text-secondary'}"
 		aria-label="Light mode"
 		title="Light mode"
 	>
@@ -52,8 +52,8 @@
 		onclick={() => setMode('dark')}
 		class="relative rounded-full px-3 py-1.5 text-sm transition-all duration-200 {userPrefersMode.current ===
 		'dark'
-			? 'bg-white text-gray-900 shadow-sm dark:bg-gray-600 dark:text-white'
-			: 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}"
+			? 'bg-surface-elevated text-text-primary shadow-sm'
+			: 'text-text-muted hover:text-text-secondary'}"
 		aria-label="Dark mode"
 		title="Dark mode"
 	>

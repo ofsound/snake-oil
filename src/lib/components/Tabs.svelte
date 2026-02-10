@@ -42,7 +42,7 @@
 					onclick={() => handleTabChange(tab.value)}
 					class="cursor-pointer border-b-2 px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors
 						{activeTab === tab.value
-						? 'border-blue-500 text-blue-600'
+						? 'border-accent-indigo-text text-accent-indigo-text'
 						: 'border-transparent text-text-muted hover:border-border hover:text-text-secondary'}"
 				>
 					{tab.label}

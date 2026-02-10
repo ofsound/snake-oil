@@ -198,13 +198,13 @@
 	<!-- Error Banner -->
 	{#if error}
 		<div
-			class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded bg-red-50 px-3 py-2 text-sm"
+			class="mb-3 flex flex-wrap items-center justify-between gap-2 rounded bg-accent-red-bg px-3 py-2 text-sm"
 		>
-			<span class="min-w-0 flex-1 truncate text-red-700">{error}</span>
+			<span class="min-w-0 flex-1 truncate text-accent-red-text">{error}</span>
 			<button
 				type="button"
 				onclick={() => quizAudioContext.engine?.retryLoad()}
-				class="shrink-0 rounded bg-red-600 px-2 py-1 text-xs font-medium text-white hover:bg-red-700"
+				class="shrink-0 rounded bg-accent-red-text px-2 py-1 text-xs font-medium text-text-inverse hover:brightness-90"
 			>
 				Retry
 			</button>
@@ -219,12 +219,12 @@
 				type="button"
 				onclick={handleTogglePlay}
 				disabled={isDisabled || isLoading}
-				class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex h-12 w-12 items-center justify-center rounded-full bg-accent-emerald-text text-text-inverse shadow-sm transition-colors hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
 				aria-label={isPlaying ? 'Pause' : 'Play'}
 			>
 				{#if isLoading}
 					<div
-						class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"
+						class="h-5 w-5 animate-spin rounded-full border-2 border-surface-elevated border-t-transparent"
 					></div>
 				{:else if isPlaying}
 					<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
@@ -244,7 +244,7 @@
 			type="button"
 			onclick={handleStop}
 			disabled={!isPlaying || isDisabled || isLoading}
-			class="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 transition-colors hover:bg-neutral-300 disabled:cursor-not-allowed disabled:opacity-50"
+			class="flex h-10 w-10 items-center justify-center rounded-full bg-interactive-bg text-text-secondary transition-colors hover:bg-surface-subtle disabled:cursor-not-allowed disabled:opacity-50"
 			aria-label="Stop and reset"
 		>
 			<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
@@ -254,11 +254,11 @@
 
 		<!-- Loading Indicator Text (shown when loading) -->
 		{#if isLoading}
-			<span class="text-sm text-neutral-600">Loading...</span>
+			<span class="text-sm text-text-secondary">Loading...</span>
 		{/if}
 
 		<!-- Time Display -->
-		<div class="ml-auto shrink-0 text-xs text-neutral-600">
+		<div class="ml-auto shrink-0 text-xs text-text-secondary">
 			<span class="font-mono">{formatTime(currentTime)}</span>
 			<span class="mx-0.5">/</span>
 			<span class="font-mono">{formatTime(duration)}</span>
@@ -268,7 +268,7 @@
 	<!-- Progress Bar -->
 	<div
 		bind:this={progressRef}
-		class="group relative h-2 cursor-pointer touch-none rounded-full bg-neutral-200"
+		class="group relative h-2 cursor-pointer touch-none rounded-full bg-interactive-bg"
 		onpointerdown={handleProgressPointerDown}
 		onpointermove={handleProgressPointerMove}
 		onpointerup={handleProgressPointerUp}
@@ -281,14 +281,14 @@
 		tabindex="0"
 	>
 		<div
-			class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-emerald-600"
+			class="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-accent-emerald-text"
 			style="width: {progressPercentage}%"
 		></div>
 
 		<!-- Tooltip -->
 		{#if tooltip.visible}
 			<div
-				class="pointer-events-none absolute -top-7 -translate-x-1/2 transform rounded bg-neutral-800 px-2 py-1 text-xs text-white"
+				class="pointer-events-none absolute -top-7 -translate-x-1/2 transform rounded bg-surface px-2 py-1 text-xs text-text-inverse"
 				style="left: {tooltip.x}px"
 			>
 				{formatTime(tooltip.time)}

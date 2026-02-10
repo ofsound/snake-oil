@@ -136,4 +136,4 @@
 	});
 </script>
 
-<canvas bind:this={canvas} class="mb-3 block h-10 w-full rounded bg-neutral-900"></canvas>
+<canvas bind:this={canvas} class="mb-3 block h-10 w-full rounded bg-surface"></canvas>

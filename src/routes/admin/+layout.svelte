@@ -22,28 +22,34 @@
 	}
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-admin-surface">
 	<!-- Admin Header -->
-	<header class="border-b bg-white shadow-sm">
+	<header class="border-b border-admin-border bg-admin-surface-elevated shadow-sm">
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 			<div class="flex h-16 items-center justify-between">
 				<div class="flex items-center">
-					<a href="/admin" class="text-xl font-bold text-gray-900">Admin Panel</a>
+					<a href="/admin" class="text-xl font-bold text-admin-text-primary">Admin Panel</a>
 					{#if isAdmin}
-						<span class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+						<span
+							class="ml-2 rounded-full bg-admin-accent-red-bg px-2 py-0.5 text-xs font-medium text-admin-accent-red-text"
+						>
 							Admin
 						</span>
 					{:else}
 						<span
-							class="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
+							class="ml-2 rounded-full bg-admin-accent-blue-bg px-2 py-0.5 text-xs font-medium text-admin-accent-blue-text"
 						>
 							Moderator
 						</span>
 					{/if}
 				</div>
 				<div class="flex items-center gap-4">
-					<span class="text-sm text-gray-600">{data.user?.name || data.user?.email}</span>
-					<a href="/" class="text-sm text-blue-600 hover:text-blue-800"> ← Back to Site </a>
+					<span class="text-sm text-admin-text-secondary"
+						>{data.user?.name || data.user?.email}</span
+					>
+					<a href="/" class="text-sm text-admin-accent-violet-text hover:opacity-80">
+						← Back to Site
+					</a>
 				</div>
 			</div>
 		</div>
@@ -53,19 +59,21 @@
 		<div class="flex flex-col gap-8 lg:flex-row">
 			<!-- Sidebar Navigation -->
 			<nav class="shrink-0 lg:w-64">
-				<div class="overflow-hidden rounded-lg bg-white shadow">
+				<div class="overflow-hidden rounded-lg bg-admin-surface-elevated shadow">
 					<div class="p-4">
-						<h2 class="text-xs font-semibold tracking-wider text-gray-500 uppercase">Menu</h2>
+						<h2 class="text-xs font-semibold tracking-wider text-admin-text-muted uppercase">
+							Menu
+						</h2>
 					</div>
-					<div class="border-t">
+					<div class="border-t border-admin-border">
 						{#each navItems as item (item.href)}
 							<a
 								href={item.href}
 								class="flex items-center px-4 py-3 text-sm font-medium transition-colors {isActive(
 									item.href
 								)
-									? 'border-r-2 border-blue-500 bg-blue-50 text-blue-700'
-									: 'text-gray-700 hover:bg-gray-50'}"
+									? 'border-r-2 border-admin-accent-violet-border bg-admin-accent-violet-bg text-admin-accent-violet-text'
+									: 'text-admin-text-primary hover:bg-admin-surface-muted'}"
 							>
 								<span class="mr-3">{item.icon}</span>
 								{item.label}
@@ -75,22 +83,22 @@
 				</div>
 
 				<!-- Quick Actions -->
-				<div class="mt-6 overflow-hidden rounded-lg bg-white shadow">
+				<div class="mt-6 overflow-hidden rounded-lg bg-admin-surface-elevated shadow">
 					<div class="p-4">
-						<h2 class="text-xs font-semibold tracking-wider text-gray-500 uppercase">
+						<h2 class="text-xs font-semibold tracking-wider text-admin-text-muted uppercase">
 							Quick Actions
 						</h2>
 					</div>
-					<div class="space-y-2 border-t p-4">
+					<div class="space-y-2 border-t border-admin-border p-4">
 						<a
 							href="/create"
-							class="block w-full rounded bg-blue-600 px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-blue-700"
+							class="block w-full rounded bg-admin-accent-violet-bg px-4 py-2 text-center text-sm font-medium text-admin-accent-violet-text transition-colors hover:brightness-95"
 						>
 							Create Quiz
 						</a>
 						<a
 							href="/quizzes"
-							class="block w-full rounded bg-gray-100 px-4 py-2 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200"
+							class="block w-full rounded bg-admin-surface-muted px-4 py-2 text-center text-sm font-medium text-admin-text-primary transition-colors hover:bg-admin-surface-subtle"
 						>
 							View All Quizzes
 						</a>

@@ -4,6 +4,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Base body styles - semantic colors override inline FOUC prevention */
+body {
+	background-color: var(--color-surface);
+	color: var(--color-text-primary);
+	min-height: 100vh;
+	transition:
+		background-color 200ms ease,
+		color 200ms ease;
+}
+
 @theme inline {
 	--font-sans: 'IBM Plex Sans', 'sans-serif';
 
@@ -69,6 +79,41 @@
 	/* Glow colors */
 	--color-glow-emerald: rgba(16, 185, 129, 0.5);
 	--color-glow-violet: rgba(124, 58, 237, 0.4);
+
+	/* Admin semantic colors - Slate-based with violet accents */
+	--color-admin-surface: light-dark(theme(colors.slate.50), theme(colors.slate.900));
+	--color-admin-surface-elevated: light-dark(theme(colors.white), theme(colors.slate.800));
+	--color-admin-surface-muted: light-dark(theme(colors.slate.100), theme(colors.slate.800));
+	--color-admin-surface-subtle: light-dark(theme(colors.gray.100), theme(colors.slate.700));
+
+	--color-admin-border: light-dark(theme(colors.slate.200), theme(colors.slate.700));
+	--color-admin-border-subtle: light-dark(theme(colors.slate.300), theme(colors.slate.600));
+
+	--color-admin-text-primary: light-dark(theme(colors.slate.900), theme(colors.slate.100));
+	--color-admin-text-secondary: light-dark(theme(colors.slate.600), theme(colors.slate.400));
+	--color-admin-text-muted: light-dark(theme(colors.slate.500), theme(colors.slate.500));
+
+	--color-admin-accent-violet-bg: light-dark(theme(colors.violet.50), theme(colors.violet.900));
+	--color-admin-accent-violet-text: light-dark(theme(colors.violet.700), theme(colors.violet.300));
+	--color-admin-accent-violet-border: light-dark(
+		theme(colors.violet.200),
+		theme(colors.violet.800)
+	);
+
+	--color-admin-accent-emerald-bg: light-dark(theme(colors.emerald.50), theme(colors.emerald.900));
+	--color-admin-accent-emerald-text: light-dark(
+		theme(colors.emerald.700),
+		theme(colors.emerald-300)
+	);
+
+	--color-admin-accent-amber-bg: light-dark(theme(colors.amber.50), theme(colors.amber.900));
+	--color-admin-accent-amber-text: light-dark(theme(colors.amber.700), theme(colors.amber-300));
+
+	--color-admin-accent-red-bg: light-dark(theme(colors.red.50), theme(colors.red.900));
+	--color-admin-accent-red-text: light-dark(theme(colors.red.700), theme(colors.red-300));
+
+	--color-admin-accent-blue-bg: light-dark(theme(colors.blue.50), theme(colors.blue.900));
+	--color-admin-accent-blue-text: light-dark(theme(colors.blue.700), theme(colors.blue-300));
 
 	/* Animation timing */
 	--ease-luxury: cubic-bezier(0.4, 0, 0.2, 1);

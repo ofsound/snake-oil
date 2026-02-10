@@ -52,7 +52,7 @@
 
 	function getSortButtonClasses(isActive: boolean): string {
 		return isActive
-			? 'bg-indigo-600 text-white hover:bg-indigo-700'
+			? 'bg-accent-indigo-bg text-text-inverse hover:brightness-90'
 			: 'bg-surface text-text-secondary hover:bg-interactive-bg border border-border';
 	}
 </script>
@@ -83,11 +83,11 @@
 					type="search"
 					placeholder="Search tags..."
 					bind:value={searchInput}
-					class="flex-1 rounded-md border border-border-muted bg-surface px-4 py-2 text-sm text-text-primary focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+					class="flex-1 rounded-md border border-border-muted bg-surface px-4 py-2 text-sm text-text-primary focus:border-accent-indigo-border focus:ring-1 focus:ring-accent-indigo-border focus:outline-none"
 				/>
 				<button
 					type="submit"
-					class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+					class="rounded-md bg-accent-indigo-bg px-4 py-2 text-sm font-medium text-text-inverse hover:brightness-90"
 				>
 					Search
 				</button>
@@ -155,7 +155,9 @@
 						<!-- Tag Header -->
 						<a href={resolvePath(`/quizzes/tag/${tag.slug}`)} class="group mb-4 block">
 							<div class="flex items-center justify-between">
-								<h3 class="text-lg font-semibold text-text-primary group-hover:text-indigo-600">
+								<h3
+									class="text-lg font-semibold text-text-primary group-hover:text-accent-indigo-text"
+								>
 									#{tag.label}
 								</h3>
 								<span

@@ -30,7 +30,7 @@
 			{:else}
 				<a
 					href={resolvePath(basePath)}
-					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-indigo-600"
+					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-accent-indigo-text"
 				>
 					<!-- {data.quiz.hasSpeedRun ? 'Speed Run' : 'Quiz'} -->
 					View
@@ -46,7 +46,7 @@
 			{:else}
 				<a
 					href={resolvePath(`${basePath}/edit`)}
-					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-indigo-600"
+					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-accent-indigo-text"
 				>
 					Edit
 				</a>
@@ -60,7 +60,7 @@
 			{:else}
 				<a
 					href={resolvePath(`${basePath}/submissions`)}
-					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-indigo-600"
+					class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium text-text-muted transition-colors hover:bg-interactive-bg hover:text-accent-indigo-text"
 				>
 					Submissions
 				</a>

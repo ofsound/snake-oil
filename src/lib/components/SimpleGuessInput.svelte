@@ -16,7 +16,7 @@
 		id={`answer-${soundbiteId}`}
 		name={`answer-${soundbiteId}`}
 		type="text"
-		class="w-full rounded-sm border border-neutral-200 bg-white p-3 px-2 py-2 text-sm font-medium"
+		class="w-full rounded-sm border border-border bg-surface-elevated p-3 px-2 py-2 text-sm font-medium"
 		placeholder=""
 		{value}
 		oninput={(e) => oninput(e.currentTarget.value)}

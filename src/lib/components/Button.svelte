@@ -47,13 +47,17 @@
 	}: Props = $props();
 
 	const variantClasses: Record<string, string> = {
-		primary: 'bg-emerald-800 text-white hover:bg-emerald-700',
-		secondary: 'bg-zinc-600 text-white hover:bg-zinc-700',
-		accent: 'bg-indigo-600 text-white hover:bg-indigo-700',
-		danger: 'bg-red-600 text-white hover:bg-red-700',
-		outline: 'bg-surface border border-border text-text-secondary hover:bg-interactive-bg',
-		ghost: 'bg-transparent text-text-muted hover:text-text-secondary',
-		admin: 'bg-blue-600 text-white hover:bg-blue-700',
+		primary:
+			'bg-accent-emerald-bg text-accent-emerald-text border border-accent-emerald-bg hover:brightness-95',
+		secondary:
+			'bg-interactive-bg text-text-primary border border-border hover:bg-interactive-bg-hover',
+		accent:
+			'bg-accent-indigo-bg text-accent-indigo-text border border-accent-indigo-bg hover:brightness-95',
+		danger: 'bg-accent-red-bg text-accent-red-text border border-accent-red-bg hover:brightness-95',
+		outline: 'bg-surface border border-border text-text-primary hover:bg-interactive-bg',
+		ghost: 'bg-transparent text-text-secondary hover:text-text-primary',
+		admin:
+			'bg-admin-accent-violet-bg text-admin-accent-violet-text border border-admin-accent-violet-bg hover:brightness-95',
 		glow: 'relative bg-emerald-600 text-white hover:bg-emerald-500 shadow-lg shadow-emerald-500/30 transition-all duration-300',
 		glass: 'glass text-white hover:bg-white/15 border-white/20 transition-all duration-300',
 		gradient:

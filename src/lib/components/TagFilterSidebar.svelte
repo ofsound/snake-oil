@@ -53,7 +53,7 @@
 
 	function getTagClasses(tag: Tag, isActive: boolean): string {
 		if (isActive) {
-			return 'bg-indigo-600 text-white hover:bg-indigo-700';
+			return 'bg-accent-indigo-bg text-accent-indigo-text hover:opacity-80';
 		}
 		if (activeTags.length >= maxTags) {
 			return 'bg-surface-muted text-text-muted cursor-not-allowed';
@@ -117,7 +117,7 @@
 			</div>
 
 			{#if activeTags.length >= maxTags}
-				<p class="text-xs text-amber-600">
+				<p class="text-xs text-accent-amber-text">
 					Maximum {maxTags} tags selected
 				</p>
 			{/if}

@@ -16,6 +16,6 @@
 	</label>
 	{@render children()}
 	{#if helper}
-		<p class="text-xs text-gray-500">{helper}</p>
+		<p class="text-xs text-text-muted">{helper}</p>
 	{/if}
 </div>

@@ -88,12 +88,14 @@
 	{#if !data.hasSpeedRun}
 		<section class="mb-10">
 			{#if data.answers.length === 0}
-				<p class="text-sm text-gray-500">No submissions yet.</p>
+				<p class="text-sm text-text-muted">No submissions yet.</p>
 			{:else}
 				<div class="flex flex-col gap-4">
 					{#each data.answers as submission, index (submission.id)}
 						<Card variant="flat" padding="sm" class="flex flex-col gap-3">
-							<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+							<div
+								class="flex flex-wrap items-center justify-between gap-2 text-sm text-text-secondary"
+							>
 								<div class="flex gap-1">
 									<span class="font-medium">{getSubmitterLabel(submission)}</span> on
 									<span>
@@ -115,29 +117,27 @@
 										soundbite
 									)}
 									<div
-										class="rounded-sm border px-3 py-2 text-sm"
-										class:border-green-200={answerInfo.isCorrect}
-										class:bg-green-50={answerInfo.isCorrect}
-										class:border-red-100={!answerInfo.isCorrect}
-										class:bg-red-50={!answerInfo.isCorrect}
+										class="rounded-sm border border-border px-3 py-2 text-sm"
+										class:bg-accent-emerald-bg={answerInfo.isCorrect}
+										class:bg-accent-red-bg={!answerInfo.isCorrect}
 									>
 										<div class="flex items-center justify-between">
 											<span class="font-medium">{index + 1}. {soundbite.trackName}:</span>
-											<span class="text-xs text-gray-500"
+											<span class="text-xs text-text-muted"
 												>{soundbite.variantType.replace(/_/g, ' ')}</span
 											>
 										</div>
 										<div class="mt-1">
 											{#if soundbite.variantType === 'image_choice' && answerInfo.imageUrl}
 												<div class="flex items-center gap-2">
-													<span class="text-gray-500">Answer:</span>
+													<span class="text-text-muted">Answer:</span>
 													<img
 														src={answerInfo.imageUrl}
 														alt={answerInfo.guess}
 														class="h-[70px] w-[70px] rounded border object-cover"
 													/>
 													{#if !answerInfo.isCorrect && answerInfo.correctImageUrl}
-														<span class="ml-2 text-gray-500">Correct:</span>
+														<span class="ml-2 text-text-muted">Correct:</span>
 														<img
 															src={answerInfo.correctImageUrl}
 															alt="Correct"
@@ -170,12 +170,14 @@
 	{:else}
 		<section class="flex flex-col gap-4">
 			{#if data.speedRunResults.length === 0}
-				<p class="text-sm text-gray-500">No speed run submissions yet.</p>
+				<p class="text-sm text-text-muted">No speed run submissions yet.</p>
 			{:else}
 				<div class="flex flex-col gap-4">
 					{#each data.speedRunResults as result (result.id)}
 						<Card variant="flat" padding="sm" class="flex flex-col gap-3">
-							<div class="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+							<div
+								class="flex flex-wrap items-center justify-between gap-2 text-sm text-text-secondary"
+							>
 								<div class="flex gap-1">
 									<span class="font-medium"
 										>{result.displayName ||
@@ -190,19 +192,19 @@
 								</div>
 								<div class="flex items-center gap-3">
 									<span class="font-medium">{result.correctCount}/{result.totalQuestions}</span>
-									<span class="text-xs text-gray-500">
+									<span class="text-xs text-text-muted">
 										({Math.round((result.correctCount / result.totalQuestions) * 100)}%)
 									</span>
-									<span class="text-xs text-gray-500">
+									<span class="text-xs text-text-muted">
 										{Math.floor(result.totalTimeMs / 1000)}s
 									</span>
-									<span class="text-xs font-medium text-amber-600">
+									<span class="text-xs font-medium text-accent-amber-text">
 										Score: {result.score?.toLocaleString()}
 									</span>
 								</div>
 							</div>
 							{#if result.streakMax > 0}
-								<div class="text-xs text-orange-500">
+								<div class="text-xs text-accent-amber-text">
 									🔥 Best Streak: {result.streakMax}
 								</div>
 							{/if}

@@ -24,7 +24,7 @@
 		<!-- Breadcrumb -->
 		<div class="mb-4">
 			<nav class="flex items-center gap-2 text-sm text-text-muted">
-				<a href={resolvePath('/quizzes/tags')} class="hover:text-indigo-600"> All Tags </a>
+				<a href={resolvePath('/quizzes/tags')} class="hover:text-accent-indigo-text"> All Tags </a>
 				<span>/</span>
 				<span class="text-text-primary">#{data.tag.label}</span>
 			</nav>
@@ -34,7 +34,7 @@
 		<div class="mb-8">
 			<div class="flex flex-wrap items-center gap-4">
 				<Heading level={1} class="mb-0">
-					<span class="text-indigo-600">#</span>{data.tag.label}
+					<span class="text-accent-indigo-text">#</span>{data.tag.label}
 				</Heading>
 				<span
 					class="inline-flex items-center rounded-full bg-accent-indigo-bg px-3 py-1 text-sm font-medium text-accent-indigo-text"
@@ -55,7 +55,7 @@
 				<!-- Browse with Filters -->
 				<Card variant="flat" padding="md">
 					<Heading level={2} class="mb-3 text-base">Browse with Filters</Heading>
-					<p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+					<p class="mb-4 text-sm text-text-secondary">
 						Use advanced filtering and sorting to find the perfect quiz.
 					</p>
 					<Button
@@ -105,7 +105,7 @@
 							<h3 class="mb-2 text-xl font-semibold text-text-primary">No quizzes yet</h3>
 							<p class="max-w-md text-text-secondary">
 								There are no public quizzes tagged with "{data.tag.label}" yet. Be the first to
-								<a href={resolvePath('/create')} class="text-indigo-600 hover:underline"
+								<a href={resolvePath('/create')} class="text-accent-indigo-text hover:underline"
 									>create one</a
 								>!
 							</p>

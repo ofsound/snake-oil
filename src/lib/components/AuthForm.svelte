@@ -23,7 +23,7 @@
 	</Heading>
 
 	{#if error}
-		<div class="mb-4 rounded bg-red-50 px-3 py-3 text-sm text-red-600">{error}</div>
+		<div class="mb-4 rounded bg-accent-red-bg px-3 py-3 text-sm text-accent-red-text">{error}</div>
 	{/if}
 
 	<form {onsubmit}>
@@ -37,7 +37,7 @@
 	</form>
 
 	<div
-		class="mt-4 text-center text-sm [&_a]:font-semibold [&_a]:text-indigo-600 [&_a]:hover:text-indigo-800 [&_p]:text-gray-600"
+		class="mt-4 text-center text-sm [&_a]:font-semibold [&_a]:text-accent-indigo-text [&_a]:hover:text-accent-indigo-text [&_p]:text-text-secondary"
 	>
 		{@render footer()}
 	</div>

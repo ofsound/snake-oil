@@ -136,7 +136,7 @@
 
 	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
 		<div class="flex flex-col gap-2">
-			<label class="text-sm font-medium text-gray-700" for={`file-${soundbite.id}`}>
+			<label class="text-sm font-medium text-text-primary" for={`file-${soundbite.id}`}>
 				{fileInputLabel}
 			</label>
 			<input
@@ -144,7 +144,7 @@
 				name={fileInputName}
 				type="file"
 				accept="audio/mpeg,.mp3"
-				class="w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border file:border-neutral-200 file:bg-white file:px-2 file:py-1.5 file:font-medium"
+				class="w-full text-sm text-text-primary file:mr-3 file:rounded-sm file:border file:border-border file:bg-surface-elevated file:px-2 file:py-1.5 file:font-medium"
 				required={fileInputRequired}
 			/>
 		</div>
@@ -158,18 +158,20 @@
 	<input type="hidden" name={variantConfigName} value={getVariantConfigJson()} />
 
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`prompt-${soundbite.id}`}>
-			Prompt <span class="font-normal text-gray-400 italic">(optional)</span>
+		<label class="text-sm font-medium text-text-primary" for={`prompt-${soundbite.id}`}>
+			Prompt <span class="font-normal text-text-muted italic">(optional)</span>
 		</label>
 		<textarea
 			id={`prompt-${soundbite.id}`}
 			name={promptName}
 			rows="2"
-			class="sm w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
+			class="sm w-full rounded-sm border border-border bg-surface-elevated px-2 py-2 text-sm"
 			placeholder={VARIANT_PROMPT_PLACEHOLDERS[soundbite.variantType]}
 			value={soundbite.prompt}
 			oninput={(e) => onChange({ prompt: e.currentTarget.value })}
 		></textarea>
-		<p class="hidden text-xs text-gray-500">Appears below the audio player to guide quiz takers.</p>
+		<p class="hidden text-xs text-text-muted">
+			Appears below the audio player to guide quiz takers.
+		</p>
 	</div>
 </div>

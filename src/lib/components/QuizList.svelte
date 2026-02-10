@@ -72,7 +72,7 @@
 
 <div class="mb-8">
 	<!-- <Heading level={1}>{title}</Heading> -->
-	<div class="text-center text-sm text-gray-600">{description}</div>
+	<div class="text-center text-sm text-text-secondary">{description}</div>
 </div>
 
 <form method="get" action="/results" class="mb-6">
@@ -82,7 +82,7 @@
 			name="q"
 			value={searchValue}
 			placeholder="Search title, description, or creator"
-			class="flex-1 rounded-md border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+			class="focus:border-accent-indigo focus:ring-accent-indigo flex-1 rounded-md border border-border px-4 py-2 focus:ring-1 focus:outline-none"
 			required
 		/>
 		<Button variant="accent" size="md" type="submit">Search</Button>
@@ -90,9 +90,7 @@
 </form>
 
 {#if quizzes.length > 0}
-	<div
-		class="mb-4 ml-auto flex w-max justify-end gap-4 rounded-md border border-neutral-100 px-4 py-2"
-	>
+	<div class="mb-4 ml-auto flex w-max justify-end gap-4 rounded-md border border-border px-4 py-2">
 		<div class="text-sm">Sort by:</div>
 		{#each sortOptions as option (option.value)}
 			<button
@@ -121,12 +119,12 @@
 		itemName="quizzes"
 	/>
 {:else}
-	<div class="rounded-md bg-gray-50 p-8 text-center">
-		<p class="text-gray-600">{emptyState.message}</p>
+	<div class="rounded-md bg-surface-muted p-8 text-center">
+		<p class="text-text-secondary">{emptyState.message}</p>
 		{#if emptyState.link}
 			<a
 				href={resolvePath(emptyState.link.href)}
-				class="mt-4 inline-block text-blue-600 hover:text-blue-800 hover:underline"
+				class="mt-4 inline-block text-accent-indigo-text hover:underline"
 			>
 				{emptyState.link.text}
 			</a>

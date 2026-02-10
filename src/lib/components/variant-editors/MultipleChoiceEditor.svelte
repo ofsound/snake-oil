@@ -39,7 +39,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	<div class="text-sm font-medium text-gray-700">Answer Options</div>
+	<div class="text-sm font-medium text-text-primary">Answer Options</div>
 	<div class="flex flex-col gap-2">
 		{#each options as option, index (option.id)}
 			<div class="flex items-center gap-2">
@@ -48,13 +48,13 @@
 					name={`${editorId}-correct`}
 					checked={option.isCorrect}
 					onchange={() => setCorrectOption(option.id)}
-					class="h-4 w-4 text-emerald-600"
+					class="h-4 w-4 text-accent-emerald-text"
 					title="Mark as correct answer"
 				/>
 				<input
 					type="text"
 					id={`${editorId}-${option.id}`}
-					class="sm flex-1 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
+					class="sm flex-1 rounded-sm border border-border bg-surface-elevated px-2 py-2 text-sm"
 					placeholder={`Option ${index + 1}`}
 					value={option.text}
 					oninput={(e) => updateOptionText(option.id, e.currentTarget.value)}
@@ -62,7 +62,7 @@
 				/>
 				<button
 					type="button"
-					class="cursor-pointer text-sm text-gray-800 hover:text-gray-600"
+					class="cursor-pointer text-sm text-text-secondary hover:text-text-muted"
 					onclick={() => removeOption(option.id)}
 					disabled={options.length <= MIN_MULTIPLE_CHOICE_OPTIONS}
 					title="Remove option"

@@ -138,7 +138,7 @@
 
 <div class="flex flex-col gap-3">
 	<!-- Header -->
-	<div class="flex gap-4 border-b pb-2 text-xs font-medium text-gray-500">
+	<div class="flex gap-4 border-b pb-2 text-xs font-medium text-text-muted">
 		<div class="flex-1">Audio</div>
 		<div class="w-[200px] shrink-0 text-center">Match the Answer</div>
 	</div>
@@ -148,7 +148,9 @@
 		<!-- Left Column: Static Audio Players (in original order) -->
 		<div class="flex min-w-0 flex-1 flex-col gap-3">
 			{#each items as item, index (item.id)}
-				<div class="flex h-[72px] items-center gap-3 rounded-lg border bg-white p-3 shadow-sm">
+				<div
+					class="flex h-[72px] items-center gap-3 rounded-lg border bg-surface-elevated p-3 shadow-sm"
+				>
 					<!-- QuizAudioPlayer -->
 					<div class="min-w-0 flex-1">
 						<QuizAudioPlayer soundbiteId="{soundbiteId}-{index}" url={item.url} />
@@ -179,21 +181,21 @@
 			>
 				{#each labelDisplayItems as displayItem, index (displayItem.id)}
 					<div
-						class="flex h-[72px] items-center gap-3 rounded-lg border bg-gray-50 p-3 shadow-sm"
+						class="flex h-[72px] items-center gap-3 rounded-lg border bg-surface-muted p-3 shadow-sm"
 						animate:flip={{ duration: flipDurationMs }}
 						role="listitem"
 						data-multiple-match-label-row="{soundbiteId}-{index}"
 						aria-label={displayItem.item.answerLabel}
 					>
 						<!-- Answer Label -->
-						<div class="flex-1 text-center font-medium text-gray-700">
+						<div class="flex-1 text-center font-medium text-text-primary">
 							{displayItem.item.answerLabel}
 						</div>
 
 						<!-- Drag Handle -->
 						<button
 							type="button"
-							class="shrink-0 cursor-grab p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+							class="shrink-0 cursor-grab p-1 text-text-muted hover:text-text-secondary active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
 							data-drag-handle
 							aria-label="Drag to reorder"
 							onkeydown={(e) => handleKeyDown(e, index)}

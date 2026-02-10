@@ -169,15 +169,15 @@
 					<button
 						type="button"
 						class="relative rounded-xl border-2 p-6 text-left transition-all"
-						class:border-emerald-500={quizMode === 'standard'}
-						class:bg-emerald-50={quizMode === 'standard'}
-						class:border-gray-200={quizMode !== 'standard'}
-						class:bg-white={quizMode !== 'standard'}
+						class:border-accent-emerald-border={quizMode === 'standard'}
+						class:bg-accent-emerald-bg={quizMode === 'standard'}
+						class:border-border={quizMode !== 'standard'}
+						class:bg-surface-elevated={quizMode !== 'standard'}
 						onclick={() => handleModeChange('standard')}
 					>
 						<div class="flex items-center gap-3">
 							<div
-								class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-emerald-bg text-accent-emerald-text"
 							>
 								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
@@ -189,13 +189,17 @@
 								</svg>
 							</div>
 							<div>
-								<div class="font-semibold text-gray-900">Standard Quiz</div>
-								<div class="text-sm text-gray-600">Answer all questions, then submit.</div>
+								<div class="font-semibold text-text-primary">Standard Quiz</div>
+								<div class="text-sm text-text-secondary">Answer all questions, then submit.</div>
 							</div>
 						</div>
 						{#if quizMode === 'standard'}
 							<div class="absolute top-4 right-4">
-								<svg class="h-6 w-6 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+								<svg
+									class="h-6 w-6 text-accent-emerald-text"
+									fill="currentColor"
+									viewBox="0 0 20 20"
+								>
 									<path
 										fill-rule="evenodd"
 										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -209,15 +213,15 @@
 					<button
 						type="button"
 						class="relative rounded-xl border-2 p-6 text-left transition-all"
-						class:border-amber-500={quizMode === 'speed_run'}
-						class:bg-amber-50={quizMode === 'speed_run'}
-						class:border-gray-200={quizMode !== 'speed_run'}
-						class:bg-white={quizMode !== 'speed_run'}
+						class:border-accent-amber-border={quizMode === 'speed_run'}
+						class:bg-accent-amber-bg={quizMode === 'speed_run'}
+						class:border-border={quizMode !== 'speed_run'}
+						class:bg-surface-elevated={quizMode !== 'speed_run'}
 						onclick={() => handleModeChange('speed_run')}
 					>
 						<div class="flex items-center gap-3">
 							<div
-								class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600"
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-amber-bg text-accent-amber-text"
 							>
 								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
@@ -229,15 +233,15 @@
 								</svg>
 							</div>
 							<div>
-								<div class="font-semibold text-gray-900">Speed Run ⚡</div>
-								<div class="text-sm text-gray-600">
+								<div class="font-semibold text-text-primary">Speed Run ⚡</div>
+								<div class="text-sm text-text-secondary">
 									Race against the clock! One question at a time.
 								</div>
 							</div>
 						</div>
 						{#if quizMode === 'speed_run'}
 							<div class="absolute top-4 right-4">
-								<svg class="h-6 w-6 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+								<svg class="h-6 w-6 text-accent-amber-text" fill="currentColor" viewBox="0 0 20 20">
 									<path
 										fill-rule="evenodd"
 										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -251,8 +255,8 @@
 			</FormField>
 
 			{#if quizMode === 'speed_run'}
-				<div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-					<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
+				<div class="border-accent-amber-border mt-4 rounded-xl border bg-accent-amber-bg p-4">
+					<h3 class="mb-3 font-semibold text-accent-amber-text">Speed Run Settings</h3>
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
 							<FormInput
@@ -292,16 +296,16 @@
 							type="checkbox"
 							id="enableStreakBonus"
 							bind:checked={speedRunConfig.enableStreakBonus}
-							class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+							class="h-4 w-4 rounded border-border text-accent-amber-text focus:ring-amber-500"
 						/>
-						<label for="enableStreakBonus" class="text-sm text-amber-900">
+						<label for="enableStreakBonus" class="text-sm text-accent-amber-text">
 							Enable streak bonuses and notifications
 						</label>
 					</div>
 
 					{#if unsupportedVariantCount > 0}
-						<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
-							<p class="text-sm text-red-700">
+						<div class="mt-3 rounded-md border border-border bg-accent-red-bg p-3">
+							<p class="text-sm text-accent-red-text">
 								<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
 								variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
 								Please change them to continue.
@@ -309,7 +313,7 @@
 						</div>
 					{/if}
 
-					<p class="mt-3 text-sm text-amber-700">
+					<p class="mt-3 text-sm text-accent-amber-text">
 						<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
 						questions. Simple Guess allows unlimited attempts until time runs out!
 					</p>
@@ -375,14 +379,14 @@
 					bind:tags={selectedTags}
 					placeholder="Add tags to help people find your quiz..."
 				/>
-				<p class="mt-2 text-xs text-gray-500">
+				<p class="mt-2 text-xs text-text-muted">
 					Type to search existing tags or press Enter to create new ones. Tags help users discover
 					your quiz.
 				</p>
 			</FormField>
 		</Card>
 
-		<p class="hidden text-sm text-gray-500">Upload Audio files and add answers for each one.</p>
+		<p class="hidden text-sm text-text-muted">Upload Audio files and add answers for each one.</p>
 
 		<SoundbiteFormSection
 			bind:soundbites
@@ -396,13 +400,11 @@
 		{#if successMessage}
 			{@const isSpeedRun = quizMode === 'speed_run'}
 			<div
-				class="rounded-md border px-4 py-3 text-sm"
-				class:border-green-200={!isSpeedRun}
-				class:bg-green-50={!isSpeedRun}
-				class:text-green-700={!isSpeedRun}
-				class:border-orange-200={isSpeedRun}
-				class:bg-orange-50={isSpeedRun}
-				class:text-orange-700={isSpeedRun}
+				class="rounded-md border border-border px-4 py-3 text-sm"
+				class:bg-accent-emerald-bg={!isSpeedRun}
+				class:text-accent-emerald-text={!isSpeedRun}
+				class:bg-accent-amber-bg={isSpeedRun}
+				class:text-accent-amber-text={isSpeedRun}
 			>
 				{successMessage}
 				{#if form?.slug && data.user?.slug}
@@ -417,12 +419,14 @@
 		{/if}
 
 		{#if errorMessage}
-			<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+			<div
+				class="rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
+			>
 				{errorMessage}
 			</div>
 		{/if}
 
-		<div class="mt-6 flex justify-end border-t border-neutral-200 pt-6">
+		<div class="mt-6 flex justify-end border-t border-border pt-6">
 			<Button type="submit" variant="primary" size="md" loading={submitting}>
 				{submitting ? 'Creating...' : quizMode === 'speed_run' ? 'Create Speed Run' : 'Create Quiz'}
 			</Button>

@@ -133,7 +133,7 @@
 				by
 				<a
 					href={resolve(`/user/${data.quiz.creator.slug}`)}
-					class="font-semibold text-indigo-700 hover:underline"
+					class="font-semibold text-accent-indigo-text hover:underline"
 				>
 					{data.quiz.creator.name || data.quiz.creator.slug}
 				</a>
@@ -149,10 +149,10 @@
 			<div class="flex flex-col gap-6">
 				<Card variant="elevated" padding="md">
 					<div class="text-center">
-						<Heading level={2} class="text-emerald-700">
+						<Heading level={2} class="text-accent-emerald-text">
 							Your Score: {results.totalCorrect}/{results.totalQuestions}
 						</Heading>
-						<p class="mt-1 text-lg text-gray-600">{results.score}% correct</p>
+						<p class="mt-1 text-lg text-text-secondary">{results.score}% correct</p>
 					</div>
 				</Card>
 
@@ -208,9 +208,9 @@
 										  isMultipleMatchConfig(soundbite.variantConfig)
 										? soundbite.variantConfig
 										: null}
-							<div class="rounded-sm bg-neutral-50 p-4">
+							<div class="rounded-sm bg-surface-muted p-4">
 								<div class="mb-3">
-									<div class="mb-2 text-base font-medium text-gray-700">{index + 1}.</div>
+									<div class="mb-2 text-base font-medium text-text-primary">{index + 1}.</div>
 									{#if soundbite.variantType === 'sequence' && sequenceConfig}
 										<!-- Sequence: Show interactive player with user's buzz -->
 										<SequenceAudioPlayer
@@ -219,7 +219,7 @@
 											disabled={true}
 										/>
 										{#if answerDetail.selectedTrackIndex !== undefined}
-											<p class="mt-2 text-sm text-gray-600">
+											<p class="mt-2 text-sm text-text-secondary">
 												You buzzed at: Track {answerDetail.selectedTrackIndex + 1}
 												({sequenceConfig.tracks[answerDetail.selectedTrackIndex]?.name})
 											</p>
@@ -246,7 +246,7 @@
 										<QuizAudioPlayer soundbiteId={soundbite.id} url={soundbite.trackUrl} />
 									{/if}
 									{#if soundbite.prompt}
-										<p class="mt-2 text-sm text-gray-600 italic">{soundbite.prompt}</p>
+										<p class="mt-2 text-sm text-text-secondary italic">{soundbite.prompt}</p>
 									{/if}
 								</div>
 								<AnswerResultCard
@@ -307,12 +307,12 @@
 				<section class="mt-6 flex flex-col gap-8">
 					{#each data.soundbites as soundbite, index (soundbite.id)}
 						<div class="flex">
-							<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+							<div class="mt-2 w-8 text-sm font-medium text-text-muted">{index + 1}.</div>
 							<Card variant="neutral" padding="md" class="flex flex-1 flex-col gap-5 ">
 								<input type="hidden" name="soundbiteId" value={soundbite.id} />
 								<div class="flex flex-col gap-2">
 									<div
-										class="mb-2 hidden w-max rounded-sm bg-neutral-600 px-2 py-1 text-sm font-medium text-white"
+										class="mb-2 hidden w-max rounded-sm bg-surface-subtle px-2 py-1 text-sm font-medium text-text-inverse"
 									>
 										{index + 1}
 									</div>
@@ -409,7 +409,7 @@
 						id="displayName"
 						name="displayName"
 						type="text"
-						class="mt-6 ml-auto block w-full max-w-60 rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
+						class="mt-6 ml-auto block w-full max-w-60 rounded-sm border border-border bg-surface-elevated px-2 py-2 text-sm"
 						placeholder="Include your name (optional)"
 						bind:value={displayName}
 					/>
@@ -417,7 +417,7 @@
 
 				{#if errorMessage}
 					<div
-						class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+						class="mt-4 rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
 					>
 						<strong>Error:</strong>
 						{errorMessage}
@@ -426,7 +426,7 @@
 
 				{#if form && !form.success && !errorMessage}
 					<div
-						class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+						class="mt-4 rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
 					>
 						<strong>An error occurred.</strong> Please check the console for details.
 					</div>

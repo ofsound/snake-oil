@@ -24,18 +24,20 @@
 	<input
 		id={`${editorId}-input`}
 		type="text"
-		class="w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm"
+		class="w-full rounded-sm border border-border bg-surface-elevated px-2 py-2 text-sm"
 		placeholder="Enter acceptable answers, separated by commas"
 		value={displayValue}
 		oninput={(e) => handleInput(e.currentTarget.value)}
 		required
 	/>
 	<div class="mt-1 flex flex-col gap-0.5">
-		<p class="text-xs text-gray-500">
+		<p class="text-xs text-text-muted">
 			Enter all acceptable answers separated by commas. Example: trumpet, brass, horns
 		</p>
 		{#if answerCount >= MAX_SIMPLE_GUESS_ANSWERS}
-			<p class="text-xs text-amber-600">Maximum {MAX_SIMPLE_GUESS_ANSWERS} answers reached</p>
+			<p class="text-xs text-accent-amber-text">
+				Maximum {MAX_SIMPLE_GUESS_ANSWERS} answers reached
+			</p>
 		{/if}
 	</div>
 </FormField>

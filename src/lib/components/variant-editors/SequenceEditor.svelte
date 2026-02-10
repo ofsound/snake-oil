@@ -144,7 +144,7 @@
 <div class="flex flex-col gap-4">
 	<!-- File Upload -->
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`${editorId}-files`}>
+		<label class="text-sm font-medium text-text-primary" for={`${editorId}-files`}>
 			Upload MP3 Files (2-10 tracks)
 		</label>
 		<input
@@ -155,34 +155,36 @@
 			multiple
 			disabled={!canAddMore || isUploading}
 			onchange={handleFileUpload}
-			class="w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border file:border-neutral-200 file:bg-white file:px-2 file:py-1.5 file:font-medium disabled:opacity-50"
+			class="w-full text-sm text-text-primary file:mr-3 file:rounded-sm file:border file:border-border file:bg-surface-elevated file:px-2 file:py-1.5 file:font-medium disabled:opacity-50"
 		/>
 		{#if isUploading}
-			<div class="flex items-center gap-2 text-sm text-gray-600">
+			<div class="flex items-center gap-2 text-sm text-text-secondary">
 				<div
-					class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-emerald-600"
+					class="border-t-accent-emerald-border h-4 w-4 animate-spin rounded-full border-2 border-border-muted"
 				></div>
 				<span>Uploading...</span>
 			</div>
 		{/if}
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum {MAX_SEQUENCE_TRACKS} tracks reached</p>
+			<p class="text-xs text-accent-amber-text">Maximum {MAX_SEQUENCE_TRACKS} tracks reached</p>
 		{/if}
 	</div>
 
 	<!-- Track List -->
 	{#if tracks.length > 0}
 		<div class="flex flex-col gap-2">
-			<span class="text-sm font-medium text-gray-700">Tracks ({tracks.length})</span>
+			<span class="text-sm font-medium text-text-primary">Tracks ({tracks.length})</span>
 			<div class="flex flex-col gap-2">
 				{#each tracks as track, index (track.id)}
-					<div class="flex items-center gap-2 rounded-sm border border-neutral-200 bg-white p-2">
-						<span class="w-6 text-center text-sm font-medium text-gray-500">{index + 1}</span>
+					<div
+						class="flex items-center gap-2 rounded-sm border border-border bg-surface-elevated p-2"
+					>
+						<span class="w-6 text-center text-sm font-medium text-text-muted">{index + 1}</span>
 						<input
 							type="text"
 							value={track.name}
 							oninput={(e) => updateTrackName(index, e.currentTarget.value)}
-							class="flex-1 rounded-sm border border-neutral-200 px-2 py-1 text-sm"
+							class="flex-1 rounded-sm border border-border px-2 py-1 text-sm"
 							placeholder="Track name"
 						/>
 						<div class="flex items-center gap-1">
@@ -190,7 +192,7 @@
 								type="button"
 								onclick={() => moveTrackUp(index)}
 								disabled={index === 0}
-								class="rounded p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+								class="rounded p-1 text-text-secondary hover:bg-interactive-bg disabled:opacity-30"
 								title="Move up"
 							>
 								↑
@@ -199,7 +201,7 @@
 								type="button"
 								onclick={() => moveTrackDown(index)}
 								disabled={index >= tracks.length - 1}
-								class="rounded p-1 text-gray-600 hover:bg-gray-100 disabled:opacity-30"
+								class="rounded p-1 text-text-secondary hover:bg-interactive-bg disabled:opacity-30"
 								title="Move down"
 							>
 								↓
@@ -207,7 +209,7 @@
 							<button
 								type="button"
 								onclick={() => removeTrack(index)}
-								class="rounded p-1 text-red-600 hover:bg-red-50"
+								class="rounded p-1 text-accent-red-text hover:bg-accent-red-bg"
 								title="Remove"
 							>
 								×
@@ -220,14 +222,14 @@
 
 		<!-- Correct Answer Selection -->
 		<div class="flex flex-col gap-2">
-			<span class="text-sm font-medium text-gray-700">Select Correct Track (target)</span>
+			<span class="text-sm font-medium text-text-primary">Select Correct Track (target)</span>
 			<div class="flex flex-wrap gap-2">
 				{#each tracks as track, index (track.id)}
 					<label
 						class="flex cursor-pointer items-center gap-2 rounded-sm border px-3 py-2 transition-colors {correctTrackIndex ===
 						index
-							? 'border-emerald-500 bg-emerald-50'
-							: 'border-neutral-200 bg-white hover:bg-gray-50'}"
+							? 'border-accent-emerald-border bg-accent-emerald-bg'
+							: 'border-border bg-surface-elevated hover:bg-interactive-bg'}"
 					>
 						<input
 							type="radio"
@@ -245,6 +247,6 @@
 	{/if}
 
 	{#if tracks.length < 2}
-		<p class="text-sm text-amber-600">Please upload at least 2 MP3 files</p>
+		<p class="text-sm text-accent-amber-text">Please upload at least 2 MP3 files</p>
 	{/if}
 </div>

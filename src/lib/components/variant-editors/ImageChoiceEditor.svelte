@@ -183,7 +183,7 @@
 <div class="flex flex-col gap-4">
 	<!-- File Upload -->
 	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-gray-700" for={`${editorId}-files`}>
+		<label class="text-sm font-medium text-text-primary" for={`${editorId}-files`}>
 			Upload Images (2-10)
 		</label>
 		<input
@@ -194,27 +194,29 @@
 			multiple
 			disabled={!canAddMore || isProcessing}
 			onchange={handleFileUpload}
-			class="w-full text-sm text-gray-700 file:mr-3 file:rounded-sm file:border file:border-neutral-200 file:bg-white file:px-2 file:py-1.5 file:font-medium disabled:opacity-50"
+			class="w-full text-sm text-text-primary file:mr-3 file:rounded-sm file:border file:border-border file:bg-surface-elevated file:px-2 file:py-1.5 file:font-medium disabled:opacity-50"
 		/>
-		<p class="text-xs text-gray-500">
+		<p class="text-xs text-text-muted">
 			JPG, PNG, WebP, or HEIC. Max {MAX_IMAGE_SIZE_MB}MB per image.
 		</p>
 
 		{#if isProcessing}
-			<div class="flex items-center gap-2 text-sm text-gray-600">
+			<div class="flex items-center gap-2 text-sm text-text-secondary">
 				<div
-					class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-emerald-600"
+					class="border-t-accent-emerald-border h-4 w-4 animate-spin rounded-full border-2 border-border-muted"
 				></div>
 				<span>Processing image {processingCount}...</span>
 			</div>
 		{/if}
 
 		{#if errorMessage}
-			<p class="text-sm text-amber-600">{errorMessage}</p>
+			<p class="text-sm text-accent-amber-text">{errorMessage}</p>
 		{/if}
 
 		{#if !canAddMore}
-			<p class="text-xs text-amber-600">Maximum {MAX_IMAGE_CHOICE_OPTIONS} images reached</p>
+			<p class="text-xs text-accent-amber-text">
+				Maximum {MAX_IMAGE_CHOICE_OPTIONS} images reached
+			</p>
 		{/if}
 	</div>
 
@@ -222,10 +224,10 @@
 	{#if options.length > 0}
 		<div class="flex flex-col gap-2">
 			<div class="flex items-center justify-between">
-				<span class="text-sm font-medium text-gray-700">
+				<span class="text-sm font-medium text-text-primary">
 					{options.length} image{options.length === 1 ? '' : 's'}
 				</span>
-				<span class="text-xs text-gray-500">Click an image to mark as correct</span>
+				<span class="text-xs text-text-muted">Click an image to mark as correct</span>
 			</div>
 
 			<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -235,10 +237,10 @@
 						<button
 							type="button"
 							class="group relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all"
-							class:border-emerald-500={option.isCorrect}
-							class:border-gray-200={!option.isCorrect}
+							class:border-accent-emerald-border={option.isCorrect}
+							class:border-border={!option.isCorrect}
 							class:ring-2={option.isCorrect}
-							class:ring-emerald-500={option.isCorrect}
+							class:ring-accent-emerald-border={option.isCorrect}
 							onclick={() => setCorrectOption(option.id)}
 							aria-label="Select {option.label} as correct answer"
 						>
@@ -251,9 +253,9 @@
 								/>
 							{:else}
 								<!-- Placeholder for newly uploaded images -->
-								<div class="flex h-full w-full items-center justify-center bg-gray-100">
+								<div class="flex h-full w-full items-center justify-center bg-surface-muted">
 									<svg
-										class="h-8 w-8 text-gray-400"
+										class="h-8 w-8 text-text-muted"
 										viewBox="0 0 24 24"
 										fill="none"
 										stroke="currentColor"
@@ -272,7 +274,7 @@
 							{#if option.isCorrect}
 								<div class="absolute inset-0 flex items-start justify-end p-2">
 									<div
-										class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md"
+										class="flex h-6 w-6 items-center justify-center rounded-full bg-accent-emerald-bg text-text-inverse shadow-md"
 									>
 										<svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 											<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
@@ -284,12 +286,12 @@
 
 						<!-- Label and Remove Button -->
 						<div class="flex items-center justify-between gap-1">
-							<span class="truncate text-xs text-gray-600" title={option.label}>
+							<span class="truncate text-xs text-text-secondary" title={option.label}>
 								{option.label}
 							</span>
 							<button
 								type="button"
-								class="shrink-0 rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"
+								class="shrink-0 rounded p-1 text-text-muted hover:bg-accent-red-bg hover:text-accent-red-text"
 								onclick={() => removeOption(option.id)}
 								disabled={!isMinReached}
 								aria-label="Remove {option.label}"
@@ -306,7 +308,7 @@
 			</div>
 
 			{#if options.length < 2}
-				<p class="text-sm text-amber-600">Please add at least 2 images</p>
+				<p class="text-sm text-accent-amber-text">Please add at least 2 images</p>
 			{/if}
 		</div>
 	{/if}

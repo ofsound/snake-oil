@@ -38,9 +38,9 @@
 	<div class="flex flex-col gap-2">
 		{#each shuffledOptions as option (option.id)}
 			<label
-				class="flex cursor-pointer items-center gap-3 rounded-sm border border-neutral-200 bg-white p-3 font-medium"
-				class:bg-emerald-50={selectedOptionId === option.id}
-				class:border-emerald-300={selectedOptionId === option.id}
+				class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-surface-elevated p-3 font-medium"
+				class:bg-accent-emerald-bg={selectedOptionId === option.id}
+				class:border-accent-emerald-border={selectedOptionId === option.id}
 			>
 				<input
 					type="radio"
@@ -49,7 +49,7 @@
 					checked={selectedOptionId === option.id}
 					onchange={() => onselect(option.id)}
 					{disabled}
-					class="h-4 w-4 text-emerald-600"
+					class="h-4 w-4 text-accent-emerald-text"
 				/>
 				<span class="text-sm">{option.text}</span>
 			</label>

@@ -146,7 +146,7 @@
 
 <div class="flex flex-col gap-4">
 	<!-- Track Counter -->
-	<div class="text-center text-sm font-medium text-gray-700">
+	<div class="text-center text-sm font-medium text-text-primary">
 		Track {currentTrackIndex + 1} of {tracks.length}
 	</div>
 
@@ -154,24 +154,28 @@
 	{#if !isBuffersLoaded}
 		<div class="flex items-center justify-center gap-2 py-2">
 			<div
-				class="h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-emerald-600"
+				class="border-t-accent-emerald-border h-4 w-4 animate-spin rounded-full border-2 border-border-muted"
 			></div>
-			<span class="text-sm text-neutral-600">Loading audio...</span>
+			<span class="text-sm text-text-secondary">Loading audio...</span>
 		</div>
 	{:else if loadError}
 		<div class="flex flex-col gap-3">
-			<div class="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+			<div
+				class="rounded-md border border-border bg-accent-amber-bg px-4 py-3 text-sm text-accent-amber-text"
+			>
 				{loadError}
 			</div>
 			<div class="flex flex-col gap-2">
-				<span class="text-sm font-medium text-gray-700">Choose which track you think it is:</span>
+				<span class="text-sm font-medium text-text-primary"
+					>Choose which track you think it is:</span
+				>
 				<div class="flex flex-wrap gap-2">
 					{#each tracks as _track, index (_track.id)}
 						<button
 							type="button"
 							onclick={() => handleChooseTrackWithoutAudio(index)}
 							disabled={hasBuzzed || disabled}
-							class="rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 shadow-sm transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+							class="rounded-lg border border-border-muted bg-surface-elevated px-4 py-2 text-sm font-medium text-text-secondary shadow-sm transition-colors hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50"
 						>
 							Track {index + 1}
 						</button>
@@ -181,22 +185,24 @@
 		</div>
 	{:else}
 		<!-- Segmented Progress Bar -->
-		<div class="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
+		<div class="relative h-3 w-full overflow-hidden rounded-full bg-surface-subtle">
 			<div class="flex h-full w-full">
 				{#each tracks, index (index)}
 					{@const width = segmentWidths[index]}
 					{@const fillPercent = getSegmentFillPercent(index)}
 					<div
-						class="relative h-full {index < tracks.length - 1 ? 'border-r border-white' : ''}"
+						class="relative h-full {index < tracks.length - 1
+							? 'border-r border-surface-elevated'
+							: ''}"
 						style="width: {width}%"
 					>
 						<!-- Background -->
-						<div class="absolute inset-0 bg-neutral-200"></div>
+						<div class="absolute inset-0 bg-surface-muted"></div>
 						<!-- Fill -->
 						<div
 							class="absolute inset-y-0 left-0 {index < currentTrackIndex
-								? 'bg-emerald-400'
-								: 'bg-emerald-600'}"
+								? 'bg-accent-emerald-bg'
+								: 'bg-accent-emerald-text'}"
 							style="width: {fillPercent}%"
 						></div>
 					</div>
@@ -205,7 +211,7 @@
 		</div>
 
 		<!-- Time Display -->
-		<div class="text-center text-xs text-gray-600">
+		<div class="text-center text-xs text-text-secondary">
 			{formatTime(elapsedTime)} / {formatTime(totalDuration)}
 		</div>
 	{/if}
@@ -217,7 +223,7 @@
 			type="button"
 			onclick={handleTogglePlay}
 			disabled={!isInitialized || !isBuffersLoaded || hasBuzzed}
-			class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-md transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+			class="flex h-14 w-14 items-center justify-center rounded-full bg-accent-emerald-text text-text-inverse shadow-md transition-colors hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
 			aria-label={isPlaying ? 'Pause' : 'Play'}
 		>
 			{#if isPlaying}
@@ -239,7 +245,7 @@
 			type="button"
 			onclick={handleBuzzer}
 			disabled={hasBuzzed || disabled}
-			class="flex h-20 w-20 items-center justify-center rounded-full bg-red-600 text-lg font-bold text-white shadow-lg transition-all hover:scale-105 hover:bg-red-700 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-gray-400"
+			class="flex h-20 w-20 items-center justify-center rounded-full bg-accent-red-text text-lg font-bold text-text-inverse shadow-lg transition-all hover:scale-105 hover:brightness-90 active:scale-95 disabled:scale-100 disabled:cursor-not-allowed disabled:bg-surface-subtle"
 		>
 			{#if hasBuzzed}
 				Pressed
@@ -250,7 +256,7 @@
 	</div>
 
 	{#if hasBuzzed}
-		<div class="text-center text-sm text-gray-600">
+		<div class="text-center text-sm text-text-secondary">
 			You pressed during Track {currentTrackIndex + 1}
 		</div>
 	{/if}

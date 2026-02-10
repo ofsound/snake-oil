@@ -164,13 +164,13 @@
 	</div>
 
 	{#if form?.error}
-		<div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+		<div class="mb-4 rounded-lg border border-border bg-accent-red-bg p-4 text-accent-red-text">
 			{form.error}
 		</div>
 	{/if}
 
 	{#if imageError}
-		<div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+		<div class="mb-4 rounded-lg border border-border bg-accent-red-bg p-4 text-accent-red-text">
 			{imageError}
 		</div>
 	{/if}
@@ -190,7 +190,7 @@
 							/>
 							<button
 								type="button"
-								class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600"
+								class="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-accent-red-text text-text-inverse hover:brightness-90"
 								onclick={handleDeleteImage}
 								disabled={deletingImage}
 							>
@@ -201,7 +201,7 @@
 						<div
 							class="flex h-[150px] w-[150px] items-center justify-center rounded-lg bg-surface-muted"
 						>
-							<span class="text-4xl text-gray-400">👤</span>
+							<span class="text-4xl text-text-muted">👤</span>
 						</div>
 					{/if}
 
@@ -244,7 +244,7 @@
 					maxLength={2000}
 				/>
 				{#if bioTextLength > 1800}
-					<p class="mt-1 text-xs text-amber-600">
+					<p class="mt-1 text-xs text-accent-amber-text">
 						{2000 - bioTextLength} characters remaining
 					</p>
 				{/if}

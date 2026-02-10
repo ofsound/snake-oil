@@ -6,4 +6,4 @@
 	let { text = 'Your answer:' }: Props = $props();
 </script>
 
-<div class="text-sm text-gray-500">{text}</div>
+<div class="text-sm text-text-muted">{text}</div>

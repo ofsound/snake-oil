@@ -22,5 +22,5 @@
 	bind:value
 	{disabled}
 	{required}
-	class="box-border w-full rounded-sm border border-neutral-200 bg-white px-2 py-3 text-base focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+	class="box-border w-full rounded-sm border border-border bg-surface-elevated px-2 py-3 text-base focus:border-accent-indigo-border focus:ring-1 focus:ring-accent-indigo-border focus:outline-none"
 />

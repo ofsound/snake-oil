@@ -316,8 +316,8 @@
 		}}
 	>
 		{#if data.isSpeedRun}
-			<Card variant="flat" padding="md" class="mb-6 border-amber-200 bg-amber-50!">
-				<h3 class="mb-3 font-semibold text-amber-900">Speed Run Settings</h3>
+			<Card variant="flat" padding="md" class="border-accent-amber-border mb-6 bg-accent-amber-bg">
+				<h3 class="mb-3 font-semibold text-accent-amber-text">Speed Run Settings</h3>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 					<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
 						<FormInput
@@ -361,16 +361,16 @@
 						id="enableStreakBonus"
 						name="enableStreakBonus"
 						bind:checked={speedRunConfig.enableStreakBonus}
-						class="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+						class="h-4 w-4 rounded border-border text-accent-amber-text focus:ring-amber-500"
 					/>
-					<label for="enableStreakBonus" class="text-sm text-amber-900">
+					<label for="enableStreakBonus" class="text-sm text-accent-amber-text">
 						Enable streak bonuses and notifications
 					</label>
 				</div>
 
 				{#if unsupportedVariantCount > 0}
-					<div class="mt-3 rounded-md border border-red-300 bg-red-50 p-3">
-						<p class="text-sm text-red-700">
+					<div class="mt-3 rounded-md border border-border bg-accent-red-bg p-3">
+						<p class="text-sm text-accent-red-text">
 							<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
 							variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
 							Please change them to continue.
@@ -378,7 +378,7 @@
 					</div>
 				{/if}
 
-				<p class="mt-3 text-sm text-amber-700">
+				<p class="mt-3 text-sm text-accent-amber-text">
 					<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
 					questions. Simple Guess allows unlimited attempts until time runs out!
 				</p>
@@ -423,7 +423,7 @@
 					bind:tags={selectedTags}
 					placeholder="Add tags to help people find your quiz..."
 				/>
-				<p class="mt-2 text-xs text-gray-500">
+				<p class="mt-2 text-xs text-text-muted">
 					Type to search existing tags or press Enter to create new ones. Tags help users discover
 					your quiz.
 				</p>
@@ -437,7 +437,7 @@
 					{@const state = existingSoundbiteState[soundbite.id]}
 					{#if state}
 						<div class="flex">
-							<div class="mt-2 w-8 text-sm font-medium text-neutral-500">{index + 1}.</div>
+							<div class="mt-2 w-8 text-sm font-medium text-text-muted">{index + 1}.</div>
 							<Card variant="neutral" padding="md" class="relative flex-1">
 								<div class="flex items-center justify-end">
 									<label class="flex items-center gap-2 text-xs font-medium">
@@ -478,7 +478,9 @@
 		/>
 
 		{#if successMessage}
-			<div class="rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+			<div
+				class="rounded-md border border-border bg-accent-emerald-bg px-4 py-3 text-sm text-accent-emerald-text"
+			>
 				{successMessage}
 				<a class="ml-2 underline" href={resolve(`/${data.quiz.creator.slug}/${data.quiz.slug}`)}>
 					{data.isSpeedRun ? 'View speed run' : 'View quiz'}
@@ -487,7 +489,9 @@
 		{/if}
 
 		{#if errorMessage}
-			<div class="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+			<div
+				class="rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
+			>
 				{errorMessage}
 			</div>
 		{/if}

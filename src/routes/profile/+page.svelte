@@ -95,26 +95,26 @@
 				<!-- User Info -->
 				<div class="grid flex-1 gap-2">
 					<div class="flex items-baseline rounded-md">
-						<div class="w-18 text-sm text-gray-600">Name:</div>
+						<div class="w-18 text-sm text-text-secondary">Name:</div>
 						<div class="text-sm font-medium">{user.name}</div>
 					</div>
 
 					<div class="flex items-baseline rounded-md">
-						<div class="w-18 text-sm text-gray-600">Email:</div>
+						<div class="w-18 text-sm text-text-secondary">Email:</div>
 						<div class="text-sm font-medium">{user.email}</div>
 					</div>
 
 					<div class="flex items-baseline rounded-md">
-						<div class="w-18 text-sm text-gray-600">URL:</div>
+						<div class="w-18 text-sm text-text-secondary">URL:</div>
 						<a
 							href={resolve(`/user/${profile.slug}`)}
-							class="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+							class="text-sm font-medium text-accent-indigo-text hover:text-accent-indigo-text"
 							>/user/{profile.slug}</a
 						>
 					</div>
 
 					<div class="flex items-baseline rounded-md">
-						<div class="w-18 text-sm text-gray-600">Joined:</div>
+						<div class="w-18 text-sm text-text-secondary">Joined:</div>
 						<div class="text-sm font-medium">
 							{new Date(profile.createdAt).toLocaleDateString('en-US', {
 								year: 'numeric',
@@ -180,8 +180,8 @@
 						itemsPerPage={20}
 					/>
 				{:else}
-					<div class="rounded-md bg-gray-50 p-8 text-center">
-						<p class="mb-4 text-gray-600">
+					<div class="rounded-md bg-surface-muted p-8 text-center">
+						<p class="mb-4 text-text-secondary">
 							{#if quizFilter === 'quiz'}
 								You haven't created any regular quizzes.
 							{:else if quizFilter === 'speedrun'}
@@ -216,8 +216,8 @@
 						itemsPerPage={20}
 					/>
 				{:else}
-					<div class="rounded-md bg-gray-50 p-8 text-center">
-						<p class="text-gray-600">
+					<div class="rounded-md bg-surface-muted p-8 text-center">
+						<p class="text-text-secondary">
 							{#if submissionFilter === 'quiz'}
 								You haven't taken any quizzes yet.
 							{:else if submissionFilter === 'speedrun'}

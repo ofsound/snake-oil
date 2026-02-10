@@ -67,7 +67,7 @@
 	// Compute row styling based on speed run status
 	const rowClasses = $derived(
 		quiz.speedRun
-			? 'flex cursor-pointer items-center justify-between rounded-md border border-amber-200 bg-amber-50 px-3 py-2 transition-colors hover:bg-amber-100'
+			? 'flex cursor-pointer items-center justify-between rounded-md border border-accent-amber-border bg-accent-amber-bg px-3 py-2 transition-colors hover:brightness-95'
 			: 'flex cursor-pointer items-center justify-between rounded-md border border-border-subtle bg-surface-subtle px-3 py-2 transition-colors hover:bg-interactive-bg'
 	);
 </script>
@@ -78,7 +78,7 @@
 			<div class="font-semibold tracking-wide">{quiz.title}</div>
 			{#if quiz.speedRun}
 				<span
-					class="ml-2 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-gray-800"
+					class="ml-2 rounded-full bg-accent-amber-bg px-2 py-0.5 text-xs font-medium text-accent-amber-text"
 				>
 					⚡ Speed Run
 				</span>
@@ -97,7 +97,7 @@
 					</a>
 				{/each}
 				{#if quiz.tags.length > 3}
-					<span class="text-xs text-gray-500">+{quiz.tags.length - 3} more</span>
+					<span class="text-xs text-text-muted">+{quiz.tags.length - 3} more</span>
 				{/if}
 			{/if}
 		</div>
@@ -131,7 +131,7 @@
 				data-creator-link
 				href={resolve(`/user/${quiz.creator.slug}`)}
 				onclick={handleCreatorClick}
-				class="text-sm font-medium hover:text-indigo-800"
+				class="text-sm font-medium hover:text-accent-indigo-text"
 			>
 				{quiz.creator.name}
 			</a>

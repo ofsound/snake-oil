@@ -13,19 +13,19 @@
 
 {#if isVisible}
 	<div
-		class="fixed right-0 bottom-0 left-0 z-50 max-h-[70vh] overflow-y-auto bg-white shadow-2xl transition-transform duration-300 ease-out md:relative md:max-h-full md:w-full md:max-w-md"
+		class="fixed right-0 bottom-0 left-0 z-50 max-h-[70vh] overflow-y-auto bg-surface-elevated shadow-2xl transition-transform duration-300 ease-out md:relative md:max-h-full md:w-full md:max-w-md"
 	>
 		<!-- Drag handle (mobile only) -->
 		<div class="flex justify-center pt-3 pb-2 md:hidden">
-			<div class="h-1 w-12 rounded-full bg-gray-400"></div>
+			<div class="h-1 w-12 rounded-full bg-surface-subtle"></div>
 		</div>
 
 		<!-- Header with close button -->
 		<div class="flex items-center justify-between px-4 py-2">
-			<h2 class="text-lg font-semibold text-gray-800">Playlist</h2>
+			<h2 class="text-lg font-semibold text-text-primary">Playlist</h2>
 			<button
 				onclick={onClose}
-				class="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+				class="flex h-10 w-10 items-center justify-center rounded-full text-text-muted hover:bg-surface-subtle"
 				aria-label="Close playlist"
 			>
 				<svg
@@ -51,9 +51,9 @@
 				{@const isCurrent = index === currentTrackIndex}
 				<button
 					onclick={() => onTrackSelect(index)}
-					class="flex min-h-14 w-full items-center gap-3 border-b border-gray-400 px-4 py-3 text-left transition-colors {isCurrent
-						? 'bg-gray-800 text-white hover:bg-gray-700'
-						: 'bg-[repeating-linear-gradient(45deg,#e1e1e1_0,#e1e1e1_1px,transparent_0,transparent_50%)] bg-size-[10px_10px] text-gray-400 hover:bg-gray-200'}"
+					class="flex min-h-14 w-full items-center gap-3 border-b border-surface-subtle px-4 py-3 text-left transition-colors {isCurrent
+						? 'bg-surface text-text-inverse hover:bg-surface-muted'
+						: 'bg-[repeating-linear-gradient(45deg,#e1e1e1_0,#e1e1e1_1px,transparent_0,transparent_50%)] bg-size-[10px_10px] text-text-muted hover:bg-interactive-bg'}"
 				>
 					<!-- Track number -->
 					<span class="min-w-6 text-center text-xs font-bold">

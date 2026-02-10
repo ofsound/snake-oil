@@ -81,7 +81,7 @@
 				href={linkAttrs.href}
 				target={linkAttrs.target}
 				rel={linkAttrs.rel}
-				class="text-indigo-600 hover:text-indigo-700 hover:underline"
+				class="text-accent-indigo-text hover:text-accent-indigo-text hover:underline"
 			>
 				{#if isBold && isItalic}
 					<strong><em>{content.text}</em></strong>

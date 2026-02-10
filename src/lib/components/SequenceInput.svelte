@@ -18,17 +18,19 @@
 <div class="flex flex-col items-center gap-4">
 	{#if hasResult}
 		<!-- Result Display -->
-		<div class="rounded-lg p-4 text-center {isCorrect ? 'bg-emerald-50' : 'bg-red-50'}">
+		<div
+			class="rounded-lg p-4 text-center {isCorrect ? 'bg-accent-emerald-bg' : 'bg-accent-red-bg'}"
+		>
 			{#if isCorrect}
 				<div class="mb-2 text-2xl">✓</div>
-				<div class="font-medium text-emerald-700">Correct!</div>
-				<div class="text-sm text-emerald-600">
+				<div class="font-medium text-accent-emerald-text">Correct!</div>
+				<div class="text-sm text-accent-emerald-text">
 					You pressed during Track {submittedTrackIndex + 1}
 				</div>
 			{:else}
 				<div class="mb-2 text-2xl">✗</div>
-				<div class="font-medium text-red-700">Incorrect</div>
-				<div class="text-sm text-red-600">
+				<div class="font-medium text-accent-red-text">Incorrect</div>
+				<div class="text-sm text-accent-red-text">
 					You pressed during Track {submittedTrackIndex + 1}
 				</div>
 			{/if}

@@ -79,16 +79,16 @@
 
 <div
 	class="rounded-md border p-3"
-	class:border-green-200={answerDetail.isCorrect}
-	class:bg-green-50={answerDetail.isCorrect}
-	class:border-red-200={!answerDetail.isCorrect}
-	class:bg-red-50={!answerDetail.isCorrect}
+	class:border-accent-emerald-border={answerDetail.isCorrect}
+	class:bg-accent-emerald-bg={answerDetail.isCorrect}
+	class:border-accent-red-border={!answerDetail.isCorrect}
+	class:bg-accent-red-bg={!answerDetail.isCorrect}
 >
 	<div class="flex items-start justify-end">
 		<span
 			class="text-sm font-semibold"
-			class:text-green-700={answerDetail.isCorrect}
-			class:text-red-700={!answerDetail.isCorrect}
+			class:text-accent-emerald-text={answerDetail.isCorrect}
+			class:text-accent-red-text={!answerDetail.isCorrect}
 		>
 			{answerDetail.isCorrect ? 'Correct' : 'Incorrect'}
 		</span>
@@ -97,7 +97,7 @@
 	{#if answerDetail.variantType === 'rank' && variantConfig.type === 'rank'}
 		<!-- Rank variant: Show color-coded list with Kendall Tau score -->
 		<div class="mt-3 flex flex-col gap-1">
-			<p class="mb-1 text-xs text-gray-500">
+			<p class="mb-1 text-xs text-text-muted">
 				Your ranking vs correct ranking (Kendall Tau: {kendallTauScore}%):
 			</p>
 			{#if answerDetail.userOrder && answerDetail.userOrder.length > 0}
@@ -106,10 +106,10 @@
 					{@const isCorrect = correctItemIdx === userItemIdx}
 					<div
 						class="flex items-center gap-2 rounded px-2 py-1 text-sm"
-						class:bg-green-100={isCorrect}
-						class:text-green-800={isCorrect}
-						class:bg-red-100={!isCorrect}
-						class:text-red-800={!isCorrect}
+						class:bg-accent-emerald-bg={isCorrect}
+						class:text-accent-emerald-text={isCorrect}
+						class:bg-accent-red-bg={!isCorrect}
+						class:text-accent-red-text={!isCorrect}
 					>
 						<span class="w-6 font-mono font-bold">{position + 1}.</span>
 						<span class="flex-1">{variantConfig.items[userItemIdx]?.name ?? 'Unknown'}</span>
@@ -118,20 +118,20 @@
 								>(should be: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
 							>
 						{:else}
-							<span class="text-xs text-green-700 opacity-75"
+							<span class="text-xs text-accent-emerald-text opacity-75"
 								>(correct: {variantConfig.items[correctItemIdx]?.name ?? 'Unknown'})</span
 							>
 						{/if}
 					</div>
 				{/each}
 			{:else}
-				<p class="text-sm text-red-600">No answer submitted</p>
+				<p class="text-sm text-accent-red-text">No answer submitted</p>
 			{/if}
 		</div>
 	{:else if answerDetail.variantType === 'multiple_match' && variantConfig.type === 'multiple_match'}
 		<!-- Multiple Match variant: Simple position-based scoring -->
 		<div class="mt-3 flex flex-col gap-1">
-			<p class="mb-1 text-xs text-gray-500">
+			<p class="mb-1 text-xs text-text-muted">
 				Score: {multipleMatchScore}%
 			</p>
 			{#if answerDetail.userOrder && answerDetail.userOrder.length > 0}
@@ -141,14 +141,14 @@
 						<span class="w-6 font-mono font-bold">{position + 1}.</span>
 						<span class="flex-1">{variantConfig.items[userItemIdx]?.answerLabel ?? 'Unknown'}</span>
 						{#if !isAtCorrectPosition}
-							<span class="text-xs text-red-600 opacity-75"
+							<span class="text-xs text-accent-red-text opacity-75"
 								>(should be: {variantConfig.items[position]?.answerLabel ?? 'Unknown'})</span
 							>
 						{/if}
 					</div>
 				{/each}
 			{:else}
-				<p class="text-sm text-red-600">No answer submitted</p>
+				<p class="text-sm text-accent-red-text">No answer submitted</p>
 			{/if}
 		</div>
 	{:else if answerDetail.variantType === 'image_choice' && variantConfig.type === 'image_choice'}
@@ -161,12 +161,12 @@
 		<div class="mt-3 grid grid-cols-2 gap-4">
 			<!-- User's Selection -->
 			<div class="flex flex-col gap-2">
-				<p class="text-xs text-gray-500">You selected:</p>
+				<p class="text-xs text-text-muted">You selected:</p>
 				{#if selectedOption}
 					<div
 						class="relative aspect-square w-full overflow-hidden rounded-lg border-2"
-						class:border-gray-300={answerDetail.isCorrect}
-						class:border-red-400={!answerDetail.isCorrect}
+						class:border-border={answerDetail.isCorrect}
+						class:border-accent-red-border={!answerDetail.isCorrect}
 					>
 						<img
 							src={selectedOption.imageUrl}
@@ -174,12 +174,12 @@
 							class="h-full w-full object-cover"
 						/>
 					</div>
-					<p class="text-center text-xs text-gray-600">{selectedOption.label}</p>
+					<p class="text-center text-xs text-text-secondary">{selectedOption.label}</p>
 				{:else}
 					<div
-						class="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-100"
+						class="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-border bg-surface-muted"
 					>
-						<div class="flex h-full w-full items-center justify-center text-gray-400">
+						<div class="flex h-full w-full items-center justify-center text-text-muted">
 							<span class="text-sm">No selection</span>
 						</div>
 					</div>
@@ -188,10 +188,10 @@
 
 			<!-- Correct Answer -->
 			<div class="flex flex-col gap-2">
-				<p class="text-xs text-gray-500">Correct answer:</p>
+				<p class="text-xs text-text-muted">Correct answer:</p>
 				{#if correctOption}
 					<div
-						class="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-emerald-400"
+						class="border-accent-emerald-border relative aspect-square w-full overflow-hidden rounded-lg border-2"
 					>
 						<img
 							src={correctOption.imageUrl}
@@ -200,7 +200,7 @@
 						/>
 						<div class="absolute inset-0 flex items-start justify-end p-2">
 							<div
-								class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md"
+								class="flex h-6 w-6 items-center justify-center rounded-full bg-accent-emerald-bg text-text-inverse shadow-md"
 							>
 								<svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 									<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
@@ -208,12 +208,12 @@
 							</div>
 						</div>
 					</div>
-					<p class="text-center text-xs text-gray-600">{correctOption.label}</p>
+					<p class="text-center text-xs text-text-secondary">{correctOption.label}</p>
 				{:else}
 					<div
-						class="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-gray-200 bg-gray-100"
+						class="relative aspect-square w-full overflow-hidden rounded-lg border-2 border-border bg-surface-muted"
 					>
-						<div class="flex h-full w-full items-center justify-center text-gray-400">
+						<div class="flex h-full w-full items-center justify-center text-text-muted">
 							<span class="text-sm">Unknown</span>
 						</div>
 					</div>
@@ -224,21 +224,21 @@
 		<!-- Other variants: Show simple text -->
 		<div class="mt-2 flex flex-col gap-1 text-sm">
 			<p>
-				<span class="text-gray-500">Your answer:</span>
-				<span class="ml-1" class:text-red-700={!answerDetail.isCorrect}
+				<span class="text-text-muted">Your answer:</span>
+				<span class="ml-1" class:text-accent-red-text={!answerDetail.isCorrect}
 					>{userAnswerText || '(no answer)'}</span
 				>
 			</p>
 			{#if !answerDetail.isCorrect}
 				{#if answerDetail.variantType === 'simple_guess'}
 					<p>
-						<span class="text-gray-500">Acceptable answers:</span>
-						<span class="ml-1 text-green-700">{correctAnswerText}</span>
+						<span class="text-text-muted">Acceptable answers:</span>
+						<span class="ml-1 text-accent-emerald-text">{correctAnswerText}</span>
 					</p>
 				{:else}
 					<p>
-						<span class="text-gray-500">Correct answer:</span>
-						<span class="ml-1 text-green-700">{correctAnswerText}</span>
+						<span class="text-text-muted">Correct answer:</span>
+						<span class="ml-1 text-accent-emerald-text">{correctAnswerText}</span>
 					</p>
 				{/if}
 			{/if}

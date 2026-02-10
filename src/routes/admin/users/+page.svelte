@@ -12,11 +12,11 @@
 	function getRoleBadgeClass(role: string): string {
 		switch (role) {
 			case 'admin':
-				return 'bg-red-100 text-red-800';
+				return 'bg-admin-accent-red-bg text-admin-accent-red-text';
 			case 'moderator':
-				return 'bg-blue-100 text-blue-800';
+				return 'bg-admin-accent-blue-bg text-admin-accent-blue-text';
 			default:
-				return 'bg-gray-100 text-gray-800';
+				return 'bg-admin-surface-muted text-admin-text-primary';
 		}
 	}
 
@@ -48,13 +48,15 @@
 	<div class="space-y-6">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-2xl font-bold text-gray-900">Users</h1>
-				<p class="mt-1 text-sm text-gray-500">Manage platform users and their permissions</p>
+				<h1 class="text-2xl font-bold text-admin-text-primary">Users</h1>
+				<p class="mt-1 text-sm text-admin-text-muted">
+					Manage platform users and their permissions
+				</p>
 			</div>
 		</div>
 
 		<!-- Filters -->
-		<div class="rounded-lg bg-white p-4 shadow">
+		<div class="rounded-lg bg-admin-surface-elevated p-4 shadow">
 			<form
 				class="flex flex-wrap items-end gap-4"
 				onsubmit={(e) => {
@@ -63,7 +65,7 @@
 				}}
 			>
 				<div class="min-w-[200px] flex-1">
-					<label for="filter-search" class="mb-1 block text-sm font-medium text-gray-700"
+					<label for="filter-search" class="mb-1 block text-sm font-medium text-admin-text-primary"
 						>Search</label
 					>
 					<input
@@ -72,16 +74,18 @@
 						name="search"
 						value={data.filters.search}
 						placeholder="Name, username, or email..."
-						class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="w-full rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					/>
 				</div>
 
 				<div>
-					<label for="filter-role" class="mb-1 block text-sm font-medium text-gray-700">Role</label>
+					<label for="filter-role" class="mb-1 block text-sm font-medium text-admin-text-primary"
+						>Role</label
+					>
 					<select
 						id="filter-role"
 						name="role"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="all" selected={data.filters.role === 'all'}>All Roles</option>
 						<option value="user" selected={data.filters.role === 'user'}>User</option>
@@ -92,13 +96,13 @@
 				</div>
 
 				<div>
-					<label for="filter-status" class="mb-1 block text-sm font-medium text-gray-700"
+					<label for="filter-status" class="mb-1 block text-sm font-medium text-admin-text-primary"
 						>Status</label
 					>
 					<select
 						id="filter-status"
 						name="status"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="all" selected={data.filters.status === 'all'}>All Status</option>
 						<option value="active" selected={data.filters.status === 'active'}>Active</option>
@@ -109,11 +113,13 @@
 				</div>
 
 				<div>
-					<label for="filter-sort" class="mb-1 block text-sm font-medium text-gray-700">Sort</label>
+					<label for="filter-sort" class="mb-1 block text-sm font-medium text-admin-text-primary"
+						>Sort</label
+					>
 					<select
 						id="filter-sort"
 						name="sort"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="created" selected={data.filters.sort === 'created'}>Joined Date</option>
 						<option value="name" selected={data.filters.sort === 'name'}>Name</option>
@@ -122,13 +128,13 @@
 				</div>
 
 				<div>
-					<label for="filter-order" class="mb-1 block text-sm font-medium text-gray-700"
+					<label for="filter-order" class="mb-1 block text-sm font-medium text-admin-text-primary"
 						>Order</label
 					>
 					<select
 						id="filter-order"
 						name="order"
-						class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+						class="rounded-md border-admin-border shadow-sm focus:border-admin-accent-violet-border focus:ring-admin-accent-violet-border sm:text-sm"
 					>
 						<option value="desc" selected={data.filters.order === 'desc'}>Newest First</option>
 						<option value="asc" selected={data.filters.order === 'asc'}>Oldest First</option>
@@ -140,47 +146,47 @@
 		</div>
 
 		<!-- Users Table -->
-		<div class="overflow-hidden rounded-lg bg-white shadow">
+		<div class="overflow-hidden rounded-lg bg-admin-surface-elevated shadow">
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-admin-border">
+					<thead class="bg-admin-surface-muted">
 						<tr>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>User</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Role</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Status</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Stats</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Joined</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Actions</th
 							>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200 bg-white">
+					<tbody class="divide-y divide-admin-border bg-admin-surface-elevated">
 						{#if data.users.length === 0}
 							<tr>
-								<td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">
+								<td colspan="6" class="px-6 py-8 text-center text-sm text-admin-text-muted">
 									No users found
 								</td>
 							</tr>
 						{:else}
 							{#each data.users as user (user.id)}
-								<tr class="hover:bg-gray-50">
+								<tr class="hover:bg-admin-surface-muted">
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="flex items-center">
 											<div class="h-10 w-10 shrink-0">
@@ -192,19 +198,19 @@
 													/>
 												{:else}
 													<div
-														class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300"
+														class="flex h-10 w-10 items-center justify-center rounded-full bg-admin-surface-subtle"
 													>
-														<span class="font-medium text-gray-600">
+														<span class="font-medium text-admin-text-secondary">
 															{(user.name || user.slug || '?').charAt(0).toUpperCase()}
 														</span>
 													</div>
 												{/if}
 											</div>
 											<div class="ml-4">
-												<div class="text-sm font-medium text-gray-900">
+												<div class="text-sm font-medium text-admin-text-primary">
 													{user.name || 'Unnamed'}
 												</div>
-												<div class="text-sm text-gray-500">@{user.slug}</div>
+												<div class="text-sm text-admin-text-muted">@{user.slug}</div>
 											</div>
 										</div>
 									</td>
@@ -220,33 +226,36 @@
 									<td class="px-6 py-4 whitespace-nowrap">
 										{#if user.isSuspended}
 											<span
-												class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+												class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
 											>
 												Suspended
 											</span>
 										{:else}
 											<span
-												class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+												class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
 											>
 												Active
 											</span>
 										{/if}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-900">
+										<div class="text-sm text-admin-text-primary">
 											{user.quizCount} quizzes
 										</div>
-										<div class="text-xs text-gray-500">
+										<div class="text-xs text-admin-text-muted">
 											{user.submissionCount} submissions · {user.speedRunCount} speed runs
 										</div>
 									</td>
-									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
 										<time title={new Date(user.createdAt).toLocaleString()}>
 											{formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
 										</time>
 									</td>
 									<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-										<a href="/admin/users/{user.id}" class="text-blue-600 hover:text-blue-900">
+										<a
+											href="/admin/users/{user.id}"
+											class="text-admin-accent-violet-text hover:text-admin-text-primary"
+										>
 											View
 										</a>
 									</td>

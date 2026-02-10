@@ -51,11 +51,11 @@
 		{#each shuffledOptions as option (option.id)}
 			<button
 				type="button"
-				class="group relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all hover:border-gray-300"
-				class:border-emerald-500={selectedOptionId === option.id}
-				class:border-gray-200={selectedOptionId !== option.id}
+				class="group relative aspect-square w-full overflow-hidden rounded-lg border-2 transition-all hover:border-border-muted"
+				class:border-accent-emerald-border={selectedOptionId === option.id}
+				class:border-border={selectedOptionId !== option.id}
 				class:ring-2={selectedOptionId === option.id}
-				class:ring-emerald-500={selectedOptionId === option.id}
+				class:ring-accent-emerald-border={selectedOptionId === option.id}
 				class:ring-offset-2={selectedOptionId === option.id}
 				class:opacity-50={disabled}
 				onclick={() => handleSelect(option.id)}
@@ -75,7 +75,7 @@
 						target.style.display = 'none';
 						const parent = target.parentElement;
 						if (parent) {
-							parent.classList.add('bg-gray-200');
+							parent.classList.add('bg-surface-muted');
 						}
 					}}
 				/>
@@ -84,7 +84,7 @@
 				{#if selectedOptionId === option.id}
 					<div class="absolute inset-0 flex items-start justify-end p-2">
 						<div
-							class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-md"
+							class="flex h-6 w-6 items-center justify-center rounded-full bg-accent-emerald-bg text-text-inverse shadow-md"
 						>
 							<svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
 								<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />

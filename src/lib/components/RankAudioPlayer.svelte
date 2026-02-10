@@ -149,7 +149,7 @@
 	>
 		{#each displayItems as displayItem, index (displayItem.id)}
 			<div
-				class="flex items-center gap-4 rounded-lg border bg-white p-4 shadow-sm"
+				class="flex items-center gap-4 rounded-lg border bg-surface-elevated p-4 shadow-sm"
 				animate:flip={{ duration: flipDurationMs }}
 				role="listitem"
 				data-rank-player-row="{soundbiteId}-{index}"
@@ -157,7 +157,7 @@
 			>
 				<!-- Position Label (A, B, C...) - stays with position -->
 				<div
-					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 font-bold text-indigo-700"
+					class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-indigo-bg font-bold text-accent-indigo-text"
 					aria-hidden="true"
 				>
 					{displayItem.label}
@@ -174,7 +174,7 @@
 				<!-- Drag Handle -->
 				<button
 					type="button"
-					class="shrink-0 cursor-grab p-2 text-gray-400 hover:text-gray-600 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
+					class="shrink-0 cursor-grab p-2 text-text-muted hover:text-text-secondary active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-50"
 					data-drag-handle
 					aria-label="Drag to move position {displayItem.label}"
 					onkeydown={(e) => handleKeyDown(e, index)}

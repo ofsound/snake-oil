@@ -35,7 +35,7 @@
 <FormField label="Question Type" {id}>
 	<select
 		{id}
-		class="sm w-full rounded-sm border border-neutral-200 bg-white px-2 py-2 text-sm disabled:bg-gray-100 disabled:text-gray-500"
+		class="sm w-full rounded-sm border border-border bg-surface-elevated px-2 py-2 text-sm disabled:bg-surface-muted disabled:text-text-muted"
 		{value}
 		{disabled}
 		onchange={(e) => onchange(e.currentTarget.value as VariantType)}
@@ -45,7 +45,7 @@
 		{/each}
 	</select>
 	{#if disabled}
-		<p class="mt-1 text-xs text-amber-600">
+		<p class="mt-1 text-xs text-accent-amber-text">
 			⚡ Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice questions
 		</p>
 	{/if}

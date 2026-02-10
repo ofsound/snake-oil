@@ -229,7 +229,7 @@
 
 	function getButtonClass(isActive: boolean) {
 		return isActive
-			? 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 bg-accent-indigo-bg text-indigo-900'
+			? 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 bg-accent-indigo-bg text-accent-indigo-text'
 			: 'flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-all duration-150 text-text-secondary';
 	}
 </script>
@@ -240,7 +240,7 @@
 		role="button"
 		tabindex={disabled ? -1 : 0}
 		aria-label="Focus tag input"
-		class="group flex min-h-12 flex-wrap items-center gap-2 rounded-xl border-2 border-border bg-surface px-3 py-2 transition-all duration-200 focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-500/10 hover:border-border-muted"
+		class="group flex min-h-12 flex-wrap items-center gap-2 rounded-xl border-2 border-border bg-surface px-3 py-2 transition-all duration-200 focus-within:border-accent-indigo-border focus-within:ring-4 focus-within:ring-accent-indigo-border/10 hover:border-border-muted"
 		class:opacity-50={disabled}
 		class:cursor-not-allowed={disabled}
 		onclick={handleContainerClick}
@@ -263,7 +263,7 @@
 				{tag.label}
 				<button
 					type="button"
-					class="ml-1 rounded-full p-0.5 transition-colors hover:bg-indigo-200"
+					class="ml-1 rounded-full p-0.5 transition-colors hover:bg-interactive-bg-hover"
 					onclick={(e) => {
 						e.stopPropagation();
 						removeTag(tag.id);
@@ -299,7 +299,7 @@
 	</div>
 
 	{#if createError}
-		<div class="mt-2 flex items-center gap-1.5 text-sm text-red-600">
+		<div class="mt-2 flex items-center gap-1.5 text-sm text-accent-red-text">
 			<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 				<path
 					stroke-linecap="round"
@@ -313,10 +313,10 @@
 	{/if}
 
 	{#if tags.length > 0}
-		<div class="mt-1.5 flex items-center justify-between text-xs text-gray-500">
+		<div class="mt-1.5 flex items-center justify-between text-xs text-text-muted">
 			<span>{tags.length} {tags.length === 1 ? 'tag' : 'tags'}</span>
 			{#if tags.length >= maxTags}
-				<span class="text-amber-600">Maximum {maxTags} tags</span>
+				<span class="text-accent-amber-text">Maximum {maxTags} tags</span>
 			{:else}
 				<span>{maxTags - tags.length} remaining</span>
 			{/if}
@@ -330,7 +330,7 @@
 			out:fly={{ y: -10, duration: 150 }}
 		>
 			{#if isLoading}
-				<div class="flex items-center justify-center gap-2 px-4 py-6 text-gray-500">
+				<div class="flex items-center justify-center gap-2 px-4 py-6 text-text-muted">
 					<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
 						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 						></circle>
@@ -355,14 +355,14 @@
 								<span class="font-medium">
 									{#each getHighlightSegments(suggestion.label, inputValue) as segment, segIdx (suggestion.id + segIdx)}
 										{#if segment.highlight}
-											<mark class="bg-indigo-200 text-indigo-900">{segment.text}</mark>
+											<mark class="bg-accent-indigo-bg text-text-primary">{segment.text}</mark>
 										{:else}
 											{segment.text}
 										{/if}
 									{/each}
 								</span>
 								{#if suggestion.useCount && suggestion.useCount > 0}
-									<span class="text-xs text-gray-500">
+									<span class="text-xs text-text-muted">
 										{suggestion.useCount} uses
 									</span>
 								{/if}
@@ -371,7 +371,7 @@
 					{/each}
 				</ul>
 			{:else if inputValue.trim() && !isLoading}
-				<div class="px-4 py-3 text-sm text-gray-500">
+				<div class="px-4 py-3 text-sm text-text-muted">
 					<span
 						>Press <kbd class="rounded bg-surface-muted px-1.5 py-0.5 font-mono text-xs">Enter</kbd> to
 						create "</span

@@ -47,9 +47,9 @@
 		{#each shuffledOptions as option (option.id)}
 			{@const isSelected = selectedOptionIds.includes(option.id)}
 			<label
-				class="flex cursor-pointer items-center gap-3 rounded-sm border border-neutral-200 bg-white p-3 font-medium"
-				class:bg-emerald-50={isSelected}
-				class:border-emerald-300={isSelected}
+				class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-surface-elevated p-3 font-medium"
+				class:bg-accent-emerald-bg={isSelected}
+				class:border-accent-emerald-border={isSelected}
 			>
 				<input
 					type="checkbox"
@@ -58,7 +58,7 @@
 					checked={isSelected}
 					onchange={() => toggleOption(option.id)}
 					{disabled}
-					class="h-4 w-4 text-emerald-600"
+					class="h-4 w-4 text-accent-emerald-text"
 				/>
 				<span class="text-sm">{option.text}</span>
 			</label>

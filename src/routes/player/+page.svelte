@@ -32,8 +32,8 @@
 	<div class="min-h-screen bg-surface-muted">
 		<div class="mx-auto max-w-4xl p-4 md:p-8">
 			{#if error}
-				<div class="rounded-lg bg-red-50 p-4">
-					<p class="text-red-700">{error}</p>
+				<div class="rounded-lg bg-accent-red-bg p-4">
+					<p class="text-accent-red-text">{error}</p>
 				</div>
 			{:else if tracks && tracks.length > 0}
 				<MultiTrackPlayer {tracks} {error} />
@@ -57,7 +57,7 @@
 					<p class="mb-6 text-text-secondary">There are no tracks to play right now.</p>
 					<a
 						href={resolve('/')}
-						class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+						class="inline-flex items-center rounded-lg bg-accent-indigo-bg px-4 py-2 text-sm font-medium text-text-inverse transition-colors hover:brightness-90 focus:ring-2 focus:ring-accent-indigo-border focus:ring-offset-2 focus:outline-none"
 					>
 						<svg
 							class="mr-2 h-4 w-4"

@@ -59,7 +59,7 @@
 		{/if}
 	</Card>
 
-	<Heading level={2} class="mt-10 border-b border-gray-200 pb-2">Quizzes</Heading>
+	<Heading level={2} class="mt-10 border-b border-border pb-2">Quizzes</Heading>
 
 	<div class="mt-4">
 		{#if quizzes.length > 0}
@@ -69,8 +69,8 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="rounded-md bg-gray-50 p-8 text-center">
-				<p class="mb-4 text-gray-600">This user hasn't created any quizzes yet.</p>
+			<div class="rounded-md bg-surface-muted p-8 text-center">
+				<p class="mb-4 text-text-secondary">This user hasn't created any quizzes yet.</p>
 			</div>
 		{/if}
 	</div>

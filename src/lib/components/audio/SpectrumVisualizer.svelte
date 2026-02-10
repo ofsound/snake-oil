@@ -186,23 +186,23 @@
 </script>
 
 <div class="w-full max-w-2xl">
-	<canvas bind:this={canvas} class="block h-[150px] w-full bg-black"></canvas>
+	<canvas bind:this={canvas} class="block h-[150px] w-full bg-surface"></canvas>
 
-	<div class="bg-white p-10">
+	<div class="bg-surface-elevated p-10">
 		<div class="grid grid-cols-2 gap-4">
 			{#each binConfigs as bin, i (bin.name)}
-				<div bind:this={binElements[i]} class="rounded border border-gray-200 p-4 transition-all">
-					<div class="font-bold text-gray-800">{bin.name}</div>
-					<div class="text-sm text-gray-600">
+				<div bind:this={binElements[i]} class="rounded border border-border p-4 transition-all">
+					<div class="font-bold text-text-primary">{bin.name}</div>
+					<div class="text-sm text-text-secondary">
 						Range: {bin.low} - {bin.high}
 					</div>
-					<div class="text-sm text-gray-600">
+					<div class="text-sm text-text-secondary">
 						Threshold: {bin.threshold}
 					</div>
 					<div
 						class="text-lg font-bold"
-						class:text-red-500={binCurrents[i] > bin.threshold}
-						class:text-gray-800={binCurrents[i] <= bin.threshold}
+						class:text-accent-red-text={binCurrents[i] > bin.threshold}
+						class:text-text-primary={binCurrents[i] <= bin.threshold}
 					>
 						Total: {Math.round(binCurrents[i])}
 					</div>

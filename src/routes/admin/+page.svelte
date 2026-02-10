@@ -16,16 +16,21 @@
 
 <PageContainer>
 	<div class="space-y-6">
-		<h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+		<h1 class="text-2xl font-bold text-admin-text-primary">Dashboard</h1>
 
 		<!-- Stats Grid -->
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 			<!-- Users Card -->
-			<div class="rounded-lg bg-white p-6 shadow">
+			<div class="rounded-lg bg-admin-surface-elevated p-6 shadow">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<div class="rounded-md bg-blue-500 p-3">
-							<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<div class="rounded-md bg-admin-accent-violet-bg p-3">
+							<svg
+								class="h-6 w-6 text-admin-accent-violet-text"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -36,9 +41,11 @@
 						</div>
 					</div>
 					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-500">Total Users</p>
-						<p class="text-2xl font-bold text-gray-900">{data.stats.totalUsers.toLocaleString()}</p>
-						<p class="mt-1 text-xs text-green-600">
+						<p class="text-sm font-medium text-admin-text-muted">Total Users</p>
+						<p class="text-2xl font-bold text-admin-text-primary">
+							{data.stats.totalUsers.toLocaleString()}
+						</p>
+						<p class="mt-1 text-xs text-admin-accent-emerald-text">
 							+{data.stats.newUsersLast7Days} in last 7 days
 						</p>
 					</div>
@@ -46,11 +53,16 @@
 			</div>
 
 			<!-- Suspended Users Card -->
-			<div class="rounded-lg bg-white p-6 shadow">
+			<div class="rounded-lg bg-admin-surface-elevated p-6 shadow">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<div class="rounded-md bg-red-500 p-3">
-							<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<div class="rounded-md bg-admin-accent-red-bg p-3">
+							<svg
+								class="h-6 w-6 text-admin-accent-red-text"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -61,13 +73,13 @@
 						</div>
 					</div>
 					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-500">Suspended Users</p>
-						<p class="text-2xl font-bold text-gray-900">
+						<p class="text-sm font-medium text-admin-text-muted">Suspended Users</p>
+						<p class="text-2xl font-bold text-admin-text-primary">
 							{data.stats.suspendedUsers.toLocaleString()}
 						</p>
 						<a
 							href="/admin/users?filter=suspended"
-							class="mt-1 inline-block text-xs text-blue-600 hover:text-blue-800"
+							class="mt-1 inline-block text-xs text-admin-accent-violet-text hover:opacity-80"
 						>
 							View suspended →
 						</a>
@@ -76,11 +88,16 @@
 			</div>
 
 			<!-- Quizzes Card -->
-			<div class="rounded-lg bg-white p-6 shadow">
+			<div class="rounded-lg bg-admin-surface-elevated p-6 shadow">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<div class="rounded-md bg-green-500 p-3">
-							<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<div class="rounded-md bg-admin-accent-emerald-bg p-3">
+							<svg
+								class="h-6 w-6 text-admin-accent-emerald-text"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -91,21 +108,26 @@
 						</div>
 					</div>
 					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-500">Total Quizzes</p>
-						<p class="text-2xl font-bold text-gray-900">
+						<p class="text-sm font-medium text-admin-text-muted">Total Quizzes</p>
+						<p class="text-2xl font-bold text-admin-text-primary">
 							{data.stats.totalQuizzes.toLocaleString()}
 						</p>
-						<p class="mt-1 text-xs text-gray-500">{data.stats.privateQuizzes} private</p>
+						<p class="mt-1 text-xs text-admin-text-muted">{data.stats.privateQuizzes} private</p>
 					</div>
 				</div>
 			</div>
 
 			<!-- Speed Runs Card -->
-			<div class="rounded-lg bg-white p-6 shadow">
+			<div class="rounded-lg bg-admin-surface-elevated p-6 shadow">
 				<div class="flex items-center">
 					<div class="flex-shrink-0">
-						<div class="rounded-md bg-purple-500 p-3">
-							<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<div class="rounded-md bg-accent-amber-bg p-3">
+							<svg
+								class="h-6 w-6 text-accent-amber-text"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -116,8 +138,8 @@
 						</div>
 					</div>
 					<div class="ml-4">
-						<p class="text-sm font-medium text-gray-500">Speed Run Results</p>
-						<p class="text-2xl font-bold text-gray-900">
+						<p class="text-sm font-medium text-admin-text-muted">Speed Run Results</p>
+						<p class="text-2xl font-bold text-admin-text-primary">
 							{data.stats.totalSpeedRuns.toLocaleString()}
 						</p>
 					</div>
@@ -126,62 +148,66 @@
 		</div>
 
 		<!-- Recent Admin Actions -->
-		<div class="overflow-hidden rounded-lg bg-white shadow">
-			<div class="border-b border-gray-200 px-6 py-4">
-				<h2 class="text-lg font-medium text-gray-900">Recent Admin Actions</h2>
-				<p class="mt-1 text-sm text-gray-500">Last 10 actions across the platform</p>
+		<div class="overflow-hidden rounded-lg bg-admin-surface-elevated shadow">
+			<div class="border-b border-admin-border px-6 py-4">
+				<h2 class="text-lg font-medium text-admin-text-primary">Recent Admin Actions</h2>
+				<p class="mt-1 text-sm text-admin-text-muted">Last 10 actions across the platform</p>
 			</div>
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-admin-border">
+					<thead class="bg-admin-surface-muted">
 						<tr>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Admin</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Action</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>Target</th
 							>
 							<th
-								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+								class="px-6 py-3 text-left text-xs font-medium tracking-wider text-admin-text-muted uppercase"
 								>When</th
 							>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-200 bg-white">
+					<tbody class="divide-y divide-admin-border bg-admin-surface-elevated">
 						{#if data.recentActions.length === 0}
 							<tr>
-								<td colspan="4" class="px-6 py-8 text-center text-sm text-gray-500">
+								<td colspan="4" class="px-6 py-8 text-center text-sm text-admin-text-muted">
 									No admin actions yet
 								</td>
 							</tr>
 						{:else}
 							{#each data.recentActions as action (action.id)}
-								<tr class="hover:bg-gray-50">
+								<tr class="hover:bg-admin-surface-muted">
 									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-gray-900">
+										<div class="text-sm font-medium text-admin-text-primary">
 											{action.admin?.name || 'Unknown'}
 										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
 										<span
-											class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
+											class="inline-flex items-center rounded-full bg-admin-surface-subtle px-2.5 py-0.5 text-xs font-medium text-admin-text-primary"
 										>
 											{formatAction(action.action)}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-900">{formatTargetType(action.targetType)}</div>
+										<div class="text-sm text-admin-text-primary">
+											{formatTargetType(action.targetType)}
+										</div>
 										{#if action.targetId}
-											<div class="max-w-xs truncate text-xs text-gray-500">{action.targetId}</div>
+											<div class="max-w-xs truncate text-xs text-admin-text-muted">
+												{action.targetId}
+											</div>
 										{/if}
 									</td>
-									<td class="px-6 py-4 text-sm whitespace-nowrap text-gray-500">
+									<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
 										<time title={new Date(action.createdAt).toLocaleString()}>
 											{formatDistanceToNow(new Date(action.createdAt), { addSuffix: true })}
 										</time>
@@ -193,8 +219,11 @@
 				</table>
 			</div>
 			{#if data.recentActions.length > 0}
-				<div class="border-t border-gray-200 bg-gray-50 px-6 py-3">
-					<a href="/admin/audit-log" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+				<div class="border-t border-admin-border bg-admin-surface-muted px-6 py-3">
+					<a
+						href="/admin/audit-log"
+						class="text-sm font-medium text-admin-accent-violet-text hover:opacity-80"
+					>
 						View all actions →
 					</a>
 				</div>
