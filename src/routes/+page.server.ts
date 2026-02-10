@@ -7,37 +7,31 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
-	let recentQuizzes;
-	try {
-		recentQuizzes = await db.query.quizzes.findMany({
-			where: eq(quizzes.visibility, 'public'),
-			orderBy: desc(quizzes.createdAt),
-			limit: 5,
-			columns: {
-				id: true,
-				title: true,
-				slug: true,
-				description: true,
-				createdAt: true
+	const recentQuizzes = await db.query.quizzes.findMany({
+		where: eq(quizzes.visibility, 'public'),
+		orderBy: desc(quizzes.createdAt),
+		limit: 5,
+		columns: {
+			id: true,
+			title: true,
+			slug: true,
+			description: true,
+			createdAt: true
+		},
+		with: {
+			creator: {
+				columns: {
+					name: true,
+					slug: true
+				}
 			},
-			with: {
-				creator: {
-					columns: {
-						name: true,
-						slug: true
-					}
-				},
-				speedRun: {
-					columns: {
-						id: true
-					}
+			speedRun: {
+				columns: {
+					id: true
 				}
 			}
-		});
-	} catch (error) {
-		console.error('Database query error:', error);
-		throw error;
-	}
+		}
+	});
 
 	// Fetch tags for all quizzes
 	const quizIds = recentQuizzes.map((q) => q.id);
