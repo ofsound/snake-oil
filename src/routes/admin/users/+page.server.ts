@@ -1,12 +1,7 @@
-import { eq, sql } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import {
-	buildWhereClause,
-	buildOrderBy,
-	count,
-	ITEMS_PER_PAGE
-} from '$lib/server/pagination-utils';
+import { buildWhereClause, buildOrderBy, ITEMS_PER_PAGE } from '$lib/server/pagination-utils';
 import { user, quizzes, quizAnswers, speedRunResults } from '$lib/server/db/schema';
 
 import type { PageServerLoad } from './$types';

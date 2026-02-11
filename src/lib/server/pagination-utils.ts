@@ -1,4 +1,4 @@
-import { asc, count, desc, sql, like, or, eq } from 'drizzle-orm';
+import { asc, desc, sql, like, or, eq } from 'drizzle-orm';
 
 import type { SQL, Column } from 'drizzle-orm';
 
@@ -46,5 +46,4 @@ function buildOrderBy(sortField: Column, sortOrder: SortOrder): SQL {
 	return sortOrder === 'asc' ? asc(sortField) : desc(sortField);
 }
 
-export { ITEMS_PER_PAGE, buildWhereClause, buildOrderBy, asc, desc, count, sql, like, or, eq };
-export type { SortOrder, FilterCondition };
+export { ITEMS_PER_PAGE, buildWhereClause, buildOrderBy };

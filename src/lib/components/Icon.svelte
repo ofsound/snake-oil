@@ -480,6 +480,7 @@
 		xl: 'h-8 w-8'
 	};
 
+	// svelte-ignore state_referenced_locally
 	const icon = icons[name];
 </script>
 

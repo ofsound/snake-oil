@@ -8,6 +8,8 @@
 	import Pagination from '../Pagination.svelte';
 	import Icon from '../Icon.svelte';
 
+	import type { Snippet } from 'svelte';
+
 	interface FilterOption {
 		value: string;
 		label: string;
@@ -40,10 +42,24 @@
 		};
 		emptyMessage: string;
 		headers: string[];
+		children: Snippet;
+		actions?: Snippet;
+		aboveTable?: Snippet;
 	}
 
-	let { title, description, basePath, itemName, filters, data, emptyMessage, headers }: Props =
-		$props();
+	let {
+		title,
+		description,
+		basePath,
+		itemName,
+		filters,
+		data,
+		emptyMessage,
+		headers,
+		children,
+		actions,
+		aboveTable
+	}: Props = $props();
 
 	function updateSearch(form: HTMLFormElement) {
 		const formData = new FormData(form);
@@ -103,7 +119,9 @@
 				<h1 class="text-2xl font-bold text-admin-text-primary">{title}</h1>
 				<p class="mt-1 text-sm text-admin-text-muted">{description}</p>
 			</div>
-			<slot name="actions" />
+			{#if actions}
+				{@render actions()}
+			{/if}
 		</div>
 
 		<!-- Filters -->
@@ -176,8 +194,10 @@
 			</div>
 		{/if}
 
-		<!-- Above-table content slot -->
-		<slot name="above-table" />
+		<!-- Above-table content -->
+		{#if aboveTable}
+			{@render aboveTable()}
+		{/if}
 
 		<!-- Content Table -->
 		<div class="overflow-hidden rounded-lg bg-admin-surface-elevated shadow">
@@ -204,7 +224,7 @@
 								</td>
 							</tr>
 						{:else}
-							<slot />
+							{@render children()}
 						{/if}
 					</tbody>
 				</table>

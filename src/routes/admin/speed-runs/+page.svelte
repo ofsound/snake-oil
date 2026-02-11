@@ -76,7 +76,7 @@
 	emptyMessage="No speed run results found"
 	headers={['Date', 'Quiz', 'Player', 'Score', 'Time', 'Status', 'Actions']}
 >
-	<svelte:fragment slot="above-table">
+	{#snippet aboveTable()}
 		<div class="rounded-lg bg-admin-surface-elevated p-4 shadow">
 			<h2 class="mb-3 text-lg font-medium text-admin-text-primary">Clear Leaderboards</h2>
 			<div class="flex flex-wrap gap-2">
@@ -90,72 +90,75 @@
 				{/each}
 			</div>
 		</div>
-	</svelte:fragment>
-
-	{#each data.items as result (result.id)}
-		<tr class="hover:bg-admin-surface-muted {result.isSuspicious ? 'bg-admin-accent-red-bg' : ''}">
-			<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
-				<time title={new Date(result.createdAt).toLocaleString()}>
-					{formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
-				</time>
-			</td>
-			<td class="px-6 py-4 whitespace-nowrap">
-				<a
-					href="/{result.speedRun.quiz.creator.slug}/{result.speedRun.quiz.slug}"
-					target="_blank"
-					class="text-sm font-medium text-admin-accent-violet-text hover:text-admin-text-primary"
-				>
-					{result.speedRun.quiz.title}
-				</a>
-			</td>
-			<td class="px-6 py-4 whitespace-nowrap">
-				{#if result.user}
+	{/snippet}
+	{#snippet children()}
+		{#each data.items as result (result.id)}
+			<tr
+				class="hover:bg-admin-surface-muted {result.isSuspicious ? 'bg-admin-accent-red-bg' : ''}"
+			>
+				<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
+					<time title={new Date(result.createdAt).toLocaleString()}>
+						{formatDistanceToNow(new Date(result.createdAt), { addSuffix: true })}
+					</time>
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap">
 					<a
-						href="/admin/users/{result.user.id}"
-						class="text-sm text-admin-accent-violet-text hover:text-admin-text-primary"
+						href="/{result.speedRun.quiz.creator.slug}/{result.speedRun.quiz.slug}"
+						target="_blank"
+						class="text-sm font-medium text-admin-accent-violet-text hover:text-admin-text-primary"
 					>
-						{result.user.name || result.user.slug}
+						{result.speedRun.quiz.title}
 					</a>
-				{:else}
-					<span class="text-sm text-admin-text-muted">{result.displayName}</span>
-				{/if}
-			</td>
-			<td class="px-6 py-4 whitespace-nowrap">
-				<div class="text-sm font-medium text-admin-text-primary">
-					{result.correctCount}/{result.totalQuestions}
-				</div>
-				<div class="text-xs text-admin-text-muted">
-					Score: {result.score.toLocaleString()}
-				</div>
-			</td>
-			<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
-				{formatTime(result.totalTimeMs)}
-			</td>
-			<td class="px-6 py-4 whitespace-nowrap">
-				{#if result.isSuspicious}
-					<span
-						class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap">
+					{#if result.user}
+						<a
+							href="/admin/users/{result.user.id}"
+							class="text-sm text-admin-accent-violet-text hover:text-admin-text-primary"
+						>
+							{result.user.name || result.user.slug}
+						</a>
+					{:else}
+						<span class="text-sm text-admin-text-muted">{result.displayName}</span>
+					{/if}
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap">
+					<div class="text-sm font-medium text-admin-text-primary">
+						{result.correctCount}/{result.totalQuestions}
+					</div>
+					<div class="text-xs text-admin-text-muted">
+						Score: {result.score.toLocaleString()}
+					</div>
+				</td>
+				<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
+					{formatTime(result.totalTimeMs)}
+				</td>
+				<td class="px-6 py-4 whitespace-nowrap">
+					{#if result.isSuspicious}
+						<span
+							class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
+						>
+							Suspicious
+						</span>
+					{:else}
+						<span
+							class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
+						>
+							Valid
+						</span>
+					{/if}
+				</td>
+				<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+					<button
+						onclick={() => openDeleteModal(result)}
+						class="text-admin-accent-red-text hover:text-admin-text-primary"
 					>
-						Suspicious
-					</span>
-				{:else}
-					<span
-						class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
-					>
-						Valid
-					</span>
-				{/if}
-			</td>
-			<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-				<button
-					onclick={() => openDeleteModal(result)}
-					class="text-admin-accent-red-text hover:text-admin-text-primary"
-				>
-					Delete
-				</button>
-			</td>
-		</tr>
-	{/each}
+						Delete
+					</button>
+				</td>
+			</tr>
+		{/each}
+	{/snippet}
 </AdminDataTable>
 
 <!-- Delete Result Modal -->

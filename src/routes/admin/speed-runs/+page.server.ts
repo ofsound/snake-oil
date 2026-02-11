@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { eq, sql } from 'drizzle-orm';
+import { count, eq, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
@@ -10,12 +10,7 @@ import {
 	user as _user
 } from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
-import {
-	buildWhereClause,
-	buildOrderBy,
-	count,
-	ITEMS_PER_PAGE
-} from '$lib/server/pagination-utils';
+import { buildWhereClause, buildOrderBy, ITEMS_PER_PAGE } from '$lib/server/pagination-utils';
 
 import type { PageServerLoad, Actions } from './$types';
 

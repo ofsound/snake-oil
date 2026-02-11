@@ -1,14 +1,9 @@
 import { fail } from '@sveltejs/kit';
-import { eq, like, or, sql } from 'drizzle-orm';
+import { count, eq, like, or, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
-import {
-	buildWhereClause,
-	buildOrderBy,
-	count,
-	ITEMS_PER_PAGE
-} from '$lib/server/pagination-utils';
+import { buildWhereClause, buildOrderBy, ITEMS_PER_PAGE } from '$lib/server/pagination-utils';
 import { quizzes, user, speedRuns, soundbites, quizAnswers } from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
 import { handleQuizTagRemoval } from '$lib/server/tag-utils';
