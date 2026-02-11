@@ -78,7 +78,7 @@
 			<div class="font-semibold tracking-wide">{quiz.title}</div>
 			{#if quiz.speedRun}
 				<span
-					class="ml-2 rounded-full bg-accent-amber-bg px-2 py-0.5 text-xs font-medium text-accent-amber-text"
+					class="ml-2 inline-flex items-center gap-1 rounded-full bg-accent-amber-bg px-2 py-0.5 text-xs font-medium text-accent-amber-text"
 				>
 					⚡ Speed Run
 				</span>
@@ -90,7 +90,7 @@
 				{#each quiz.tags.slice(0, 3) as tag (tag.slug)}
 					<a
 						href="/quizzes/tag/{tag.slug}"
-						class="inline-flex items-center rounded-full bg-accent-indigo-bg px-2 py-0.5 text-xs font-medium text-accent-indigo-text transition-colors hover:opacity-80"
+						class="inline-flex items-center gap-1 rounded-full bg-accent-indigo-bg px-2 py-0.5 text-xs font-medium text-accent-indigo-text transition-colors hover:opacity-80"
 						onclick={(e) => e.stopPropagation()}
 					>
 						#{tag.label}
@@ -109,6 +109,7 @@
 					href={resolve(`/${creatorSlug}/${quiz.slug}/edit`)}
 					variant="primary"
 					size="xs"
+					icon="edit"
 					onclick={(e) => e.stopPropagation()}
 				>
 					Edit
@@ -117,6 +118,7 @@
 					href={resolve(`/${creatorSlug}/${quiz.slug}/submissions`)}
 					variant="primary"
 					size="xs"
+					icon="submission"
 					onclick={(e) => e.stopPropagation()}
 				>
 					Submissions

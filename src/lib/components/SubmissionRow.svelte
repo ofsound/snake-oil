@@ -70,7 +70,15 @@
 	<div class="flex min-w-0 flex-1 flex-col gap-1">
 		<div class="flex flex-wrap items-center gap-2">
 			<div class="truncate font-semibold tracking-wide">{submission.quizTitle}</div>
-			<span class="text-xs text-text-muted">by {submission.creatorName}</span>
+			<span class="text-xs text-text-muted">by
+				<a
+					href={resolve(`/user/${submission.creatorSlug}`)}
+					onclick={(e) => e.stopPropagation()}
+					class="font-medium text-accent-indigo-text hover:underline"
+				>
+					{submission.creatorName}
+				</a>
+			</span>
 		</div>
 		<div class="text-xs text-text-muted">
 			{formatDate(submission.createdAt)}

@@ -1,10 +1,15 @@
 import { db } from '$lib/server/db';
 import { adminActions } from '$lib/server/db/schema';
-import { desc, count, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+
+import {
+	buildWhereClause,
+	buildOrderBy,
+	count,
+	ITEMS_PER_PAGE
+} from '$lib/server/pagination-utils';
 
 import type { PageServerLoad } from './$types';
-
-const ITEMS_PER_PAGE = 25;
 
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
@@ -14,21 +19,23 @@ export const load: PageServerLoad = async ({ url }) => {
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
-	let whereClause = undefined;
+	const filterConditions = [
+		...(actionFilter !== 'all' ? [{ field: adminActions.action, value: actionFilter }] : []),
+		...(targetTypeFilter !== 'all'
+			? [{ field: adminActions.targetType, value: targetTypeFilter }]
+			: [])
+	];
 
-	if (actionFilter !== 'all') {
-		whereClause = eq(adminActions.action, actionFilter);
-	}
-
-	if (targetTypeFilter !== 'all') {
-		const targetCondition = eq(adminActions.targetType, targetTypeFilter);
-		whereClause = whereClause ? sql`${whereClause} AND ${targetCondition}` : targetCondition;
-	}
+	const whereClause = buildWhereClause(
+		'',
+		undefined,
+		filterConditions.length > 0 ? filterConditions : undefined
+	);
 
 	// Get admin actions
 	const actions = await db.query.adminActions.findMany({
 		where: whereClause,
-		orderBy: desc(adminActions.createdAt),
+		orderBy: buildOrderBy(adminActions.createdAt, 'desc'),
 		limit: ITEMS_PER_PAGE,
 		offset,
 		with: {
@@ -64,7 +71,7 @@ export const load: PageServerLoad = async ({ url }) => {
 		.orderBy(adminActions.targetType);
 
 	return {
-		actions,
+		items: actions,
 		currentPage: page,
 		totalPages,
 		totalItems: totalActions,

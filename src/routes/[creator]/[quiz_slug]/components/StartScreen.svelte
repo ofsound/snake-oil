@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Icon from '$lib/components/Icon.svelte';
+
 	interface Props {
 		quizTitle: string;
 		quizDescription: string;
@@ -32,9 +34,10 @@
 	<div class="w-full max-w-2xl rounded-2xl border border-white/10 bg-white/5 p-8 backdrop-blur-lg">
 		<div class="mb-8 text-center">
 			<div
-				class="mb-4 inline-flex items-center justify-center rounded-full bg-linear-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold text-white"
+				class="mb-4 inline-flex items-center gap-2 rounded-full bg-linear-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-bold text-white"
 			>
-				⚡ SPEED RUN
+				<Icon name="lightning" size="sm" />
+				SPEED RUN
 			</div>
 			<h1 class="mb-2 text-4xl font-bold text-white">{quizTitle}</h1>
 			<p class="text-lg text-white/70">{quizDescription}</p>
@@ -42,23 +45,35 @@
 
 		<div class="mb-8 grid grid-cols-3 gap-4">
 			<div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+				<div class="mb-1 flex items-center justify-center gap-1 text-white/60">
+					<Icon name="question" size="xs" />
+				</div>
 				<div class="text-3xl font-bold text-white">{totalQuestions}</div>
 				<div class="text-sm text-white/60">Questions</div>
 			</div>
 			<div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+				<div class="mb-1 flex items-center justify-center gap-1 text-white/60">
+					<Icon name="timer" size="xs" />
+				</div>
 				<div class="text-3xl font-bold text-white">
 					{defaultTimeLimit ? `${defaultTimeLimit}s` : '∞'}
 				</div>
 				<div class="text-sm text-white/60">Per Question</div>
 			</div>
 			<div class="rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+				<div class="mb-1 flex items-center justify-center gap-1 text-white/60">
+					<Icon name="flame" size="xs" />
+				</div>
 				<div class="text-3xl font-bold text-amber-400">RACE</div>
 				<div class="text-sm text-white/60">Mode</div>
 			</div>
 		</div>
 
 		<div class="mb-8 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
-			<h3 class="mb-2 font-semibold text-amber-400">How to Play:</h3>
+			<h3 class="mb-2 flex items-center gap-2 font-semibold text-amber-400">
+				<Icon name="info" size="sm" />
+				How to Play:
+			</h3>
 			<ul class="space-y-2 text-sm text-white/80">
 				<li class="flex items-start gap-2">
 					<span class="text-amber-400">1.</span>
@@ -101,9 +116,10 @@
 
 			<button
 				type="submit"
-				class="w-full rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
+				class="flex w-full items-center justify-center gap-2 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-8 py-4 text-xl font-bold text-white shadow-lg shadow-amber-500/25 transition-all hover:scale-105 hover:shadow-amber-500/40"
 			>
-				START SPEED RUN ⚡
+				<Icon name="lightning" size="lg" />
+				START SPEED RUN
 			</button>
 		</form>
 	</div>

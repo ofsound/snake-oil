@@ -1,60 +1,49 @@
+import { eq, sql } from 'drizzle-orm';
+
 import { db } from '$lib/server/db';
+import {
+	buildWhereClause,
+	buildOrderBy,
+	count,
+	ITEMS_PER_PAGE
+} from '$lib/server/pagination-utils';
 import { user, quizzes, quizAnswers, speedRunResults } from '$lib/server/db/schema';
-import { desc, asc, count, eq, like, or, sql } from 'drizzle-orm';
 
 import type { PageServerLoad } from './$types';
-
-const ITEMS_PER_PAGE = 25;
-
-type SortField = 'created' | 'name' | 'role';
-type SortOrder = 'asc' | 'desc';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
 	const search = url.searchParams.get('search')?.trim() ?? '';
 	const roleFilter = url.searchParams.get('role') ?? 'all';
 	const statusFilter = url.searchParams.get('status') ?? 'all';
-	const sortField: SortField = (url.searchParams.get('sort') as SortField) ?? 'created';
-	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
+	const sortField = url.searchParams.get('sort') ?? 'created';
+	const sortOrder = (url.searchParams.get('order') as 'asc' | 'desc') ?? 'desc';
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
-	let whereClause = undefined;
+	const filterConditions = [
+		...(roleFilter !== 'all' ? [{ field: user.role, value: roleFilter }] : []),
+		...(statusFilter === 'suspended'
+			? [{ field: user.isSuspended, value: 'true' }]
+			: statusFilter === 'active'
+				? [{ field: user.isSuspended, value: 'false' }]
+				: [])
+	];
 
-	if (search) {
-		const searchPattern = `%${search}%`;
-		whereClause = or(
-			like(user.name, searchPattern),
-			like(user.slug, searchPattern),
-			like(user.email, searchPattern)
-		);
-	}
+	let whereClause = buildWhereClause(
+		search,
+		[user.name, user.slug, user.email],
+		filterConditions.length > 0 ? filterConditions : undefined
+	);
 
-	if (roleFilter !== 'all') {
-		const roleCondition = eq(user.role, roleFilter);
-		whereClause = whereClause ? sql`${whereClause} AND ${roleCondition}` : roleCondition;
-	}
+	// Build order by - use any to bypass strict type checking for column selection
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let orderByField: any = user.createdAt;
+	if (sortField === 'name') orderByField = user.name;
+	else if (sortField === 'role') orderByField = user.role;
 
-	if (statusFilter === 'suspended') {
-		const statusCondition = eq(user.isSuspended, true);
-		whereClause = whereClause ? sql`${whereClause} AND ${statusCondition}` : statusCondition;
-	} else if (statusFilter === 'active') {
-		const statusCondition = eq(user.isSuspended, false);
-		whereClause = whereClause ? sql`${whereClause} AND ${statusCondition}` : statusCondition;
-	}
-
-	// Build order by
-	let orderByClause;
-	const orderFn = sortOrder === 'asc' ? asc : desc;
-
-	if (sortField === 'name') {
-		orderByClause = orderFn(user.name);
-	} else if (sortField === 'role') {
-		orderByClause = orderFn(user.role);
-	} else {
-		orderByClause = orderFn(user.createdAt);
-	}
+	const orderByClause = buildOrderBy(orderByField, sortOrder);
 
 	// Get users
 	const users = await db.query.user.findMany({
@@ -69,7 +58,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const totalUsers = totalResult[0]?.value ?? 0;
 	const totalPages = Math.ceil(totalUsers / ITEMS_PER_PAGE);
 
-	// Get user stats (quiz count, submission count, speed run count)
+	// Get user stats
 	const userIds = users.map((u) => u.id);
 
 	const quizCounts = await db
@@ -99,7 +88,6 @@ export const load: PageServerLoad = async ({ url }) => {
 		.where(sql`${speedRunResults.userId} IN ${userIds}`)
 		.groupBy(speedRunResults.userId);
 
-	// Create lookup maps
 	const quizCountMap = new Map(quizCounts.map((c) => [c.creatorId, c.count]));
 	const submissionCountMap = new Map(submissionCounts.map((c) => [c.userId, c.count]));
 	const speedRunCountMap = new Map(speedRunCounts.map((c) => [c.userId, c.count]));
@@ -112,7 +100,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	}));
 
 	return {
-		users: usersWithStats,
+		items: usersWithStats,
 		currentPage: page,
 		totalPages,
 		totalItems: totalUsers,

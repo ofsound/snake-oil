@@ -34,18 +34,26 @@
 			<a
 				href={resolve('/')}
 				class="text-xl font-bold transition-colors duration-200 text-shadow-sm text-shadow-zinc-400/20"
-				>snakeoil.app</a
 			>
+				snakeoil.app
+			</a>
 
 			<div class="flex gap-2">
-				<Button class="!font-black" variant="accent" size="sm" href="/create">+</Button>
-				<Button variant="accent" size="sm" href="/quizzes">quizzes</Button>
+				<Button
+					class="!font-black"
+					variant="accent"
+					size="sm"
+					href="/create"
+					icon="plus"
+					title="Create Quiz"
+				/>
+				<Button variant="accent" size="sm" href="/quizzes" icon="quiz">Quizzes</Button>
 				{#if data.user?.name}
-					<Button variant="primary" size="sm" href="/profile">
-						{data.user.name} <span class="hidden text-xs">(profile)</span>
+					<Button variant="primary" size="sm" href="/profile" icon="user">
+						{data.user.name}
 					</Button>
 				{:else}
-					<Button variant="secondary" size="sm" href="/login">sign in</Button>
+					<Button variant="secondary" size="sm" href="/login" icon="login">Sign In</Button>
 				{/if}
 			</div>
 		</div>
@@ -69,6 +77,7 @@
 				size="md"
 				disabled={editFormFooterState.value?.submitting ?? true}
 				loading={editFormFooterState.value?.submitting ?? false}
+				icon="save"
 			>
 				Save changes
 			</Button>

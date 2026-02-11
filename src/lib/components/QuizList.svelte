@@ -6,6 +6,7 @@
 	import Button from '$lib/components/Button.svelte';
 	import Pagination from '$lib/components/Pagination.svelte';
 	import QuizRow from '$lib/components/QuizRow.svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	import { resolvePath } from '$lib/utils';
 
@@ -75,17 +76,22 @@
 	<div class="text-center text-sm text-text-secondary">{description}</div>
 </div>
 
-<form method="get" action="/results" class="mb-6">
+<form method="get" action="/quizzes" class="mb-6">
 	<div class="flex gap-3">
-		<input
-			type="search"
-			name="q"
-			value={searchValue}
-			placeholder="Search title, description, or creator"
-			class="focus:border-accent-indigo focus:ring-accent-indigo flex-1 rounded-md border border-border px-4 py-2 focus:ring-1 focus:outline-none"
-			required
-		/>
-		<Button variant="accent" size="md" type="submit">Search</Button>
+		<div class="relative flex-1">
+			<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+				<Icon name="search" size="sm" class="text-text-muted" />
+			</div>
+			<input
+				type="search"
+				name="q"
+				value={searchValue}
+				placeholder="Search title, description, or creator"
+				class="focus:border-accent-indigo focus:ring-accent-indigo w-full rounded-md border border-border py-2 pr-4 pl-10 focus:ring-1 focus:outline-none"
+				required
+			/>
+		</div>
+		<Button variant="accent" size="md" type="submit" icon="search">Search</Button>
 	</div>
 </form>
 

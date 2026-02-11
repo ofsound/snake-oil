@@ -1,4 +1,4 @@
-import { asc, desc, count, eq, sql, inArray, and } from 'drizzle-orm';
+import { asc, desc, count, eq, or, ilike, sql, inArray, and } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { quizzes, user, speedRuns, tags, quizTags } from '$lib/server/db/schema';
@@ -8,7 +8,7 @@ import type { PageServerLoad } from './$types';
 const ITEMS_PER_PAGE = 15;
 const MAX_TAGS_FILTER = 5;
 
-type SortOption = 'date' | 'title' | 'username';
+type SortOption = 'relevance' | 'date' | 'title' | 'username';
 type OrderOption = 'asc' | 'desc';
 type ModeOption = 'all' | 'quiz' | 'speedrun';
 
@@ -18,11 +18,14 @@ export const load: PageServerLoad = async ({ url }) => {
 	const orderParam = url.searchParams.get('order');
 	const modeParam = url.searchParams.get('mode');
 	const tagsParam = url.searchParams.get('tags');
+	const searchQuery = url.searchParams.get('q')?.trim();
 
 	const page = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
-	const sort: SortOption = ['date', 'title', 'username'].includes(sortParam ?? '')
+	const sort: SortOption = ['relevance', 'date', 'title', 'username'].includes(sortParam ?? '')
 		? (sortParam as SortOption)
-		: 'date';
+		: searchQuery
+			? 'relevance'
+			: 'date';
 	const order: OrderOption = orderParam === 'asc' ? 'asc' : 'desc';
 	const mode: ModeOption = ['all', 'quiz', 'speedrun'].includes(modeParam ?? '')
 		? (modeParam as ModeOption)
@@ -57,27 +60,16 @@ export const load: PageServerLoad = async ({ url }) => {
 	const totalTagsResult = await db.select({ value: count() }).from(tags);
 	const totalTagsCount = totalTagsResult[0]?.value ?? 0;
 
-	// Build order clause based on sort option
-	const orderFn = order === 'asc' ? asc : desc;
-	let orderByClause;
+	const searchPattern = searchQuery ? `%${searchQuery}%` : null;
 
-	if (sort === 'title') {
-		orderByClause = orderFn(quizzes.title);
-	} else if (sort === 'username') {
-		orderByClause = orderFn(user.name);
-	} else {
-		orderByClause = orderFn(quizzes.createdAt);
-	}
-
-	// Build mode filter
-	let modeFilter;
-	if (mode === 'quiz') {
-		modeFilter = sql`${speedRuns.id} IS NULL`;
-	} else if (mode === 'speedrun') {
-		modeFilter = sql`${speedRuns.id} IS NOT NULL`;
-	} else {
-		modeFilter = undefined;
-	}
+	// Build relevance score using SQL CASE expressions (only if searching)
+	const relevanceScore = searchQuery
+		? sql<number>`(
+			CASE WHEN ${quizzes.title} ILIKE ${searchPattern} THEN 3 ELSE 0 END +
+			CASE WHEN ${quizzes.description} ILIKE ${searchPattern} THEN 2 ELSE 0 END +
+			CASE WHEN ${user.name} ILIKE ${searchPattern} THEN 1 ELSE 0 END
+		)`.as('relevance_score')
+		: sql<number>`0`.as('relevance_score');
 
 	// Find quiz IDs that have ALL selected tags (AND logic)
 	let matchingQuizIds: string[] | undefined = undefined;
@@ -101,9 +93,10 @@ export const load: PageServerLoad = async ({ url }) => {
 		if (matchingQuizIds.length === 0) {
 			return {
 				quizzes: [],
+				query: searchQuery,
 				currentPage: 1,
 				totalPages: 0,
-				totalCount: 0,
+				totalItems: 0,
 				sort,
 				order,
 				mode,
@@ -115,22 +108,42 @@ export const load: PageServerLoad = async ({ url }) => {
 	}
 
 	// Build WHERE clause
-	const baseWhere = eq(quizzes.visibility, 'public');
-	let whereClause;
-	if (modeFilter && matchingQuizIds) {
-		whereClause = and(baseWhere, modeFilter, inArray(quizzes.id, matchingQuizIds));
-	} else if (modeFilter) {
-		whereClause = and(baseWhere, modeFilter);
-	} else if (matchingQuizIds) {
-		whereClause = and(baseWhere, inArray(quizzes.id, matchingQuizIds));
-	} else {
-		whereClause = baseWhere;
+	const conditions: (
+		| ReturnType<typeof and>
+		| ReturnType<typeof or>
+		| ReturnType<typeof eq>
+		| ReturnType<typeof sql>
+	)[] = [eq(quizzes.visibility, 'public')];
+
+	if (searchQuery) {
+		conditions.push(
+			or(
+				ilike(quizzes.title, searchPattern!),
+				ilike(quizzes.description, searchPattern!),
+				ilike(user.name, searchPattern!)
+			)!
+		);
 	}
+
+	// Build mode filter
+	if (mode === 'quiz') {
+		conditions.push(sql`${speedRuns.id} IS NULL`);
+	} else if (mode === 'speedrun') {
+		conditions.push(sql`${speedRuns.id} IS NOT NULL`);
+	}
+
+	// Add tag filter using matching quiz IDs
+	if (matchingQuizIds) {
+		conditions.push(inArray(quizzes.id, matchingQuizIds));
+	}
+
+	const whereClause = and(...conditions);
 
 	// Get total count for pagination
 	const countResult = await db
 		.select({ value: count() })
 		.from(quizzes)
+		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause);
 
@@ -140,6 +153,21 @@ export const load: PageServerLoad = async ({ url }) => {
 	// Clamp page to valid range
 	const currentPage = Math.min(page, totalPages);
 	const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+	// Build order clause based on sort option
+	const orderFn = order === 'asc' ? asc : desc;
+	let orderByClause;
+
+	if (sort === 'title') {
+		orderByClause = orderFn(quizzes.title);
+	} else if (sort === 'username') {
+		orderByClause = orderFn(user.name);
+	} else if (sort === 'date') {
+		orderByClause = orderFn(quizzes.createdAt);
+	} else {
+		// Default: sort by relevance score (always desc for relevance), then by date
+		orderByClause = desc(relevanceScore);
+	}
 
 	// Fetch quizzes
 	const result = await db
@@ -151,13 +179,14 @@ export const load: PageServerLoad = async ({ url }) => {
 			createdAt: quizzes.createdAt,
 			creatorName: user.name,
 			creatorSlug: user.slug,
-			speedRunId: speedRuns.id
+			speedRunId: speedRuns.id,
+			relevanceScore
 		})
 		.from(quizzes)
 		.innerJoin(user, eq(quizzes.creatorId, user.id))
 		.leftJoin(speedRuns, eq(quizzes.id, speedRuns.quizId))
 		.where(whereClause)
-		.orderBy(orderByClause)
+		.orderBy(orderByClause, desc(quizzes.createdAt))
 		.limit(ITEMS_PER_PAGE)
 		.offset(offset);
 
@@ -202,9 +231,10 @@ export const load: PageServerLoad = async ({ url }) => {
 
 	return {
 		quizzes: quizzesList,
+		query: searchQuery,
 		currentPage,
 		totalPages,
-		totalCount,
+		totalItems: totalCount,
 		itemsPerPage: ITEMS_PER_PAGE,
 		sort,
 		order,

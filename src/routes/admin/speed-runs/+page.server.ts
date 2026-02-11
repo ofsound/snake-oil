@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { eq, desc, asc, count, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
@@ -10,19 +10,20 @@ import {
 	user as _user
 } from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
+import {
+	buildWhereClause,
+	buildOrderBy,
+	count,
+	ITEMS_PER_PAGE
+} from '$lib/server/pagination-utils';
 
 import type { PageServerLoad, Actions } from './$types';
-
-const ITEMS_PER_PAGE = 25;
-
-type SortField = 'created' | 'score' | 'time';
-type SortOrder = 'asc' | 'desc';
 
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
 	const quizFilter = url.searchParams.get('quiz') ?? 'all';
-	const sortField: SortField = (url.searchParams.get('sort') as SortField) ?? 'created';
-	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
+	const sortField = url.searchParams.get('sort') ?? 'created';
+	const sortOrder = (url.searchParams.get('order') as 'asc' | 'desc') ?? 'desc';
 	const suspiciousOnly = url.searchParams.get('suspicious') === 'true';
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
@@ -48,30 +49,36 @@ export const load: PageServerLoad = async ({ url }) => {
 	});
 
 	// Build where clause
-	let whereClause = undefined;
+	const filterConditions = [
+		...(quizFilter !== 'all' ? [{ field: speedRunResults.speedRunId, value: quizFilter }] : [])
+	];
 
-	if (quizFilter !== 'all') {
-		whereClause = eq(speedRunResults.speedRunId, quizFilter);
-	}
+	let whereClause = buildWhereClause(
+		'',
+		undefined,
+		filterConditions.length > 0 ? filterConditions : undefined
+	);
 
+	// Add suspicious filter using raw SQL
 	if (suspiciousOnly) {
-		// Flag results that are suspiciously fast (less than 1 second per question)
 		const suspiciousCondition = sql`${speedRunResults.totalTimeMs} < (${speedRunResults.totalQuestions} * 1000)`;
 		whereClause = whereClause
 			? sql`${whereClause} AND ${suspiciousCondition}`
 			: suspiciousCondition;
 	}
 
-	// Build order by
-	let orderByClause;
-	const orderFn = sortOrder === 'asc' ? asc : desc;
-
+	// Build order by - handle special case for score sorting
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	let orderByClause: any;
 	if (sortField === 'score') {
-		orderByClause = [orderFn(speedRunResults.correctCount), asc(speedRunResults.totalTimeMs)];
-	} else if (sortField === 'time') {
-		orderByClause = orderFn(speedRunResults.totalTimeMs);
+		orderByClause = [
+			buildOrderBy(speedRunResults.correctCount, sortOrder),
+			buildOrderBy(speedRunResults.totalTimeMs, 'asc')
+		];
 	} else {
-		orderByClause = orderFn(speedRunResults.createdAt);
+		const orderByField =
+			sortField === 'time' ? speedRunResults.totalTimeMs : speedRunResults.createdAt;
+		orderByClause = buildOrderBy(orderByField, sortOrder);
 	}
 
 	// Get speed run results
@@ -115,9 +122,9 @@ export const load: PageServerLoad = async ({ url }) => {
 	const totalPages = Math.ceil(totalResults / ITEMS_PER_PAGE);
 
 	return {
-		results: results.map((r) => ({
+		items: results.map((r) => ({
 			...r,
-			isSuspicious: r.totalTimeMs < r.totalQuestions * 1000 // Less than 1 second per question
+			isSuspicious: r.totalTimeMs < r.totalQuestions * 1000
 		})),
 		currentPage: page,
 		totalPages,
@@ -156,7 +163,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Result ID is required' });
 		}
 
-		// Get result details for audit log
 		const result = await db.query.speedRunResults.findFirst({
 			where: eq(speedRunResults.id, resultId),
 			with: {
@@ -177,10 +183,8 @@ export const actions: Actions = {
 			return fail(404, { error: 'Speed run result not found' });
 		}
 
-		// Delete the result
 		await db.delete(speedRunResults).where(eq(speedRunResults.id, resultId));
 
-		// Log the action
 		await logAdminAction(
 			locals.user.id,
 			AdminActionTypes.DELETE_SPEED_RUN_RESULT,
@@ -217,7 +221,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Speed run ID is required' });
 		}
 
-		// Get speed run and quiz details
 		const speedRun = await db.query.speedRuns.findFirst({
 			where: eq(speedRuns.id, speedRunId),
 			with: {
@@ -242,12 +245,10 @@ export const actions: Actions = {
 			return fail(404, { error: 'Speed run not found' });
 		}
 
-		// Verify title confirmation
 		if (confirmTitle !== speedRun.quiz.title) {
 			return fail(400, { error: 'Quiz title does not match' });
 		}
 
-		// Get count of results to be deleted
 		const countResult = await db
 			.select({ value: count() })
 			.from(speedRunResults)
@@ -255,10 +256,8 @@ export const actions: Actions = {
 
 		const resultsCount = countResult[0]?.value ?? 0;
 
-		// Delete all results for this speed run
 		await db.delete(speedRunResults).where(eq(speedRunResults.speedRunId, speedRunId));
 
-		// Log the action
 		await logAdminAction(
 			locals.user.id,
 			AdminActionTypes.CLEAR_LEADERBOARD,

@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { Component, Snippet } from 'svelte';
+	import type { Component } from 'svelte';
 
+	import AudioPreview from './AudioPreview.svelte';
 	import VariantSelector from './VariantSelector.svelte';
 	import SimpleGuessEditor from './variant-editors/SimpleGuessEditor.svelte';
 	import MultipleChoiceEditor from './variant-editors/MultipleChoiceEditor.svelte';
@@ -23,7 +24,10 @@
 		disabledVariantType?: boolean;
 		allowedVariantTypes?: VariantType[];
 		onChange: (updates: Partial<SoundbiteState>) => void;
-		afterVariantSelector?: Snippet;
+		/** URL of existing audio for preview in edit mode */
+		existingAudioUrl?: string;
+		/** Filename of existing audio */
+		existingAudioName?: string;
 	}
 
 	let {
@@ -36,8 +40,51 @@
 		disabledVariantType = false,
 		allowedVariantTypes,
 		onChange,
-		afterVariantSelector
+		existingAudioUrl,
+		existingAudioName
 	}: Props = $props();
+
+	// Track selected file for preview in create mode
+	let selectedFile: File | null = $state(null);
+	let objectUrl: string | null = $state(null);
+
+	// Cleanup object URL on component destroy or when file changes
+	$effect(() => {
+		return () => {
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+			}
+		};
+	});
+
+	function handleFileChange(event: Event) {
+		const input = event.target as HTMLInputElement;
+		const file = input.files?.[0] ?? null;
+
+		if (objectUrl) {
+			URL.revokeObjectURL(objectUrl);
+			objectUrl = null;
+		}
+
+		if (file) {
+			selectedFile = file;
+			objectUrl = URL.createObjectURL(file);
+		} else {
+			selectedFile = null;
+		}
+	}
+
+	// Determine which audio URL to use for preview
+	function getPreviewUrl(): string | null {
+		return objectUrl ?? existingAudioUrl ?? null;
+	}
+
+	function getPreviewFilename(): string | null {
+		if (selectedFile) {
+			return selectedFile.name;
+		}
+		return existingAudioName ?? null;
+	}
 
 	// Generate bracket notation field names
 	const fieldPrefix = $derived(`soundbite[${index}]`);
@@ -132,8 +179,6 @@
 		allowedTypes={allowedVariantTypes}
 	/>
 
-	{@render afterVariantSelector?.()}
-
 	{#if soundbite.variantType !== 'sequence' && soundbite.variantType !== 'rank' && soundbite.variantType !== 'multiple_match'}
 		<div class="flex flex-col gap-2">
 			<label class="text-sm font-medium text-text-primary" for={`file-${soundbite.id}`}>
@@ -146,7 +191,18 @@
 				accept="audio/mpeg,.mp3"
 				class="w-full text-sm text-text-primary file:mr-3 file:rounded-sm file:border file:border-border file:bg-surface-elevated file:px-2 file:py-1.5 file:font-medium"
 				required={fileInputRequired}
+				onchange={handleFileChange}
 			/>
+			{#if getPreviewUrl() && getPreviewFilename()}
+				{#snippet audioPreviewSnippet()}
+					{@const previewUrl = getPreviewUrl()}
+					{@const previewFilename = getPreviewFilename()}
+					{#if previewUrl && previewFilename}
+						<AudioPreview url={previewUrl} filename={previewFilename} />
+					{/if}
+				{/snippet}
+				{@render audioPreviewSnippet()}
+			{/if}
 		</div>
 	{/if}
 

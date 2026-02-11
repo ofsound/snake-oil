@@ -3,6 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
+	import Icon from './Icon.svelte';
+
 	import { resolvePath } from '$lib/utils';
 
 	interface Tag {
@@ -83,9 +85,10 @@
 			{#if activeTags.length > 0}
 				<button
 					type="button"
-					class="text-xs text-accent-indigo-text hover:opacity-80"
+					class="inline-flex items-center gap-1 text-xs text-accent-indigo-text hover:opacity-80"
 					onclick={clearAll}
 				>
+					<Icon name="close" size="xs" />
 					Clear all
 				</button>
 			{/if}
@@ -103,14 +106,7 @@
 							onclick={() => toggleTag(tagSlug)}
 						>
 							#{tag.label}
-							<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
+							<Icon name="close" size="xs" />
 						</button>
 					{/if}
 				{/each}
@@ -138,7 +134,8 @@
 					onclick={() => toggleTag(tag.slug)}
 					title={isDisabled ? `Maximum ${maxTags} tags allowed` : undefined}
 				>
-					#{tag.label}
+					<Icon name="tag" size="xs" class="mr-1 opacity-60" />
+					{tag.label}
 					<span class="ml-1 opacity-60">({tag.useCount})</span>
 				</button>
 			{/each}
@@ -151,9 +148,7 @@
 				class="inline-flex items-center text-sm text-accent-indigo-text hover:opacity-80"
 			>
 				View all {totalTagsCount} tags
-				<svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-				</svg>
+				<Icon name="chevron-right" size="sm" class="ml-1" />
 			</a>
 		{/if}
 	</div>

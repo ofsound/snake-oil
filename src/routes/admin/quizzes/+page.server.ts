@@ -1,52 +1,41 @@
 import { fail } from '@sveltejs/kit';
-import { eq, desc, asc, count, sql, like, or } from 'drizzle-orm';
+import { eq, like, or, sql } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
-import { quizzes, user, speedRuns, quizAnswers, soundbites } from '$lib/server/db/schema';
+import {
+	buildWhereClause,
+	buildOrderBy,
+	count,
+	ITEMS_PER_PAGE
+} from '$lib/server/pagination-utils';
+import { quizzes, user, speedRuns, soundbites, quizAnswers } from '$lib/server/db/schema';
 import { logAdminAction, AdminActionTypes, TargetTypes } from '$lib/server/audit-logger';
 import { handleQuizTagRemoval } from '$lib/server/tag-utils';
 
 import type { PageServerLoad, Actions } from './$types';
 
-const ITEMS_PER_PAGE = 25;
-
-type SortField = 'created' | 'title';
-type SortOrder = 'asc' | 'desc';
-
 export const load: PageServerLoad = async ({ url }) => {
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
 	const search = url.searchParams.get('search')?.trim() ?? '';
 	const visibilityFilter = url.searchParams.get('visibility') ?? 'all';
-	const sortField: SortField = (url.searchParams.get('sort') as SortField) ?? 'created';
-	const sortOrder: SortOrder = (url.searchParams.get('order') as SortOrder) ?? 'desc';
+	const sortField = url.searchParams.get('sort') ?? 'created';
+	const sortOrder = (url.searchParams.get('order') as 'asc' | 'desc') ?? 'desc';
 
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
-	let whereClause = undefined;
-
-	if (search) {
-		const searchPattern = `%${search}%`;
-		whereClause = or(like(quizzes.title, searchPattern), like(quizzes.description, searchPattern));
-	}
-
-	if (visibilityFilter !== 'all') {
-		const visibilityCondition = eq(quizzes.visibility, visibilityFilter);
-		whereClause = whereClause
-			? sql`${whereClause} AND ${visibilityCondition}`
-			: visibilityCondition;
-	}
+	let whereClause = buildWhereClause(
+		search,
+		[quizzes.title, quizzes.description],
+		visibilityFilter !== 'all'
+			? [{ field: quizzes.visibility, value: visibilityFilter }]
+			: undefined
+	);
 
 	// Build order by
-	let orderByClause;
-	const orderFn = sortOrder === 'asc' ? asc : desc;
-
-	if (sortField === 'title') {
-		orderByClause = orderFn(quizzes.title);
-	} else {
-		orderByClause = orderFn(quizzes.createdAt);
-	}
+	const orderByField = sortField === 'title' ? quizzes.title : quizzes.createdAt;
+	const orderByClause = buildOrderBy(orderByField, sortOrder);
 
 	// Get quizzes with creator info
 	const quizzesList = await db
@@ -82,7 +71,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const totalPages = Math.ceil(totalQuizzes / ITEMS_PER_PAGE);
 
 	return {
-		quizzes: quizzesList,
+		items: quizzesList,
 		currentPage: page,
 		totalPages,
 		totalItems: totalQuizzes,
@@ -114,7 +103,6 @@ export const actions: Actions = {
 			return fail(400, { error: 'Quiz ID is required' });
 		}
 
-		// Get quiz details
 		const quiz = await db.query.quizzes.findFirst({
 			where: eq(quizzes.id, quizId),
 			with: {
@@ -132,14 +120,12 @@ export const actions: Actions = {
 			return fail(404, { error: 'Quiz not found' });
 		}
 
-		// Verify title confirmation
 		if (confirmTitle !== quiz.title) {
 			return fail(400, {
 				error: 'Quiz title does not match. Please type the exact title to confirm deletion.'
 			});
 		}
 
-		// Get count of related data for audit log
 		const soundbiteCount = await db
 			.select({ value: count() })
 			.from(soundbites)
@@ -150,13 +136,9 @@ export const actions: Actions = {
 			.from(quizAnswers)
 			.where(eq(quizAnswers.quizId, quizId));
 
-		// Decrement tag counts before deletion (for public quizzes)
 		await handleQuizTagRemoval(db, quizId, quiz.visibility === 'public');
-
-		// Delete the quiz (cascades to soundbites, quizAnswers, speedRuns, quizTags)
 		await db.delete(quizzes).where(eq(quizzes.id, quizId));
 
-		// Log the action
 		await logAdminAction(
 			locals.user.id,
 			AdminActionTypes.DELETE_QUIZ,

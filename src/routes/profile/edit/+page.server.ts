@@ -2,11 +2,12 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { BLOB_READ_WRITE_TOKEN } from '$env/static/private';
 
+import { auth } from '$lib/auth';
 import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { uploadToBlob, deleteFromBlob } from '$lib/server/quiz-utils';
 
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions, PageServerLoad, RequestEvent } from './$types';
 
 const MAX_BIO_LENGTH = 2000;
 
@@ -205,6 +206,74 @@ export const actions: Actions = {
 		} catch (err) {
 			console.error('Failed to delete image:', err);
 			return fail(500, { error: 'Failed to delete image. Please try again.' });
+		}
+	},
+
+	updateName: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const formData = await request.formData();
+		const name = formData.get('name') as string;
+
+		if (!name || !name.trim()) {
+			return fail(400, { error: 'Display name is required' });
+		}
+
+		try {
+			// Update user name in database directly
+			await db
+				.update(user)
+				.set({
+					name: name.trim(),
+					updatedAt: new Date()
+				})
+				.where(eq(user.id, locals.user.id));
+
+			return { success: true, name: name.trim() };
+		} catch (err) {
+			console.error('Failed to update name:', err);
+			return fail(500, { error: 'Failed to update name. Please try again.' });
+		}
+	},
+
+	updatePassword: async ({ request, locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+
+		const formData = await request.formData();
+		const currentPassword = formData.get('currentPassword') as string;
+		const newPassword = formData.get('newPassword') as string;
+
+		if (!currentPassword) {
+			return fail(400, { error: 'Current password is required' });
+		}
+
+		if (!newPassword || newPassword.length < 8) {
+			return fail(400, { error: 'Password must be at least 8 characters' });
+		}
+
+		try {
+			// Use Better Auth's changePassword API which requires current password
+			await auth.api.changePassword({
+				body: {
+					currentPassword,
+					newPassword,
+					revokeOtherSessions: false
+				},
+				headers: request.headers
+			});
+
+			return { success: true };
+		} catch (err) {
+			console.error('Failed to update password:', err);
+			// Better Auth will throw specific errors for wrong current password
+			if (err instanceof Error && err.message.includes('Invalid password')) {
+				return fail(400, { error: 'Current password is incorrect' });
+			}
+			return fail(500, { error: 'Failed to update password. Please try again.' });
 		}
 	}
 };

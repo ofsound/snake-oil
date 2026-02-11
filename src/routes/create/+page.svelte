@@ -12,6 +12,7 @@
 	import SoundbiteFormSection from '$lib/components/SoundbiteFormSection.svelte';
 	import TagInput from '$lib/components/TagInput.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	import { buildQuizFormData } from '$lib/form-builder';
 	import { slugify } from '$lib/utils';
@@ -179,14 +180,7 @@
 							<div
 								class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-emerald-bg text-accent-emerald-text"
 							>
-								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-									/>
-								</svg>
+								<Icon name="quiz" size="lg" />
 							</div>
 							<div>
 								<div class="font-semibold text-text-primary">Standard Quiz</div>
@@ -195,17 +189,7 @@
 						</div>
 						{#if quizMode === 'standard'}
 							<div class="absolute top-4 right-4">
-								<svg
-									class="h-6 w-6 text-accent-emerald-text"
-									fill="currentColor"
-									viewBox="0 0 20 20"
-								>
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<Icon name="check-circle" size="lg" class="text-accent-emerald-text" />
 							</div>
 						{/if}
 					</button>
@@ -223,17 +207,10 @@
 							<div
 								class="flex h-10 w-10 items-center justify-center rounded-full bg-accent-amber-bg text-accent-amber-text"
 							>
-								<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M13 10V3L4 14h7v7l9-11h-7z"
-									/>
-								</svg>
+								<Icon name="lightning" size="lg" />
 							</div>
 							<div>
-								<div class="font-semibold text-text-primary">Speed Run ⚡</div>
+								<div class="font-semibold text-text-primary">Speed Run</div>
 								<div class="text-sm text-text-secondary">
 									Race against the clock! One question at a time.
 								</div>
@@ -241,13 +218,7 @@
 						</div>
 						{#if quizMode === 'speed_run'}
 							<div class="absolute top-4 right-4">
-								<svg class="h-6 w-6 text-accent-amber-text" fill="currentColor" viewBox="0 0 20 20">
-									<path
-										fill-rule="evenodd"
-										d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-										clip-rule="evenodd"
-									/>
-								</svg>
+								<Icon name="check-circle" size="lg" class="text-accent-amber-text" />
 							</div>
 						{/if}
 					</button>
@@ -256,7 +227,10 @@
 
 			{#if quizMode === 'speed_run'}
 				<div class="border-accent-amber-border mt-4 rounded-xl border bg-accent-amber-bg p-4">
-					<h3 class="mb-3 font-semibold text-accent-amber-text">Speed Run Settings</h3>
+					<h3 class="mb-3 flex items-center gap-2 font-semibold text-accent-amber-text">
+						<Icon name="settings" size="sm" />
+						Speed Run Settings
+					</h3>
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<FormField label="Time Per Question (seconds)" id="questionTimeLimit">
 							<FormInput
@@ -304,7 +278,14 @@
 					</div>
 
 					{#if unsupportedVariantCount > 0}
-						<div class="mt-3 rounded-md border border-border bg-accent-red-bg p-3">
+						<div
+							class="mt-3 flex items-start gap-2 rounded-md border border-border bg-accent-red-bg p-3"
+						>
+							<Icon
+								name="alert-circle"
+								size="sm"
+								class="mt-0.5 flex-shrink-0 text-accent-red-text"
+							/>
 							<p class="text-sm text-accent-red-text">
 								<strong>Warning:</strong> You have {unsupportedVariantCount} question(s) that use unsupported
 								variant types. Speed Run mode only supports Multiple Choice, Simple Guess, and Image Choice.
@@ -313,7 +294,8 @@
 						</div>
 					{/if}
 
-					<p class="mt-3 text-sm text-accent-amber-text">
+					<p class="mt-3 flex items-center gap-2 text-sm text-accent-amber-text">
+						<Icon name="info" size="sm" />
 						<strong>Note:</strong> Speed Run mode supports Multiple Choice, Simple Guess, and Image Choice
 						questions. Simple Guess allows unlimited attempts until time runs out!
 					</p>
@@ -406,9 +388,12 @@
 				class:bg-accent-amber-bg={isSpeedRun}
 				class:text-accent-amber-text={isSpeedRun}
 			>
-				{successMessage}
+				<div class="flex items-center gap-2">
+					<Icon name={isSpeedRun ? 'lightning' : 'check-circle'} size="sm" />
+					{successMessage}
+				</div>
 				{#if form?.slug && data.user?.slug}
-					<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>
+					<a class="ml-6 underline" href={resolve(`/${data.user.slug}/${form.slug}`)}>
 						{isSpeedRun ? 'View speed run' : 'View quiz'}
 					</a>
 					<a class="ml-2 underline" href={resolve(`/${data.user.slug}/${form.slug}/edit`)}
@@ -420,14 +405,21 @@
 
 		{#if errorMessage}
 			<div
-				class="rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
+				class="flex items-center gap-2 rounded-md border border-border bg-accent-red-bg px-4 py-3 text-sm text-accent-red-text"
 			>
+				<Icon name="error" size="sm" />
 				{errorMessage}
 			</div>
 		{/if}
 
 		<div class="mt-6 flex justify-end border-t border-border pt-6">
-			<Button type="submit" variant="primary" size="md" loading={submitting}>
+			<Button
+				type="submit"
+				variant="primary"
+				size="md"
+				loading={submitting}
+				icon={quizMode === 'speed_run' ? 'lightning' : 'plus'}
+			>
 				{submitting ? 'Creating...' : quizMode === 'speed_run' ? 'Create Speed Run' : 'Create Quiz'}
 			</Button>
 		</div>

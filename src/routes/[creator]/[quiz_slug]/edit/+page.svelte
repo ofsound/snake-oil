@@ -453,11 +453,9 @@
 									fileInputRequired={false}
 									fileInputLabel="Replace MP3 (optional)"
 									onChange={(updates) => updateExistingSoundbite(soundbite.id, updates)}
-								>
-									{#snippet afterVariantSelector()}
-										<p class="font-medium">{soundbite.trackName}</p>
-									{/snippet}
-								</SoundbiteEditor>
+									existingAudioUrl={soundbite.trackUrl}
+									existingAudioName={soundbite.trackName}
+								/>
 							</Card>
 						</div>
 					{/if}

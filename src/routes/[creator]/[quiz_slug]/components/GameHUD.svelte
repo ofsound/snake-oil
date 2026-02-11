@@ -2,6 +2,8 @@
 	import { scale } from 'svelte/transition';
 	import { elasticOut } from 'svelte/easing';
 
+	import Icon from '$lib/components/Icon.svelte';
+
 	import { formatTimeLong } from '$lib/speed-run/scoring';
 	interface Props {
 		progress: { current: number; total: number };
@@ -51,7 +53,7 @@
 			<div class="text-2xl font-bold text-white">
 				{formatTimeLong(globalTimeMs)}
 			</div>
-			<div class="text-white/60">⏱️</div>
+			<Icon name="timer" size="lg" class="text-white/60" />
 		</div>
 
 		<div class="flex items-center gap-3">
@@ -115,7 +117,7 @@
 					class="flex items-center gap-2 rounded-full bg-linear-to-r from-orange-500 to-red-500 px-4 py-2"
 					in:scale={{ duration: 400, easing: elasticOut, start: 0.5 }}
 				>
-					<span class="text-xl">🔥</span>
+					<Icon name="flame" size="md" class="text-white" />
 					<span class="font-bold text-white">{streak}</span>
 				</div>
 			{/key}

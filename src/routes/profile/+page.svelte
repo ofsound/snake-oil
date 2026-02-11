@@ -13,6 +13,7 @@
 	import RenderTiptapContent from '$lib/components/RenderTiptapContent.svelte';
 	import SubmissionRow from '$lib/components/SubmissionRow.svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
 	import { authClient } from '$lib/auth-client';
 
@@ -87,7 +88,7 @@
 						<div
 							class="flex h-[120px] w-[120px] items-center justify-center rounded-lg bg-surface-muted"
 						>
-							<span class="text-5xl">👤</span>
+							<Icon name="user-circle" size="xl" class="text-text-muted" />
 						</div>
 					{/if}
 				</div>
@@ -125,8 +126,16 @@
 					</div>
 
 					<div class="mt-4 flex items-baseline gap-3 rounded-md">
-						<Button variant="primary" size="sm" href="/profile/edit">Edit Profile</Button>
-						<Button variant="secondary" size="sm" onclick={handleSignOut} disabled={loading}>
+						<Button variant="primary" size="sm" href="/profile/edit" icon="edit">
+							Edit Profile
+						</Button>
+						<Button
+							variant="secondary"
+							size="sm"
+							onclick={handleSignOut}
+							disabled={loading}
+							icon="logout"
+						>
 							Log out
 						</Button>
 					</div>
@@ -163,7 +172,7 @@
 			{#if activeTab === 'quizzes'}
 				<div class="mb-4 flex items-center justify-between">
 					<ModeToggle variant="minimal" value={quizFilter} onChange={handleQuizFilterChange} />
-					<Button variant="accent" size="md" href="/create">Create Quiz</Button>
+					<Button variant="accent" size="md" href="/create" icon="plus">Create Quiz</Button>
 				</div>
 
 				{#if quizzes.length > 0}
@@ -190,7 +199,9 @@
 								You haven't created any quizzes yet.
 							{/if}
 						</p>
-						<Button variant="accent" size="md" href="/create">Create Your First Quiz</Button>
+						<Button variant="accent" size="md" href="/create" icon="plus">
+							Create Your First Quiz
+						</Button>
 					</div>
 				{/if}
 			{:else}

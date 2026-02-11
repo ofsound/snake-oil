@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { resolvePath } from '$lib/utils';
 
+	import Icon from './Icon.svelte';
+
 	import type { Snippet } from 'svelte';
+
 	interface Props {
 		variant?:
 			| 'primary'
@@ -25,8 +28,11 @@
 		target?: string;
 		rel?: string;
 		class?: string;
+		title?: string;
 		onclick?: (e: MouseEvent) => void;
-		children: Snippet;
+		icon?: any;
+		iconPosition?: 'left' | 'right';
+		children?: Snippet;
 	}
 
 	let {
@@ -42,7 +48,10 @@
 		target,
 		rel,
 		class: className = '',
+		title,
 		onclick,
+		icon,
+		iconPosition = 'left',
 		children
 	}: Props = $props();
 
@@ -74,7 +83,7 @@
 	};
 
 	const baseClasses =
-		'cursor-pointer rounded-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
+		'inline-flex items-center justify-center gap-2 cursor-pointer rounded-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
 	let classes = $derived.by(() => {
 		// If active and outline variant, show accent styling instead
@@ -105,10 +114,19 @@
 			: href}
 		{target}
 		{rel}
+		{title}
 		class={classes}
 		{onclick}
 	>
-		{@render children()}
+		{#if icon && iconPosition === 'left'}
+			<Icon name={icon} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+		{/if}
+		{#if children}
+			{@render children()}
+		{/if}
+		{#if icon && iconPosition === 'right'}
+			<Icon name={icon} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+		{/if}
 	</a>
 {:else}
 	<button {type} {form} class={classes} disabled={disabled || loading} {onclick}>
@@ -136,10 +154,20 @@
 				</svg>
 			</span>
 			<span class="invisible">
-				{@render children()}
+				{#if children}
+					{@render children()}
+				{/if}
 			</span>
 		{:else}
-			{@render children()}
+			{#if icon && iconPosition === 'left'}
+				<Icon name={icon} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+			{/if}
+			{#if children}
+				{@render children()}
+			{/if}
+			{#if icon && iconPosition === 'right'}
+				<Icon name={icon} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+			{/if}
 		{/if}
 	</button>
 {/if}

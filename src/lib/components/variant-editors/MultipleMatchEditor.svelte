@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AudioPreview from '../AudioPreview.svelte';
+
 	import { MAX_MULTIPLE_MATCH_ITEMS } from '$lib/constants/variants';
 	import type { VariantEditorProps } from '$lib/types/soundbite';
 
@@ -10,6 +12,15 @@
 	let isUploading = $state(false);
 	// Store actual File objects for form submission
 	let itemFiles = $state<Map<string, File>>(new Map());
+	// Store Object URLs for audio preview
+	let previewUrls = $state<Map<string, string>>(new Map());
+
+	// Cleanup Object URLs on component destroy
+	$effect(() => {
+		return () => {
+			previewUrls.forEach((url) => URL.revokeObjectURL(url));
+		};
+	});
 
 	function extractNameFromFilename(filename: string): string {
 		return filename
@@ -38,6 +49,8 @@
 			// Store the file for form submission
 			itemFiles.set(itemId, file);
 			newFiles.push(file);
+			// Create Object URL for preview
+			previewUrls.set(itemId, URL.createObjectURL(file));
 
 			newItems.push({
 				id: itemId,
@@ -69,6 +82,12 @@
 		// Remove from files map
 		if (itemToRemove.id) {
 			itemFiles.delete(itemToRemove.id);
+			// Revoke and remove Object URL
+			const objectUrl = previewUrls.get(itemToRemove.id);
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+				previewUrls.delete(itemToRemove.id);
+			}
 		}
 
 		// Remove the item from the items array
@@ -138,27 +157,13 @@
 
 			<div class="flex flex-col gap-3">
 				{#each items as item, index (item.id)}
+					{@const itemPreviewUrl = previewUrls.get(item.id) || item.url}
 					<div class="flex items-center gap-4">
-						<!-- Left Column: Audio Track Name (plain text) -->
+						<!-- Left Column: Audio Track with Preview -->
 						<div
 							class="flex h-[72px] flex-1 items-center rounded-lg border border-border bg-surface-elevated p-3 shadow-sm"
 						>
-							<div class="flex items-center gap-2">
-								<div
-									class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-emerald-bg"
-								>
-									<svg
-										class="h-4 w-4 text-accent-emerald-text"
-										viewBox="0 0 24 24"
-										fill="currentColor"
-									>
-										<path
-											d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"
-										/>
-									</svg>
-								</div>
-								<span class="text-sm font-medium text-text-primary">{item.name}</span>
-							</div>
+							<AudioPreview url={itemPreviewUrl} filename={item.name} />
 						</div>
 
 						<!-- Right Column: Answer Label (editable) -->

@@ -3,6 +3,8 @@
 
 	import { dndzone } from 'svelte-dnd-action';
 
+	import AudioPreview from '../AudioPreview.svelte';
+
 	import { MAX_RANK_ITEMS } from '$lib/constants/variants';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
@@ -15,6 +17,15 @@
 	let isUploading = $state(false);
 	// Store actual File objects for form submission
 	let itemFiles = $state<Map<string, File>>(new Map());
+	// Store Object URLs for audio preview
+	let previewUrls = $state<Map<string, string>>(new Map());
+
+	// Cleanup Object URLs on component destroy
+	$effect(() => {
+		return () => {
+			previewUrls.forEach((url) => URL.revokeObjectURL(url));
+		};
+	});
 
 	// Flip animation duration
 	const flipDurationMs = 200;
@@ -95,6 +106,8 @@
 			// Store the file for form submission
 			itemFiles.set(itemId, file);
 			newFiles.push(file);
+			// Create Object URL for preview
+			previewUrls.set(itemId, URL.createObjectURL(file));
 
 			newItems.push({
 				id: itemId,
@@ -131,6 +144,12 @@
 		const itemId = items[displayItemToRemove.itemIdx]?.id;
 		if (itemId) {
 			itemFiles.delete(itemId);
+			// Revoke and remove Object URL
+			const objectUrl = previewUrls.get(itemId);
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+				previewUrls.delete(itemId);
+			}
 		}
 
 		// Remove the item from the items array
@@ -261,6 +280,8 @@
 				aria-label="Draggable ranking items"
 			>
 				{#each displayItems as displayItem, index (displayItem.id)}
+					{@const item = items[displayItem.itemIdx]}
+					{@const itemPreviewUrl = item ? previewUrls.get(item.id) || item.url : ''}
 					<div
 						class="flex items-center gap-3 rounded border bg-surface-elevated p-2 shadow-sm"
 						animate:flip={{ duration: flipDurationMs }}
@@ -284,6 +305,8 @@
 						<span class="w-6 text-center font-mono text-sm font-bold text-text-muted">
 							{index + 1}
 						</span>
+
+						<AudioPreview url={itemPreviewUrl} filename={displayItem.name} />
 
 						<!-- Item Name Input -->
 						<input

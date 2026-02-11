@@ -9,7 +9,6 @@ const ROUTES = {
 	SIGNUP: '/signup',
 	PROFILE: '/profile',
 	QUIZZES: '/quizzes',
-	RESULTS: '/results',
 	CREATE: '/create',
 	PLAYER: '/player'
 } as const;

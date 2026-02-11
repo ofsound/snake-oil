@@ -1,4 +1,6 @@
 <script lang="ts">
+	import AudioPreview from '../AudioPreview.svelte';
+
 	import { MAX_SEQUENCE_TRACKS } from '$lib/constants/variants';
 
 	import type { VariantEditorProps } from '$lib/types/soundbite';
@@ -11,6 +13,15 @@
 	let isUploading = $state(false);
 	// Store actual File objects for form submission
 	let trackFiles = $state<Map<string, File>>(new Map());
+	// Store Object URLs for audio preview
+	let previewUrls = $state<Map<string, string>>(new Map());
+
+	// Cleanup Object URLs on component destroy
+	$effect(() => {
+		return () => {
+			previewUrls.forEach((url) => URL.revokeObjectURL(url));
+		};
+	});
 
 	// Update parent with files when they change
 	function notifyFilesChange() {
@@ -42,6 +53,8 @@
 
 			// Store the file for form submission
 			trackFiles.set(trackId, file);
+			// Create Object URL for preview
+			previewUrls.set(trackId, URL.createObjectURL(file));
 
 			newTracks.push({
 				id: trackId,
@@ -69,6 +82,12 @@
 		const trackToRemove = tracks[index];
 		if (trackToRemove) {
 			trackFiles.delete(trackToRemove.id);
+			// Revoke and remove Object URL
+			const objectUrl = previewUrls.get(trackToRemove.id);
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+				previewUrls.delete(trackToRemove.id);
+			}
 		}
 
 		const updatedTracks = tracks.filter((_, i) => i !== index);
@@ -176,10 +195,12 @@
 			<span class="text-sm font-medium text-text-primary">Tracks ({tracks.length})</span>
 			<div class="flex flex-col gap-2">
 				{#each tracks as track, index (track.id)}
+					{@const trackPreviewUrl = previewUrls.get(track.id) || track.url}
 					<div
 						class="flex items-center gap-2 rounded-sm border border-border bg-surface-elevated p-2"
 					>
 						<span class="w-6 text-center text-sm font-medium text-text-muted">{index + 1}</span>
+						<AudioPreview url={trackPreviewUrl} filename={track.name} />
 						<input
 							type="text"
 							value={track.name}

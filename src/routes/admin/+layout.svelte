@@ -1,16 +1,18 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
+	import Icon from '$lib/components/Icon.svelte';
+
 	let { children, data } = $props();
 
 	const navItems = [
-		{ href: '/admin', label: 'Dashboard', icon: '📊' },
-		{ href: '/admin/users', label: 'Users', icon: '👥' },
-		{ href: '/admin/quizzes', label: 'Quizzes', icon: '📝' },
-		{ href: '/admin/speed-runs', label: 'Speed Runs', icon: '⚡' },
-		{ href: '/admin/tags', label: 'Tags', icon: '🏷️' },
-		{ href: '/admin/audit-log', label: 'Audit Log', icon: '📋' }
-	];
+		{ href: '/admin', label: 'Dashboard', icon: 'chart' },
+		{ href: '/admin/users', label: 'Users', icon: 'users' },
+		{ href: '/admin/quizzes', label: 'Quizzes', icon: 'quiz' },
+		{ href: '/admin/speed-runs', label: 'Speed Runs', icon: 'lightning' },
+		{ href: '/admin/tags', label: 'Tags', icon: 'tags' },
+		{ href: '/admin/audit-log', label: 'Audit Log', icon: 'list' }
+	] as const;
 
 	const isAdmin = $derived(data.user?.role === 'admin');
 
@@ -47,8 +49,12 @@
 					<span class="text-sm text-admin-text-secondary"
 						>{data.user?.name || data.user?.email}</span
 					>
-					<a href="/" class="text-sm text-admin-accent-violet-text hover:opacity-80">
-						← Back to Site
+					<a
+						href="/"
+						class="inline-flex items-center gap-1 text-sm text-admin-accent-violet-text hover:opacity-80"
+					>
+						<Icon name="arrow-left" size="sm" />
+						Back to Site
 					</a>
 				</div>
 			</div>
@@ -75,7 +81,7 @@
 									? 'border-r-2 border-admin-accent-violet-border bg-admin-accent-violet-bg text-admin-accent-violet-text'
 									: 'text-admin-text-primary hover:bg-admin-surface-muted'}"
 							>
-								<span class="mr-3">{item.icon}</span>
+								<Icon name={item.icon} size="sm" class="mr-3" />
 								{item.label}
 							</a>
 						{/each}
@@ -92,14 +98,16 @@
 					<div class="space-y-2 border-t border-admin-border p-4">
 						<a
 							href="/create"
-							class="block w-full rounded bg-admin-accent-violet-bg px-4 py-2 text-center text-sm font-medium text-admin-accent-violet-text transition-colors hover:brightness-95"
+							class="inline-flex w-full items-center justify-center gap-2 rounded bg-admin-accent-violet-bg px-4 py-2 text-center text-sm font-medium text-admin-accent-violet-text transition-colors hover:brightness-95"
 						>
+							<Icon name="plus" size="sm" />
 							Create Quiz
 						</a>
 						<a
 							href="/quizzes"
-							class="block w-full rounded bg-admin-surface-muted px-4 py-2 text-center text-sm font-medium text-admin-text-primary transition-colors hover:bg-admin-surface-subtle"
+							class="inline-flex w-full items-center justify-center gap-2 rounded bg-admin-surface-muted px-4 py-2 text-center text-sm font-medium text-admin-text-primary transition-colors hover:bg-admin-surface-subtle"
 						>
+							<Icon name="grid" size="sm" />
 							View All Quizzes
 						</a>
 					</div>

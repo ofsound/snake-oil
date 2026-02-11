@@ -4,6 +4,7 @@
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	import Button from './Button.svelte';
+	import Icon from './Icon.svelte';
 
 	interface Props {
 		currentPage: number;
@@ -109,12 +110,13 @@
 				<!-- SSR Mode: Use anchor tags -->
 				<a
 					href={getPageUrl(currentPage - 1)}
-					class="rounded-lg border border-border-muted bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
+					class="inline-flex items-center gap-1 rounded-lg border border-border-muted bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
 					class:pointer-events-none={currentPage === 1}
 					class:opacity-50={currentPage === 1}
 					aria-disabled={currentPage === 1}
 				>
-					← Previous
+					<Icon name="chevron-left" size="sm" />
+					<span class="hidden sm:inline">Previous</span>
 				</a>
 
 				{#if mode === 'full'}
@@ -137,12 +139,13 @@
 
 				<a
 					href={getPageUrl(currentPage + 1)}
-					class="rounded-lg border border-border-muted bg-surface px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
+					class="inline-flex items-center gap-1 rounded-lg border border-border-muted bg-surface px-3 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-interactive-bg disabled:cursor-not-allowed disabled:opacity-50"
 					class:pointer-events-none={currentPage === totalPages}
 					class:opacity-50={currentPage === totalPages}
 					aria-disabled={currentPage === totalPages}
 				>
-					Next →
+					<span class="hidden sm:inline">Next</span>
+					<Icon name="chevron-right" size="sm" />
 				</a>
 			{:else}
 				<!-- Client Mode: Use Button component with goto() -->
@@ -151,8 +154,9 @@
 					size={variant === 'compact' ? 'xs' : 'sm'}
 					onclick={() => handlePageChange(currentPage - 1)}
 					disabled={currentPage === 1}
+					icon="chevron-left"
 				>
-					← Previous
+					<span class="hidden sm:inline">Previous</span>
 				</Button>
 
 				{#if mode === 'full'}
@@ -177,8 +181,10 @@
 					size={variant === 'compact' ? 'xs' : 'sm'}
 					onclick={() => handlePageChange(currentPage + 1)}
 					disabled={currentPage === totalPages}
+					icon="chevron-right"
+					iconPosition="right"
 				>
-					Next →
+					<span class="hidden sm:inline">Next</span>
 				</Button>
 			{/if}
 		</div>

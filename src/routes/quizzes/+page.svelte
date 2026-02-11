@@ -15,9 +15,10 @@
 
 	let mode = $derived(data.mode);
 	let activeTags = $derived(data.activeTags.map((t) => t.slug));
+	let isSearching = $derived(!!data.query);
 
 	function getDefaultOrder(column: string): 'asc' | 'desc' {
-		return column === 'date' ? 'desc' : 'asc';
+		return column === 'date' || column === 'relevance' ? 'desc' : 'asc';
 	}
 
 	function handleModeChange(newMode: 'all' | 'quiz' | 'speedrun') {
@@ -53,22 +54,35 @@
 	}
 
 	let description = $derived(() => {
+		const parts: string[] = [];
+		if (data.query) {
+			parts.push(`Search: "${data.query}"`);
+		}
 		if (data.activeTags.length > 0) {
-			return `${data.totalCount} result${data.totalCount === 1 ? '' : 's'}`;
+			return `${data.totalItems} result${data.totalItems === 1 ? '' : 's'}`;
 		}
 		if (mode === 'speedrun') {
-			return `${data.totalCount} speed run${data.totalCount === 1 ? '' : 's'} available`;
+			parts.push(`${data.totalItems} speed run${data.totalItems === 1 ? '' : 's'} available`);
+		} else if (mode === 'quiz') {
+			parts.push(`${data.totalItems} quiz${data.totalItems === 1 ? '' : 'zes'} available`);
+		} else {
+			parts.push(
+				`${data.totalItems} quiz${data.totalItems === 1 ? '' : 'zes'} and speed runs available`
+			);
 		}
-		if (mode === 'quiz') {
-			return `${data.totalCount} quiz${data.totalCount === 1 ? '' : 'zes'} available`;
-		}
-		return `${data.totalCount} quiz${data.totalCount === 1 ? '' : 'zes'} and speed runs available`;
+		return parts.join(' — ');
 	});
 
 	let emptyMessage = $derived(() => {
+		if (data.activeTags.length > 0 && data.query) {
+			return 'No quizzes found matching your search and selected tags.';
+		}
 		if (data.activeTags.length > 0) {
 			const tagNames = data.activeTags.map((t) => `#${t.label}`).join(', ');
 			return `No quizzes found with ${tagNames}`;
+		}
+		if (data.query) {
+			return 'No quizzes found matching your search.';
 		}
 		if (mode === 'speedrun') {
 			return 'No speed runs available yet. Check back soon!';
@@ -77,6 +91,18 @@
 			return 'No quizzes available yet. Check back soon!';
 		}
 		return 'No quizzes available yet. Check back soon!';
+	});
+
+	let sortOptions = $derived(() => {
+		const options = [
+			{ value: 'title', label: 'Title' },
+			{ value: 'username', label: 'Creator' },
+			{ value: 'date', label: 'Date' }
+		];
+		if (isSearching) {
+			options.unshift({ value: 'relevance', label: 'Relevance' });
+		}
+		return options;
 	});
 </script>
 
@@ -166,15 +192,15 @@
 				order={data.order}
 				description={description()}
 				basePath="/quizzes"
-				sortOptions={[
-					{ value: 'title', label: 'Title' },
-					{ value: 'username', label: 'Creator' },
-					{ value: 'date', label: 'Date' }
-				]}
+				searchValue={data.query ?? ''}
+				sortOptions={sortOptions()}
 				onSortDefaultOrder={getDefaultOrder}
 				emptyState={{
 					message: emptyMessage(),
-					link: data.activeTags.length > 0 ? { text: 'Clear filters', href: '/quizzes' } : undefined
+					link:
+						data.activeTags.length > 0 || data.query
+							? { text: 'View all quizzes', href: '/quizzes' }
+							: undefined
 				}}
 			/>
 		</div>

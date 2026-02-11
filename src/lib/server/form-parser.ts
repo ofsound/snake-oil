@@ -81,7 +81,11 @@ const QuizFormSchema = z.object({
 				return z.NEVER;
 			}
 		}),
-	soundbites: z.array(SoundbiteFormSchema).min(1, 'At least one soundbite is required'),
+	soundbites: z
+		.array(SoundbiteFormSchema)
+		.refine((soundbites) => soundbites.filter((sb) => sb.removed !== 'true').length >= 1, {
+			message: 'At least one soundbite is required'
+		}),
 	tags: z
 		.string()
 		.optional()
