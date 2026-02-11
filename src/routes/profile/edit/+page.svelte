@@ -29,7 +29,8 @@
 	let fileInput = $state<HTMLInputElement | null>(null);
 
 	// Name change state - initialized from props, but editable
-	let displayName = $state(data.user.name || '');
+	// svelte-ignore state_referenced_locally
+	let displayName = $state(data.user.name ?? '');
 	let updatingName = $state(false);
 	let nameError = $state<string | null>(null);
 	let nameSuccess = $state<string | null>(null);
@@ -37,7 +38,7 @@
 	// Sync displayName when data.user.name changes (e.g., after successful update)
 	$effect(() => {
 		if (data.user.name !== undefined && displayName !== data.user.name) {
-			displayName = data.user.name;
+			displayName = data.user.name ?? '';
 		}
 	});
 

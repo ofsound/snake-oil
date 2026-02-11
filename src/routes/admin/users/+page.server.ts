@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ url }) => {
 				: [])
 	];
 
-	const whereClause = buildWhereClause(
+	let whereClause = buildWhereClause(
 		search,
 		[user.name, user.slug, user.email],
 		filterConditions.length > 0 ? filterConditions : undefined

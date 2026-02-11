@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
-	const whereClause = buildWhereClause(
+	let whereClause = buildWhereClause(
 		search,
 		[quizzes.title, quizzes.description],
 		visibilityFilter !== 'all'
