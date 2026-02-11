@@ -7,7 +7,7 @@ import { db } from '$lib/server/db';
 import { user } from '$lib/server/db/schema';
 import { uploadToBlob, deleteFromBlob } from '$lib/server/quiz-utils';
 
-import type { Actions, PageServerLoad, RequestEvent } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 const MAX_BIO_LENGTH = 2000;
 

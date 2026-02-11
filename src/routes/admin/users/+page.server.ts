@@ -1,4 +1,4 @@
-import { count, eq, sql } from 'drizzle-orm';
+import { count, sql } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
 import { buildWhereClause, buildOrderBy, ITEMS_PER_PAGE } from '$lib/server/pagination-utils';
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ url }) => {
 				: [])
 	];
 
-	let whereClause = buildWhereClause(
+	const whereClause = buildWhereClause(
 		search,
 		[user.name, user.slug, user.email],
 		filterConditions.length > 0 ? filterConditions : undefined

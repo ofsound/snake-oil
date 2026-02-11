@@ -80,76 +80,74 @@
 	emptyMessage="No users found"
 	headers={['User', 'Role', 'Status', 'Stats', 'Joined', 'Actions']}
 >
-	{#snippet children()}
-		{#each data.items as user (user.id)}
-			<tr class="hover:bg-admin-surface-muted">
-				<td class="px-6 py-4 whitespace-nowrap">
-					<div class="flex items-center">
-						<div class="h-10 w-10 shrink-0">
-							{#if user.image}
-								<img class="h-10 w-10 rounded-full" src={user.image} alt={user.name || ''} />
-							{:else}
-								<div
-									class="flex h-10 w-10 items-center justify-center rounded-full bg-admin-surface-subtle"
-								>
-									<span class="font-medium text-admin-text-secondary">
-										{(user.name || user.slug || '?').charAt(0).toUpperCase()}
-									</span>
-								</div>
-							{/if}
-						</div>
-						<div class="ml-4">
-							<div class="text-sm font-medium text-admin-text-primary">
-								{user.name || 'Unnamed'}
+	{#each data.items as user (user.id)}
+		<tr class="hover:bg-admin-surface-muted">
+			<td class="px-6 py-4 whitespace-nowrap">
+				<div class="flex items-center">
+					<div class="h-10 w-10 shrink-0">
+						{#if user.image}
+							<img class="h-10 w-10 rounded-full" src={user.image} alt={user.name || ''} />
+						{:else}
+							<div
+								class="flex h-10 w-10 items-center justify-center rounded-full bg-admin-surface-subtle"
+							>
+								<span class="font-medium text-admin-text-secondary">
+									{(user.name || user.slug || '?').charAt(0).toUpperCase()}
+								</span>
 							</div>
-							<div class="text-sm text-admin-text-muted">@{user.slug}</div>
+						{/if}
+					</div>
+					<div class="ml-4">
+						<div class="text-sm font-medium text-admin-text-primary">
+							{user.name || 'Unnamed'}
 						</div>
+						<div class="text-sm text-admin-text-muted">@{user.slug}</div>
 					</div>
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
+				</div>
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				<span
+					class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {getRoleBadgeClass(
+						user.role
+					)}"
+				>
+					{getRoleLabel(user.role)}
+				</span>
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				{#if user.isSuspended}
 					<span
-						class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {getRoleBadgeClass(
-							user.role
-						)}"
+						class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
 					>
-						{getRoleLabel(user.role)}
+						Suspended
 					</span>
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
-					{#if user.isSuspended}
-						<span
-							class="inline-flex items-center rounded-full bg-admin-accent-red-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-red-text"
-						>
-							Suspended
-						</span>
-					{:else}
-						<span
-							class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
-						>
-							Active
-						</span>
-					{/if}
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
-					<div class="text-sm text-admin-text-primary">{user.quizCount} quizzes</div>
-					<div class="text-xs text-admin-text-muted">
-						{user.submissionCount} submissions · {user.speedRunCount} speed runs
-					</div>
-				</td>
-				<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
-					<time title={new Date(user.createdAt).toLocaleString()}>
-						{formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
-					</time>
-				</td>
-				<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-					<a
-						href="/admin/users/{user.id}"
-						class="text-admin-accent-violet-text hover:text-admin-text-primary"
+				{:else}
+					<span
+						class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
 					>
-						View
-					</a>
-				</td>
-			</tr>
-		{/each}
-	{/snippet}
+						Active
+					</span>
+				{/if}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				<div class="text-sm text-admin-text-primary">{user.quizCount} quizzes</div>
+				<div class="text-xs text-admin-text-muted">
+					{user.submissionCount} submissions · {user.speedRunCount} speed runs
+				</div>
+			</td>
+			<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
+				<time title={new Date(user.createdAt).toLocaleString()}>
+					{formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+				</time>
+			</td>
+			<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+				<a
+					href="/admin/users/{user.id}"
+					class="text-admin-accent-violet-text hover:text-admin-text-primary"
+				>
+					View
+				</a>
+			</td>
+		</tr>
+	{/each}
 </AdminDataTable>

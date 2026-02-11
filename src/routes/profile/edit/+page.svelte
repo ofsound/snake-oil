@@ -16,14 +16,9 @@
 
 	let { data, form }: PageProps & { form: ActionData } = $props();
 
-	let bio = $state<JSONContent>({ type: 'doc', content: [] });
+	let bio = $derived<JSONContent>((data.user.bio as JSONContent) || { type: 'doc', content: [] });
 	let bioTextLength = $state(0);
-	let imagePreview = $state<string | null>(null);
-
-	$effect(() => {
-		bio = (data.user.bio as JSONContent) || { type: 'doc', content: [] };
-		imagePreview = data.user.image || null;
-	});
+	let imagePreview = $derived<string | null>(data.user.image || null);
 	let selectedFile = $state<File | null>(null);
 	let processingImage = $state(false);
 	let saving = $state(false);
@@ -33,14 +28,17 @@
 	let editorRef = $state<TiptapEditor | null>(null);
 	let fileInput = $state<HTMLInputElement | null>(null);
 
-	// Name change state
-	let displayName = $state('');
+	// Name change state - initialized from props, but editable
+	let displayName = $state(data.user.name || '');
 	let updatingName = $state(false);
 	let nameError = $state<string | null>(null);
 	let nameSuccess = $state<string | null>(null);
 
+	// Sync displayName when data.user.name changes (e.g., after successful update)
 	$effect(() => {
-		displayName = data.user.name || '';
+		if (data.user.name !== undefined && displayName !== data.user.name) {
+			displayName = data.user.name;
+		}
 	});
 
 	// Password change state

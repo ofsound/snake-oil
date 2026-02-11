@@ -30,7 +30,7 @@
 		class?: string;
 		title?: string;
 		onclick?: (e: MouseEvent) => void;
-		icon?: any;
+		icon?: string;
 		iconPosition?: 'left' | 'right';
 		children?: Snippet;
 	}

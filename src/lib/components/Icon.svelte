@@ -495,6 +495,7 @@
 		role={label ? 'img' : 'presentation'}
 		{...rest}
 	>
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 		{@html icon.path}
 	</svg>
 {:else}

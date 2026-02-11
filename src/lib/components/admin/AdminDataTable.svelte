@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
-	import { formatDistanceToNow } from 'date-fns';
-
 	import Button from '../Button.svelte';
 	import PageContainer from '../PageContainer.svelte';
 	import Pagination from '../Pagination.svelte';
-	import Icon from '../Icon.svelte';
 
 	import type { Snippet } from 'svelte';
 
@@ -32,13 +29,13 @@
 		itemName: string;
 		filters: FilterConfig[];
 		data: {
-			items: any[];
+			items: unknown[];
 			currentPage: number;
 			totalPages: number;
 			totalItems: number;
 			itemsPerPage: number;
 			filters: Record<string, string | boolean>;
-			[key: string]: any; // For dynamic data like quizzes, filterOptions
+			[key: string]: unknown; // For dynamic data like quizzes, filterOptions
 		};
 		emptyMessage: string;
 		headers: string[];
@@ -86,6 +83,7 @@
 		if (!filter.dynamicOptions) return filter.options ?? [];
 
 		const keys = filter.dynamicOptions.split('.');
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		let value: any = data;
 		for (const key of keys) {
 			value = value?.[key];
@@ -108,8 +106,6 @@
 
 		return filter.options ?? [];
 	}
-
-	export { formatDistanceToNow };
 </script>
 
 <PageContainer>

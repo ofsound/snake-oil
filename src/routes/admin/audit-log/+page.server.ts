@@ -1,6 +1,6 @@
 import { db } from '$lib/server/db';
 import { adminActions } from '$lib/server/db/schema';
-import { count, eq, sql } from 'drizzle-orm';
+import { count } from 'drizzle-orm';
 
 import { buildWhereClause, buildOrderBy, ITEMS_PER_PAGE } from '$lib/server/pagination-utils';
 

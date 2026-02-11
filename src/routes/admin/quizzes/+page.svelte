@@ -64,72 +64,70 @@
 	emptyMessage="No quizzes found"
 	headers={['Quiz', 'Creator', 'Visibility', 'Type', 'Created', 'Actions']}
 >
-	{#snippet children()}
-		{#each data.items as quiz (quiz.id)}
-			<tr class="hover:bg-admin-surface-muted">
-				<td class="px-6 py-4">
-					<div class="text-sm font-medium text-admin-text-primary">{quiz.title}</div>
-					<div class="max-w-xs truncate text-sm text-admin-text-muted">{quiz.description}</div>
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
-					<a
-						href="/admin/users/{quiz.creatorId}"
-						class="text-sm text-admin-accent-violet-text hover:text-admin-text-primary"
+	{#each data.items as quiz (quiz.id)}
+		<tr class="hover:bg-admin-surface-muted">
+			<td class="px-6 py-4">
+				<div class="text-sm font-medium text-admin-text-primary">{quiz.title}</div>
+				<div class="max-w-xs truncate text-sm text-admin-text-muted">{quiz.description}</div>
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				<a
+					href="/admin/users/{quiz.creatorId}"
+					class="text-sm text-admin-accent-violet-text hover:text-admin-text-primary"
+				>
+					{quiz.creatorName || quiz.creatorSlug}
+				</a>
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				{#if quiz.visibility === 'public'}
+					<span
+						class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
 					>
-						{quiz.creatorName || quiz.creatorSlug}
+						Public
+					</span>
+				{:else}
+					<span
+						class="inline-flex items-center rounded-full bg-admin-surface-muted px-2.5 py-0.5 text-xs font-medium text-admin-text-primary"
+					>
+						Private
+					</span>
+				{/if}
+			</td>
+			<td class="px-6 py-4 whitespace-nowrap">
+				{#if quiz.speedRunId}
+					<span
+						class="inline-flex items-center rounded-full bg-admin-accent-violet-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-violet-text"
+					>
+						Speed Run
+					</span>
+				{:else}
+					<span class="text-sm text-admin-text-muted">Regular</span>
+				{/if}
+			</td>
+			<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
+				<time title={new Date(quiz.createdAt).toLocaleString()}>
+					{formatDistanceToNow(new Date(quiz.createdAt), { addSuffix: true })}
+				</time>
+			</td>
+			<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
+				<div class="flex gap-2">
+					<a
+						href="/{quiz.creatorSlug}/{quiz.slug}"
+						target="_blank"
+						class="text-admin-accent-violet-text hover:text-admin-text-primary"
+					>
+						View
 					</a>
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
-					{#if quiz.visibility === 'public'}
-						<span
-							class="inline-flex items-center rounded-full bg-admin-accent-emerald-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-emerald-text"
-						>
-							Public
-						</span>
-					{:else}
-						<span
-							class="inline-flex items-center rounded-full bg-admin-surface-muted px-2.5 py-0.5 text-xs font-medium text-admin-text-primary"
-						>
-							Private
-						</span>
-					{/if}
-				</td>
-				<td class="px-6 py-4 whitespace-nowrap">
-					{#if quiz.speedRunId}
-						<span
-							class="inline-flex items-center rounded-full bg-admin-accent-violet-bg px-2.5 py-0.5 text-xs font-medium text-admin-accent-violet-text"
-						>
-							Speed Run
-						</span>
-					{:else}
-						<span class="text-sm text-admin-text-muted">Regular</span>
-					{/if}
-				</td>
-				<td class="px-6 py-4 text-sm whitespace-nowrap text-admin-text-muted">
-					<time title={new Date(quiz.createdAt).toLocaleString()}>
-						{formatDistanceToNow(new Date(quiz.createdAt), { addSuffix: true })}
-					</time>
-				</td>
-				<td class="px-6 py-4 text-sm font-medium whitespace-nowrap">
-					<div class="flex gap-2">
-						<a
-							href="/{quiz.creatorSlug}/{quiz.slug}"
-							target="_blank"
-							class="text-admin-accent-violet-text hover:text-admin-text-primary"
-						>
-							View
-						</a>
-						<button
-							onclick={() => openDeleteModal(quiz)}
-							class="text-admin-accent-red-text hover:text-admin-text-primary"
-						>
-							Delete
-						</button>
-					</div>
-				</td>
-			</tr>
-		{/each}
-	{/snippet}
+					<button
+						onclick={() => openDeleteModal(quiz)}
+						class="text-admin-accent-red-text hover:text-admin-text-primary"
+					>
+						Delete
+					</button>
+				</div>
+			</td>
+		</tr>
+	{/each}
 </AdminDataTable>
 
 <!-- Delete Modal -->

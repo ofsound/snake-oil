@@ -1,5 +1,5 @@
 import { fail } from '@sveltejs/kit';
-import { count, eq, like, or, sql } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 
 import { canDeleteQuiz } from '$lib/server/permissions';
 import { db } from '$lib/server/db';
@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const offset = (page - 1) * ITEMS_PER_PAGE;
 
 	// Build where clause
-	let whereClause = buildWhereClause(
+	const whereClause = buildWhereClause(
 		search,
 		[quizzes.title, quizzes.description],
 		visibilityFilter !== 'all'
