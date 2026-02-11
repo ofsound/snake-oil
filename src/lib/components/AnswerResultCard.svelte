@@ -21,7 +21,7 @@
 		variantConfig: VariantConfig;
 	};
 
-	let { answerDetail, variantConfig }: Props = $props();
+	const { answerDetail, variantConfig }: Props = $props();
 
 	function getUserAnswerText(): string {
 		if (answerDetail.variantType === 'simple_guess') {
@@ -63,14 +63,14 @@
 		return answerDetail.guess;
 	}
 
-	let correctAnswerText = $derived(getCorrectAnswerText(variantConfig));
-	let userAnswerText = $derived(getUserAnswerText());
-	let kendallTauScore = $derived(
+	const correctAnswerText = $derived(getCorrectAnswerText(variantConfig));
+	const userAnswerText = $derived(getUserAnswerText());
+	const kendallTauScore = $derived(
 		variantConfig.type === 'rank' && answerDetail.userOrder
 			? calculateKendallTauPercentage(answerDetail.userOrder, variantConfig.correctOrder)
 			: 0
 	);
-	let multipleMatchScore = $derived(
+	const multipleMatchScore = $derived(
 		variantConfig.type === 'multiple_match' && answerDetail.userOrder
 			? calculateMultipleMatchScore(answerDetail.userOrder)
 			: 0
