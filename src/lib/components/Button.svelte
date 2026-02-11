@@ -3,6 +3,7 @@
 
 	import Icon from './Icon.svelte';
 
+	import type { IconName } from './Icon.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
@@ -119,13 +120,13 @@
 		{onclick}
 	>
 		{#if icon && iconPosition === 'left'}
-			<Icon name={icon as any} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+			<Icon name={icon as IconName} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
 		{/if}
 		{#if children}
 			{@render children()}
 		{/if}
 		{#if icon && iconPosition === 'right'}
-			<Icon name={icon as any} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+			<Icon name={icon as IconName} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
 		{/if}
 	</a>
 {:else}
@@ -160,13 +161,13 @@
 			</span>
 		{:else}
 			{#if icon && iconPosition === 'left'}
-				<Icon name={icon as any} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+				<Icon name={icon as IconName} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
 			{/if}
 			{#if children}
 				{@render children()}
 			{/if}
 			{#if icon && iconPosition === 'right'}
-				<Icon name={icon as any} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
+				<Icon name={icon as IconName} size={size === 'xs' ? 'xs' : size === 'sm' ? 'sm' : 'md'} />
 			{/if}
 		{/if}
 	</button>
